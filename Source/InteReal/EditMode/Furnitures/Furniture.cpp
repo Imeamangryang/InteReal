@@ -9,6 +9,7 @@ AFurniture::AFurniture()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	RootComponent = MeshComponent;
+	MeshComponent->bReceivesDecals = false;
 }
 
 void AFurniture::BeginPlay()

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteriorPlacementManager.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "DrawDebugHelpers.h"
 
 AInteriorPlacementManager::AInteriorPlacementManager()
 {
@@ -8,11 +10,52 @@ AInteriorPlacementManager::AInteriorPlacementManager()
 	Grid = nullptr;
 	PreviewFurniture = nullptr;
 	PreviewFurnitureData = nullptr;
+
+	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = Root;
+
+	GridDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("GridDecal"));
+	GridDecal->SetupAttachment(RootComponent);
+	
+	GridDecal->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f));
+	GridDecal->SetFadeScreenSize(0.0f); 
+	GridDecal->SetVisibility(false);
 }
 
 void AInteriorPlacementManager::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay(); 
+	InitializeGrid(GridLength, GridBreadth, GridCellSize);
+}
+
+void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData& FloorData, float Cell)
+{
+	if (FloorData.vertices.IsEmpty())
+	{
+		return;
+	}
+
+	float MinX = TNumericLimits<float>::Max();
+	float MaxX = TNumericLimits<float>::Lowest();
+	float MinY = TNumericLimits<float>::Max();
+	float MaxY = TNumericLimits<float>::Lowest();
+
+	for (const FTopologyVertex& V : FloorData.vertices)
+	{
+		MinX = FMath::Min(MinX, V.x);
+		MaxX = FMath::Max(MaxX, V.x);
+		MinY = FMath::Min(MinY, V.y);
+		MaxY = FMath::Max(MaxY, V.y);
+	}
+
+	// 도면 중심으로 액터 이동 (Z는 유지)
+	float CenterX = (MinX + MaxX) * 0.5f;
+	float CenterY = (MinY + MaxY) * 0.5f;
+	SetActorLocation(FVector(CenterX, CenterY, GetActorLocation().Z));
+
+	int Length = FMath::CeilToInt((MaxX - MinX) / Cell);
+	int Breadth = FMath::CeilToInt((MaxY - MinY) / Cell);
+	InitializeGrid(Length, Breadth, Cell);
 }
 
 void AInteriorPlacementManager::InitializeGrid(int Length, int Breadth, float Cell)
@@ -21,13 +64,27 @@ void AInteriorPlacementManager::InitializeGrid(int Length, int Breadth, float Ce
 	Grid->Initialize(Length, Breadth, Cell);
 	CellSize = Grid->GetCellSize();
 
-	// BoundsActor는 100x100 UU 기준 평면 메시를 사용한다고 가정
-	if (BoundsActor)
+	// DecalSize: X = 투영 깊이(바닥 아래로), Y/Z = 범위 반절
+	float HalfX = Length * CellSize * 0.5f;
+	float HalfY = Breadth * CellSize * 0.5f;
+	GridDecal->DecalSize = FVector(50.0f, HalfX, HalfY);
+
+	if (GridMaterial)
 	{
-		float ScaleX = Length * CellSize / 100.0f;
-		float ScaleY = Breadth * CellSize / 100.0f;
-		BoundsActor->SetActorRelativeScale3D(FVector(ScaleX, ScaleY, 1.0f));
+		UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(GridMaterial, this);
+		DynMat->SetScalarParameterValue(TEXT("CellSize"), Cell);
+		GridDecal->SetDecalMaterial(DynMat);
 	}
+}
+
+void AInteriorPlacementManager::SetGridVisible(bool bVisible)
+{
+	GridDecal->SetVisibility(bVisible);
+}
+
+bool AInteriorPlacementManager::HasActivePreview() const
+{
+	return PreviewFurniture != nullptr;
 }
 
 bool AInteriorPlacementManager::IsPreviewLotEmpty()
@@ -36,7 +93,6 @@ bool AInteriorPlacementManager::IsPreviewLotEmpty()
 	{
 		return false;
 	}
-		
 
 	int L = (int)PreviewFurnitureData->Dimensions.X;
 	int B = (int)PreviewFurnitureData->Dimensions.Y;
@@ -54,10 +110,36 @@ bool AInteriorPlacementManager::IsPreviewLotEmpty()
 	return true;
 }
 
+bool AInteriorPlacementManager::IsPreviewBoundsEmpty() const
+{
+	if (!PreviewFurniture)
+	{
+		return false;
+	}
+
+	FBox PreviewBox = PreviewFurniture->GetComponentsBoundingBox().ExpandBy(-1.0f);
+
+	for (AFurniture* Placed : PlacedFurnitures)
+	{
+		if (!IsValid(Placed))
+		{
+			continue;
+		}
+
+		if (PreviewBox.Intersect(Placed->GetComponentsBoundingBox()))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void AInteriorPlacementManager::ConfirmFurniture()
 {
-	if (!PreviewFurniture || !IsPreviewLotEmpty())
+	if (!PreviewFurniture || !IsPreviewBoundsEmpty())
+	{
 		return;
+	}
 
 	int L = (int)PreviewFurnitureData->Dimensions.X;
 	int B = (int)PreviewFurnitureData->Dimensions.Y;
@@ -71,6 +153,7 @@ void AInteriorPlacementManager::ConfirmFurniture()
 	}
 
 	PreviewFurniture->SetPlacementState(EPlacementState::Placed);
+	PlacedFurnitures.Add(PreviewFurniture);
 	PreviewFurniture = nullptr;
 	PreviewFurnitureData = nullptr;
 }
@@ -84,17 +167,23 @@ void AInteriorPlacementManager::CreatePreviewFurniture(FVector RayPosition, FRot
 	}
 
 	if (!FurnitureDataList.IsValidIndex(FurnitureID))
+	{
 		return;
+	}
 
 	PreviewFurnitureData = FurnitureDataList[FurnitureID];
 	if (!PreviewFurnitureData || !PreviewFurnitureData->FurnitureBP)
+	{
 		return;
+	}
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(PreviewFurnitureData->FurnitureBP, RayPosition, Rotation, Params);
 	if (!PreviewFurniture)
+	{
 		return;
+	}
 
 	PreviewFurniture->FurnitureData = PreviewFurnitureData;
 	UpdatePreviewLocation(RayPosition);
@@ -103,25 +192,65 @@ void AInteriorPlacementManager::CreatePreviewFurniture(FVector RayPosition, FRot
 void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 {
 	if (!PreviewFurniture || !PreviewFurnitureData || !Grid)
+	{
 		return;
+	}
 
-	// 그리드 셀에 스냅
 	FVector2D GridPos = Grid->ToGridPosition(RayPosition);
 	int SnapX = (int)GridPos.X;
 	int SnapY = (int)GridPos.Y;
 
-	// 가구 중심 기준으로 좌상단 앵커 계산 (ConfirmFurniture에서 재사용)
 	int L = (int)PreviewFurnitureData->Dimensions.X;
 	int B = (int)PreviewFurnitureData->Dimensions.Y;
 	PreviewGridAnchor = FVector2D(SnapX - L / 2, SnapY - B / 2);
 
-	// 스냅된 셀 중심 월드 좌표로 이동
 	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(SnapX, SnapY));
 	PreviewFurniture->SetActorLocation(SnappedWorld);
 
-	// 빈 칸이면 Preview(초록), 막혀있으면 Invalid(빨강)
-	EPlacementState NewState = IsPreviewLotEmpty() ? EPlacementState::Preview : EPlacementState::Invalid;
+	EPlacementState NewState = IsPreviewBoundsEmpty() ? EPlacementState::Preview : EPlacementState::Invalid;
 	PreviewFurniture->SetPlacementState(NewState);
+
+	FVector Center, Extent;
+	PreviewFurniture->GetActorBounds(false, Center, Extent);
+	FColor BoxColor = (NewState == EPlacementState::Preview) ? FColor::Green : FColor::Red;
+	DrawDebugBox(GetWorld(), Center, Extent, BoxColor, false, -1.0f, 0, 2.0f);
+}
+
+void AInteriorPlacementManager::DrawBounds() const
+{
+	for (AFurniture* Placed : PlacedFurnitures)
+	{
+		if (!IsValid(Placed))
+		{
+			continue;
+		}
+
+		FVector Center, Extent;
+		Placed->GetActorBounds(false, Center, Extent);
+		DrawDebugBox(GetWorld(), Center, Extent, FColor::White, false, -1.0f, 0, 2.0f);
+	}
+}
+
+void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
+{
+	if (!Target || !Grid)
+	{
+		return;
+	}
+
+	for (int i = 0; i < Grid->GetLength(); i++)
+	{
+		for (int j = 0; j < Grid->GetBreadth(); j++)
+		{
+			if (Grid->GetFurniture(FVector2D(i, j)) == Target)
+			{
+				Grid->SetFurniture(FVector2D(i, j), nullptr);
+			}
+		}
+	}
+
+	PlacedFurnitures.Remove(Target);
+	Target->Destroy();
 }
 
 void AInteriorPlacementManager::CancelPreview()

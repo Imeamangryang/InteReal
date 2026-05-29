@@ -8,8 +8,7 @@
 // Sets default values
 AGridSpaceManager::AGridSpaceManager()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 // Called when the game starts or when spawned
@@ -62,7 +61,6 @@ FVector2D AGridSpaceManager::ToGridPosition(FVector WorldPosition)
 
 FVector AGridSpaceManager::ToWorldPosition(FVector2D GridPosition)
 {
-	// 셀의 중심 좌표를 반환
 	float WorldX = (GridPosition.X - Length * 0.5f + 0.5f) * CellSize;
 	float WorldY = (GridPosition.Y - Breadth * 0.5f + 0.5f) * CellSize;
 	return FVector(WorldX, WorldY, 0.0f);
@@ -73,7 +71,10 @@ int AGridSpaceManager::GetIndex(FVector2D GridPosition)
 	int X = (int)GridPosition.X;
 	int Y = (int)GridPosition.Y;
 	if (X < 0 || X >= Length || Y < 0 || Y >= Breadth)
+	{
 		return -1;
+	}
+		
 	return X * Breadth + Y;
 }
 
@@ -87,7 +88,10 @@ AActor* AGridSpaceManager::GetFurniture(FVector2D GridPosition)
 {
 	int index = GetIndex(GridPosition);
 	if (index == -1)
+	{
 		return nullptr;
+	}
+		
 	return GridCells[index];
 }
 
@@ -95,7 +99,10 @@ AActor* AGridSpaceManager::GetFurnitureWorld(FVector WorldPosition)
 {
 	int index = GetIndex(ToGridPosition(WorldPosition));
 	if (index == -1)
+	{
 		return nullptr;
+	}
+		
 	return GridCells[index];
 }
 
@@ -103,7 +110,10 @@ void AGridSpaceManager::SetFurniture(FVector2D GridPosition, AActor* Furniture)
 {
 	int index = GetIndex(GridPosition);
 	if (index == -1)
+	{
 		return;
+	}
+		
 	GridCells[index] = Furniture;
 }
 
@@ -111,36 +121,30 @@ void AGridSpaceManager::SetFurnitureWorld(FVector WorldPosition, AActor* Furnitu
 {
 	int index = GetIndex(ToGridPosition(WorldPosition));
 	if (index == -1)
+	{
 		return;
+	}
+		
 	GridCells[index] = Furniture;
 }
 
-// TODO: 추후 교체, 그리드 시각화 (임시)
 void AGridSpaceManager::DrawGridLines()
 {
-	// 가로선 그리기 (Y축을 가로지르는 선들)
 	for (int i = 0; i <= Length; i++)
 	{
-		// 그리드 왼쪽 끝과 오른쪽 끝 좌표 계산
 		FVector Start = ToWorldPosition(FVector2D(i, 0)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
-		FVector End = ToWorldPosition(FVector2D(i, Breadth)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
-
-		// Z축 높이를 바닥에서 살짝 띄워주기 (1.0f)
+		FVector End   = ToWorldPosition(FVector2D(i, Breadth)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
 		Start.Z = 1.0f;
-		End.Z = 1.0f;
-
-		DrawDebugLine(GetWorld(), Start, End, FColor::White, false, -1.0f, 0, 2.0f);
+		End.Z   = 1.0f;
+		DrawDebugLine(GetWorld(), Start, End, FColor::White, false, -1.0f, 0, 0.5f);
 	}
 
-	// 세로선 그리기 (X축을 가로지르는 선들)
 	for (int j = 0; j <= Breadth; j++)
 	{
 		FVector Start = ToWorldPosition(FVector2D(0, j)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
-		FVector End = ToWorldPosition(FVector2D(Length, j)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
-
+		FVector End   = ToWorldPosition(FVector2D(Length, j)) - FVector(CellSize * 0.5f, CellSize * 0.5f, 0.0f);
 		Start.Z = 1.0f;
-		End.Z = 1.0f;
-
-		DrawDebugLine(GetWorld(), Start, End, FColor::White, false, -1.0f, 0, 2.0f);
+		End.Z   = 1.0f;
+		DrawDebugLine(GetWorld(), Start, End, FColor::White, false, -1.0f, 0, 0.5f);
 	}
 }

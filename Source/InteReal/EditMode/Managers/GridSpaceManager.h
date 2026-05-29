@@ -28,7 +28,7 @@ private:
 	int Breadth;
 	float CellSize;
 	TArray<AActor*> GridCells;
-	
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void Initialize(int L, int B, float Cell);
