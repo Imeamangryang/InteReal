@@ -45,4 +45,8 @@ private:
     // 생성된 위젯 인스턴스 보관용 포인터
     UPROPERTY(Transient)
     TObjectPtr<UHarnessCaptureMinimapWidget> MinimapWidget;
+
+    // 머티리얼 적용 대기 후 캡처를 위한 타이머
+    FTimerHandle CaptureTimerHandle;
+    void DelayedCapture();
 };

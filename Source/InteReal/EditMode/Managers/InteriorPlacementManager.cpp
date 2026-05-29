@@ -158,7 +158,7 @@ void AInteriorPlacementManager::ConfirmFurniture()
 	PreviewFurnitureData = nullptr;
 }
 
-void AInteriorPlacementManager::CreatePreviewFurniture(FVector RayPosition, FRotator Rotation, int FurnitureID)
+void AInteriorPlacementManager::CreatePreviewFurnitureFromData(FVector RayPosition, FRotator Rotation, UFurnitureData* InFurnitureData)
 {
 	if (PreviewFurniture)
 	{
@@ -166,16 +166,12 @@ void AInteriorPlacementManager::CreatePreviewFurniture(FVector RayPosition, FRot
 		PreviewFurniture = nullptr;
 	}
 
-	if (!FurnitureDataList.IsValidIndex(FurnitureID))
+	if (!InFurnitureData || !InFurnitureData->FurnitureBP)
 	{
 		return;
 	}
 
-	PreviewFurnitureData = FurnitureDataList[FurnitureID];
-	if (!PreviewFurnitureData || !PreviewFurnitureData->FurnitureBP)
-	{
-		return;
-	}
+	PreviewFurnitureData = InFurnitureData;
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -185,7 +181,7 @@ void AInteriorPlacementManager::CreatePreviewFurniture(FVector RayPosition, FRot
 		return;
 	}
 
-	PreviewFurniture->FurnitureData = PreviewFurnitureData;
+	PreviewFurniture->ApplyFurnitureData(PreviewFurnitureData);
 	UpdatePreviewLocation(RayPosition);
 }
 

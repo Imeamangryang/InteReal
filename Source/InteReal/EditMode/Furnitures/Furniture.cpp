@@ -48,3 +48,27 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 			break;
 	}
 }
+
+void AFurniture::ApplyFurnitureData(UFurnitureData* InFurnitureData)
+{
+	// Furniture Data를 기반으로 스태틱 메시 설정
+	
+	FurnitureData = InFurnitureData;
+
+	if (!FurnitureData)
+	{
+		return;
+	}
+
+	if (FurnitureData->FurnitureMesh)
+	{
+		MeshComponent->SetStaticMesh(FurnitureData->FurnitureMesh);
+	}
+
+	if (UMaterialInterface* OriginalMat = MeshComponent->GetMaterial(0))
+	{
+		DynamicMaterial = UMaterialInstanceDynamic::Create(OriginalMat, this);
+		MeshComponent->SetMaterial(0, DynamicMaterial);
+		SetPlacementState(PlacementState);
+	}
+}

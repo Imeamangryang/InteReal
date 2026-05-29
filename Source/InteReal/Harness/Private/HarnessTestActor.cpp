@@ -58,17 +58,23 @@ void AHarnessTestActor::BeginPlay()
             {
                 MinimapWidget->InjectMinimapData(CaptureComponent, MinimapRT);
                 MinimapWidget->AddToViewport();
-                
+
                 APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
                 if (PC)
                 {
                     PC->SetShowMouseCursor(true);
-                    
                     FInputModeGameAndUI InputMode;
                     InputMode.SetWidgetToFocus(MinimapWidget->TakeWidget());
                     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
                     PC->SetInputMode(InputMode);
                 }
+
+                // 매 프레임 캡처를 비활성화하여 렌더링 성능 확보
+                CaptureComponent->bCaptureEveryFrame = false;
+                CaptureComponent->bCaptureOnMovement = false;
+
+                // 동적 메쉬에 머티리얼이 완전히 씌워질 시간을 확보한 뒤 수동으로 단일 캡처 실행
+                GetWorld()->GetTimerManager().SetTimer(CaptureTimerHandle, this, &AHarnessTestActor::DelayedCapture, 1.0f, false);
             }
         }
         else
@@ -79,5 +85,15 @@ void AHarnessTestActor::BeginPlay()
     else
     {
         UE_LOG(LogTemp, Error, TEXT("[HarnessTestActor] JSON Load Failed! Reason: %s"), *ErrorMessage);
+    }
+}
+
+void AHarnessTestActor::DelayedCapture()
+{
+    if (CaptureComponent)
+    {
+        // 렌더 타겟에 현재 화면을 한 번만 업데이트(사진 찍기)
+        CaptureComponent->CaptureScene();
+        UE_LOG(LogTemp, Log, TEXT("[Harness] 미니맵 머티리얼 지연 캡처 완료!"));
     }
 }

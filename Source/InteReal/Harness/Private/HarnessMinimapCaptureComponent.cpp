@@ -7,7 +7,10 @@ UHarnessMinimapCaptureComponent::UHarnessMinimapCaptureComponent()
 	// 미니맵용 캡처 디폴트 세팅
 	ProjectionType = ECameraProjectionMode::Orthographic;
 	CaptureSource = SCS_FinalColorLDR;
-	bCaptureEveryFrame = true;
+	
+	bCaptureEveryFrame = false;
+	bCaptureOnMovement = false;
+	
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetPostProcessing(false);
     

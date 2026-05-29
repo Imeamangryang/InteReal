@@ -5,6 +5,7 @@
 
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Components/Overlay.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
@@ -93,10 +94,14 @@ void UHarnessCaptureMinimapWidget::NativeTick(const FGeometry& MyGeometry, float
     FVector2D MinimapSize = MinimapSlot->GetSize();
     if (MinimapSize.X <= 0 || MinimapSize.Y <= 0) return;
 
-    // 💡 [버그 수정 3] 세로축 비율 계산 시 OrthoHeight 제거 후 정방형 뷰포트 스펙 변환 일치
+    // 세로축 비율 계산 시 OrthoHeight 제거 후 정방형 뷰포트 스펙 변환 일치
     float U = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
     float V = 0.5f - ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
 
+    // 플레이어가 맵 밖으로 나가도 아이콘은 미니맵 끝에 걸리도록 가두기 (Clamp)
+    U = FMath::Clamp(U, 0.0f, 1.0f);
+    V = FMath::Clamp(V, 0.0f, 1.0f);
+    
     // MinimapImage의 Alignment(0.0, 1.0) 설정을 역산하여 좌상단 오프셋 보정
     FVector2D MinimapPos = MinimapSlot->GetPosition();
     FVector2D MinimapAlignment = MinimapSlot->GetAlignment();

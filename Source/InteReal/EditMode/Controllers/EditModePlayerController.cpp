@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "EditModePlayerController.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furnitures/FurnitureData.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
@@ -150,5 +149,26 @@ void AEditModePlayerController::OnTestSpawn()
 	{
 		return;
 	}
-	PlacementManager->CreatePreviewFurniture(CurrentCursorWorldLoc, FRotator::ZeroRotator, 0);
+	StartFurniturePlacement(PlacementManager->FurnitureDataList[0]);
+}
+
+void AEditModePlayerController::StartFurniturePlacement(UFurnitureData* FurnitureData)
+{
+	if (!PlacementManager || !FurnitureData)
+	{
+		return;
+	}
+
+	if (PlacementManager->HasActivePreview())
+	{
+		PlacementManager->CancelPreview();
+	}
+
+	const FVector PreviewSpawnLocation = bIsHitting ? CurrentCursorWorldLoc : FVector::ZeroVector;
+
+	PlacementManager->CreatePreviewFurnitureFromData(
+		PreviewSpawnLocation,
+		FRotator::ZeroRotator,
+		FurnitureData
+	);
 }

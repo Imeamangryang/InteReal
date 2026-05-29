@@ -77,7 +77,7 @@ public:
 	void ConfirmFurniture();
 
 	UFUNCTION(BlueprintCallable)
-	void CreatePreviewFurniture(FVector RayPosition, FRotator Rotation, int FurnitureID);
+	void CreatePreviewFurnitureFromData(FVector RayPosition, FRotator Rotation, UFurnitureData* InFurnitureData);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdatePreviewLocation(FVector RayPosition);

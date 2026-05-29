@@ -9,6 +9,7 @@
 class AInteriorPlacementManager;
 class UInputMappingContext;
 class UInputAction;
+class UFurnitureData;
 
 UCLASS()
 class INTEREAL_API AEditModePlayerController : public APlayerController
@@ -17,6 +18,9 @@ class INTEREAL_API AEditModePlayerController : public APlayerController
 
 public:
 	AEditModePlayerController();
+	
+	UFUNCTION(BlueprintCallable, Category = "EditMode | Furniture")
+	void StartFurniturePlacement(UFurnitureData* FurnitureData);
 
 protected:
 	virtual void BeginPlay() override;

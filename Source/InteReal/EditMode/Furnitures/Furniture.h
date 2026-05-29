@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -31,18 +29,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UStaticMeshComponent* MeshComponent;
 
-
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
-	
+
 public:
-	UPROPERTY()
-	UMaterialInstanceDynamic* DynamicMaterial;
-	
-	UFUNCTION(BlueprintCallable, Category = "Furniture")
-	void SetPlacementState(EPlacementState NewState);	
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
 	UFurnitureData* FurnitureData;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynamicMaterial;
+
+	UFUNCTION(BlueprintCallable, Category = "Furniture")
+	void SetPlacementState(EPlacementState NewState);
+
+	UFUNCTION(BlueprintCallable, Category = "Furniture")
+	void ApplyFurnitureData(UFurnitureData* InFurnitureData);
 };

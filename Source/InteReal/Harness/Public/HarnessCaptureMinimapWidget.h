@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "HarnessCaptureMinimapWidget.generated.h"
 
+class UOverlay;
 class UHarnessMinimapCaptureComponent;
 class ASceneCapture2D;
 class UImage;
@@ -21,7 +22,7 @@ public:
 	UImage* MinimapImage;
 
 	UPROPERTY(meta = (BindWidget))
-	UImage* PlayerIcon;
+	UOverlay* PlayerIcon;
 	
 
 	UPROPERTY(BlueprintReadWrite, Category = "Minimap")

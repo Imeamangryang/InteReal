@@ -24,6 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture")
 	TObjectPtr<UTexture2D> DisplayImage = nullptr;
 	
+	// 스태틱 메시
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FurnitureData")
+	TObjectPtr<UStaticMesh> FurnitureMesh = nullptr;
+	
 	// 가로(X) x 세로(Y) 칸 수
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FurnitureData")
 	FVector2D Dimensions = FVector2D(1, 1);
