@@ -25,7 +25,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
 	void AdjustToBoundingBox(FVector2D MinBounds, FVector2D MaxBounds, float Padding = 500.0f);
 
+protected:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextureRenderTarget2D> MinimapRenderTarget;
+
+	FVector2D CachedMin;
+	FVector2D CachedMax;
 };

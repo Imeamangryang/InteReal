@@ -25,7 +25,7 @@ protected:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
 	UDecalComponent* GridDecal;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
 	UMaterialInterface* GridMaterial;
 
@@ -37,7 +37,7 @@ public:
 	int GridBreadth = 20;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Manual")
-	float GridCellSize = 50.0f;
+	float GridCellSize = 10.0f;
 
 	// 배치 가능한 가구 데이터 목록 (FurnitureID = index)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
@@ -45,11 +45,17 @@ public:
 
 private:
 	AGridSpaceManager* Grid;
-	float CellSize;
 
 	AFurniture* PreviewFurniture;
 	UFurnitureData* PreviewFurnitureData;
 	FVector2D PreviewGridAnchor;
+
+	// DataAsset 원본을 건드리지 않기 위한 런타임 복사본
+	// RotatePreview 시 이 값만 Swap하고 DataAsset은 불변 유지
+	FVector2D CurrentDimensions = FVector2D::ZeroVector;
+
+	FRotator PreviewRotation = FRotator::ZeroRotator;
+	FVector LastRayPosition = FVector::ZeroVector;
 
 	TArray<AFurniture*> PlacedFurnitures;
 
@@ -71,7 +77,6 @@ public:
 	bool IsPreviewLotEmpty();
 
 	bool IsPreviewBoundsEmpty() const;
-	void DrawBounds() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ConfirmFurniture();
@@ -87,4 +92,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveFurniture(AFurniture* Target);
+
+	// 프리뷰 가구를 90도 단위로 회전. 회전 시 CurrentDimensions X/Y가 스왑됨
+	UFUNCTION(BlueprintCallable)
+	void RotatePreview(float AngleDeg = 90.0f);
+
+	UFUNCTION(BlueprintCallable, Category = "Interior | WebCommunication")
+	FString ExportPlacedFurnituresJson();
+
+	UFUNCTION(BlueprintCallable, Category = "Interior | WebCommunication")
+	void ImportPlacedFurnituresJson(const FString& JsonString);
+
+	UFurnitureData* FindFurnitureDataByID(int32 TargetID);
 };

@@ -39,6 +39,10 @@ public:
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaterial;
 
+	// ConfirmFurniture 시점에 매니저가 주입. RemoveFurniture에서 전수조사 없이 해당 타일만 정리하는 데 사용
+	FVector2D PlacedGridAnchor = FVector2D::ZeroVector;
+	FVector2D PlacedDimensions = FVector2D::ZeroVector;
+
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	void SetPlacementState(EPlacementState NewState);
 

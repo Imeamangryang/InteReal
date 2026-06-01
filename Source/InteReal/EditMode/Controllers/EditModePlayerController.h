@@ -18,9 +18,13 @@ class INTEREAL_API AEditModePlayerController : public APlayerController
 
 public:
 	AEditModePlayerController();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "EditMode | Furniture")
 	void StartFurniturePlacement(UFurnitureData* FurnitureData);
+
+	// 웹 프론트엔드(EmitUIInteraction)에서 들어오는 JSON 명령 수신 단일 창구
+	UFUNCTION(BlueprintCallable, Category = "EditMode | Web")
+	void ReceiveWebCommand(const FString& JsonString);
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,6 +49,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "EditMode | Input")
 	UInputAction* IA_Remove;
+	
+	UPROPERTY(EditAnywhere, Category = "EditMode | Input")
+	UInputAction* IA_Rotate;
 
 private:
 	bool bGridVisible = false;
@@ -59,5 +66,6 @@ private:
 	void ToggleGrid();
 	void OnPlace();
 	void OnRemove();
+	void OnRotatePreview();
 	void OnTestSpawn(); // TODO: 나중에 UI로 교체
 };

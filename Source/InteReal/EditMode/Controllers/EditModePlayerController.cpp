@@ -5,6 +5,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
 
 AEditModePlayerController::AEditModePlayerController()
 {
@@ -56,7 +58,9 @@ void AEditModePlayerController::SetupInputComponent()
 
 	EIC->BindAction(IA_Place, ETriggerEvent::Started, this, &AEditModePlayerController::OnPlace);
 	EIC->BindAction(IA_Remove, ETriggerEvent::Started, this, &AEditModePlayerController::OnRemove);
+	EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AEditModePlayerController::OnRotatePreview);
 
+	// 테스트용
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AEditModePlayerController::ToggleGrid);
 	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &AEditModePlayerController::OnTestSpawn);
 }
@@ -66,11 +70,6 @@ void AEditModePlayerController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateCursorHit();
-
-	if (PlacementManager && bGridVisible)
-	{
-		PlacementManager->DrawBounds();
-	}
 
 	if (!PlacementManager || !bIsHitting)
 	{
@@ -143,6 +142,16 @@ void AEditModePlayerController::OnRemove()
 	PlacementManager->RemoveFurniture(HitFurniture);
 }
 
+void AEditModePlayerController::OnRotatePreview()
+{
+	if (!PlacementManager || !PlacementManager->HasActivePreview())
+	{
+		return;
+	}
+
+	PlacementManager->RotatePreview(90.0f);
+}
+
 void AEditModePlayerController::OnTestSpawn()
 {
 	if (!PlacementManager || !bIsHitting)
@@ -150,6 +159,67 @@ void AEditModePlayerController::OnTestSpawn()
 		return;
 	}
 	StartFurniturePlacement(PlacementManager->FurnitureDataList[0]);
+}
+
+void AEditModePlayerController::ReceiveWebCommand(const FString& JsonString)
+{
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EditMode] Invalid web command JSON: %s"), *JsonString);
+		return;
+	}
+
+	FString Action;
+	if (!Root->TryGetStringField(TEXT("action"), Action) || !PlacementManager)
+	{
+		return;
+	}
+
+	if (Action == TEXT("SELECT_KIND"))
+	{
+		int32 ID = Root->GetIntegerField(TEXT("furnitureId"));
+		UFurnitureData* Data = PlacementManager->FindFurnitureDataByID(ID);
+		if (Data)
+		{
+			StartFurniturePlacement(Data);
+		}
+	}
+	else if (Action == TEXT("ROTATE"))
+	{
+		if (PlacementManager->HasActivePreview())
+		{
+			PlacementManager->RotatePreview(90.0f);
+		}
+	}
+	else if (Action == TEXT("CONFIRM"))
+	{
+		if (PlacementManager->HasActivePreview())
+		{
+			PlacementManager->ConfirmFurniture();
+			// TODO: ExportPlacedFurnituresJson() 결과를 PixelStreaming 플러그인으로 웹에 역송출
+		}
+	}
+	else if (Action == TEXT("CANCEL"))
+	{
+		if (PlacementManager->HasActivePreview())
+		{
+			PlacementManager->CancelPreview();
+		}
+	}
+	else if (Action == TEXT("LOAD"))
+	{
+		FString Payload;
+		if (Root->TryGetStringField(TEXT("data"), Payload))
+		{
+			PlacementManager->ImportPlacedFurnituresJson(Payload);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EditMode] Unknown web action: %s"), *Action);
+	}
 }
 
 void AEditModePlayerController::StartFurniturePlacement(UFurnitureData* FurnitureData)

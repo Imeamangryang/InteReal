@@ -24,6 +24,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
     TObjectPtr<UMaterialInterface> DefaultFallbackMaterial = nullptr;
 
+    // 에디터에서 즉시 끄고 켤 수 있는 인테리어 조명 토글
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Lighting")
+    bool bEnableInteriorLights = true;
+    
     UFUNCTION(BlueprintCallable, Category="Harness")
     void BuildHarness(const FHarnessFloorData& FloorData);
 
@@ -44,6 +48,8 @@ private:
     // 텔레포트 시 방 좌표를 찾기 위해 원본 JSON 데이터를 저장해둘 멤버 변수 추가
     FHarnessFloorData CachedFloorData;
     
+    // 💡 각 방의 중앙에 임시 조명을 배치하는 함수
+    void InstallInteriorLights(const FHarnessFloorData& FloorData);
 public:
     // 카메라나 위젯 등 외부 모듈에서 도면의 전체 크기를 알 수 있도록 Bounds 반환
     UFUNCTION(BlueprintCallable, Category="Harness|Data")

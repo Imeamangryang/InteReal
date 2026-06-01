@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "layout_type": "U_Shaped_Courtyard_House",
+    "scale_unit": "cm",
+    "reference_coordinate_system": "UE_Z_Up_Y_Right"
+  },
+  "vertices": [
+    { "id": "v0", "x": 0.0, "y": 0.0 },
+    { "id": "v1", "x": 1500.0, "y": 0.0 },
+    { "id": "v2", "x": 1500.0, "y": 1500.0 },
+    { "id": "v3", "x": 0.0, "y": 1500.0 },
+    { "id": "v4", "x": 500.0, "y": 500.0 },
+    { "id": "v5", "x": 1000.0, "y": 500.0 },
+    { "id": "v6", "x": 1000.0, "y": 1500.0 },
+    { "id": "v7", "x": 500.0, "y": 1500.0 }
+  ],
+  "half_edges": [
+    { "id": "he_out_0_1", "vertex_start": "v0", "vertex_end": "v1", "twin_id": "he_out_1_0", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_0", "vertex_start": "v1", "vertex_end": "v0", "twin_id": "he_out_0_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_2", "vertex_start": "v1", "vertex_end": "v2", "twin_id": "he_out_2_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_2_1", "vertex_start": "v2", "vertex_end": "v1", "twin_id": "he_out_1_2", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_2_6", "vertex_start": "v2", "vertex_end": "v6", "twin_id": "he_out_6_2", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_6_2", "vertex_start": "v6", "vertex_end": "v2", "twin_id": "he_out_2_6", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_6_5", "vertex_start": "v6", "vertex_end": "v5", "twin_id": "he_in_5_6", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_5_6", "vertex_start": "v5", "vertex_end": "v6", "twin_id": "he_in_6_5", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_5_4", "vertex_start": "v5", "vertex_end": "v4", "twin_id": "he_in_4_5", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_4_5", "vertex_start": "v4", "vertex_end": "v5", "twin_id": "he_in_5_4", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_4_7", "vertex_start": "v4", "vertex_end": "v7", "twin_id": "he_in_7_4", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_7_4", "vertex_start": "v7", "vertex_end": "v4", "twin_id": "he_in_4_7", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_7_3", "vertex_start": "v7", "vertex_end": "v3", "twin_id": "he_out_3_7", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_3_7", "vertex_start": "v3", "vertex_end": "v7", "twin_id": "he_out_7_3", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_3_0", "vertex_start": "v3", "vertex_end": "v0", "twin_id": "he_out_0_3", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_0_3", "vertex_start": "v0", "vertex_end": "v3", "twin_id": "he_out_3_0", "wall_thickness": 20.0, "type": "WallOuter" }
+  ],
+  "openings": [],
+  "faces": [
+    { "face_id": "f_main", "label": "HouseBody", "height_cm": 300.0, "z_offset": 0.0, "contour_vertex_ids": ["v0", "v1", "v2", "v6", "v5", "v4", "v7", "v3"] }
+  ]
+}

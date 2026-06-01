@@ -77,15 +77,22 @@ void UHarnessCaptureMinimapWidget::NativeTick(const FGeometry& MyGeometry, float
         return;
     }
 
+    // 1인칭 모드에서 아이콘이 보이지 않는다면 위치 업데이트를 건너뜜
+    if (PlayerIcon->GetVisibility() != ESlateVisibility::SelfHitTestInvisible)
+    {
+        return;
+    }
+
     APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (!PC) return;
 
-    APawn* PlayerPawn = PC->GetPawn();
-    if (!PlayerPawn) return;
+    // 현재 카메라가 쳐다보고 있는 타겟(Manager 또는 Character)을 추적
+    AActor* ViewTarget = PC->GetViewTarget();
+    if (!ViewTarget) return;
 
+    FVector PlayerLoc = ViewTarget->GetActorLocation();
     FVector CameraLoc = CaptureCameraComp->GetComponentLocation();
     float OrthoWidth = CaptureCameraComp->OrthoWidth;
-    FVector PlayerLoc = PlayerPawn->GetActorLocation();
 
     UCanvasPanelSlot* MinimapSlot = Cast<UCanvasPanelSlot>(MinimapImage->Slot);
     UCanvasPanelSlot* PlayerSlot = Cast<UCanvasPanelSlot>(PlayerIcon->Slot);
@@ -94,15 +101,12 @@ void UHarnessCaptureMinimapWidget::NativeTick(const FGeometry& MyGeometry, float
     FVector2D MinimapSize = MinimapSlot->GetSize();
     if (MinimapSize.X <= 0 || MinimapSize.Y <= 0) return;
 
-    // 세로축 비율 계산 시 OrthoHeight 제거 후 정방형 뷰포트 스펙 변환 일치
     float U = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
     float V = 0.5f - ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
 
-    // 플레이어가 맵 밖으로 나가도 아이콘은 미니맵 끝에 걸리도록 가두기 (Clamp)
     U = FMath::Clamp(U, 0.0f, 1.0f);
     V = FMath::Clamp(V, 0.0f, 1.0f);
     
-    // MinimapImage의 Alignment(0.0, 1.0) 설정을 역산하여 좌상단 오프셋 보정
     FVector2D MinimapPos = MinimapSlot->GetPosition();
     FVector2D MinimapAlignment = MinimapSlot->GetAlignment();
     FVector2D RealMinimapTopLeft = MinimapPos - FVector2D(MinimapAlignment.X * MinimapSize.X, MinimapAlignment.Y * MinimapSize.Y);
@@ -110,7 +114,8 @@ void UHarnessCaptureMinimapWidget::NativeTick(const FGeometry& MyGeometry, float
     FVector2D NewIconPos = RealMinimapTopLeft + FVector2D(U * MinimapSize.X, V * MinimapSize.Y);
     PlayerSlot->SetPosition(NewIconPos);
 
-    PlayerIcon->SetRenderTransformAngle(PlayerPawn->GetActorRotation().Yaw);
+    // 회전값 동기화 (1인칭 시 캐릭터의 Yaw와 일치)
+    PlayerIcon->SetRenderTransformAngle(ViewTarget->GetActorRotation().Yaw);
 }
 
 void UHarnessCaptureMinimapWidget::InjectMinimapData(UHarnessMinimapCaptureComponent* InCameraComp, UTextureRenderTarget2D* InRenderTarget)

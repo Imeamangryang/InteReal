@@ -2,7 +2,8 @@
 
 UHarnessMinimapCaptureComponent::UHarnessMinimapCaptureComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true; // 위젯 등에 데이터 공급이 필요할 수 있으므로 활성화
+	PrimaryComponentTick.bStartWithTickEnabled = true;
 
 	// 미니맵용 캡처 디폴트 세팅
 	ProjectionType = ECameraProjectionMode::Orthographic;
@@ -35,6 +36,9 @@ UTextureRenderTarget2D* UHarnessMinimapCaptureComponent::GetOrCreateRenderTarget
 
 void UHarnessMinimapCaptureComponent::AdjustToBoundingBox(FVector2D MinBounds, FVector2D MaxBounds, float Padding)
 {
+	CachedMin = MinBounds;
+	CachedMax = MaxBounds;
+
 	float CenterX = (MinBounds.X + MaxBounds.X) / 2.0f;
 	float CenterY = (MinBounds.Y + MaxBounds.Y) / 2.0f;
     
@@ -46,4 +50,10 @@ void UHarnessMinimapCaptureComponent::AdjustToBoundingBox(FVector2D MinBounds, F
 
 	// 가로/세로 중 긴 쪽을 선택하여 OrthoWidth 재설정
 	this->OrthoWidth = FMath::Max(PhysicalWidth, PhysicalHeight) + Padding;
+}
+
+void UHarnessMinimapCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	// 여기에 매 프레임 필요한 미니맵 데이터 업데이트 로직 추가 가능
 }

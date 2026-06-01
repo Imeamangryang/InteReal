@@ -2,10 +2,12 @@
 
 #include "Misc/Paths.h"
 #include "Blueprint/UserWidget.h"
+#include "EngineUtils.h"
 #include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "InteReal/Harness/Public/HarnessMinimapCaptureComponent.h"
 #include "InteReal/Harness/Public/HarnessCaptureMinimapWidget.h"
 #include "InteReal/Harness/Public/HarnessJsonParser.h"
+#include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "Kismet/GameplayStatics.h"
 
 AHarnessTestActor::AHarnessTestActor()
@@ -22,7 +24,9 @@ AHarnessTestActor::AHarnessTestActor()
     CaptureComponent = CreateDefaultSubobject<UHarnessMinimapCaptureComponent>(TEXT("MinimapCapture"));
     CaptureComponent->SetupAttachment(RootComponent);
 
-    JsonFilePath = FPaths::ProjectDir() / TEXT("floor.json");
+    // 💡 [수정됨] 이제 이 변수에는 전체 경로가 아닌 '파일 이름'만 적습니다. 
+    // 에디터 디테일 패널에서 이 이름을 바꿔가며 테스트할 수 있습니다.
+    JsonFilePath = TEXT("test1.json"); 
 }
 
 void AHarnessTestActor::BeginPlay()
@@ -37,12 +41,27 @@ void AHarnessTestActor::BeginPlay()
     FHarnessFloorData FloorData;
     FString ErrorMessage;
     
-    if (FHarnessJsonParser::LoadFloorDataFromJsonFile(JsonFilePath, FloorData, ErrorMessage))
+    // 💡 [수정됨] Content/TestData/파일명 형태로 경로를 동적 조합합니다.
+    FString RelativePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("TestData"), JsonFilePath);
+    FString AbsolutePath = FPaths::ConvertRelativePathToFull(RelativePath); // OS의 완벽한 절대 경로로 변환
+
+    UE_LOG(LogTemp, Log, TEXT("[HarnessTestActor] 로드 시도 경로: %s"), *AbsolutePath);
+    
+    // 💡 [수정됨] JsonFilePath 대신 방금 만든 AbsolutePath를 넘겨줍니다.
+    if (FHarnessJsonParser::LoadFloorDataFromJsonFile(AbsolutePath, FloorData, ErrorMessage))
     {
         // 1. 도면 생성 (Generator)
         HarnessComponent->BuildHarness(FloorData);
-        
-        // 2. 바운딩 박스 계산 및 카메라 세팅 (Generator -> Capture)
+
+        // 2. 도면 생성 완료 후 그리드 매니저에 바운딩 데이터 주입
+        for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+        {
+            (*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
+            (*It)->SetGridVisible(true);
+            break;
+        }
+
+        // 3. 바운딩 박스 계산 및 카메라 세팅 (Generator -> Capture)
         FVector2D MinBounds, MaxBounds;
         HarnessComponent->GetFloorBounds(MinBounds, MaxBounds);
         CaptureComponent->AdjustToBoundingBox(MinBounds, MaxBounds);

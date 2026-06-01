@@ -1,0 +1,112 @@
+{
+  "project_info": {
+    "layout_type": "Narrow_Townhouse",
+    "scale_unit": "cm",
+    "reference_coordinate_system": "UE_Z_Up_Y_Right"
+  },
+  "vertices": [
+    { "id": "v0", "x": 0.0, "y": 0.0 },
+    { "id": "v1", "x": 400.0, "y": 0.0 },
+    { "id": "v2", "x": 400.0, "y": 1500.0 },
+    { "id": "v3", "x": 0.0, "y": 1500.0 },
+    { "id": "v4", "x": 0.0, "y": 500.0 },
+    { "id": "v5", "x": 400.0, "y": 500.0 },
+    { "id": "v6", "x": 0.0, "y": 1000.0 },
+    { "id": "v7", "x": 400.0, "y": 1000.0 },
+    { "id": "v_ent_s", "x": 150.0, "y": 1500.0 },
+    { "id": "v_ent_e", "x": 250.0, "y": 1500.0 },
+    { "id": "v_win_f", "x": 100.0, "y": 0.0 },
+    { "id": "v_win_t", "x": 300.0, "y": 0.0 },
+    { "id": "v_d1_s", "x": 100.0, "y": 500.0 },
+    { "id": "v_d1_e", "x": 190.0, "y": 500.0 },
+    { "id": "v_d2_s", "x": 210.0, "y": 1000.0 },
+    { "id": "v_d2_e", "x": 300.0, "y": 1000.0 }
+  ],
+  "half_edges": [
+    { "id": "he_out_0_wf", "vertex_start": "v0", "vertex_end": "v_win_f", "twin_id": "he_out_wf_0", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_wf_0", "vertex_start": "v_win_f", "vertex_end": "v0", "twin_id": "he_out_0_wf", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_win_f", "vertex_start": "v_win_f", "vertex_end": "v_win_t", "twin_id": "he_win_f_t", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_win_f_t", "vertex_start": "v_win_t", "vertex_end": "v_win_f", "twin_id": "he_win_f", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_wt_1", "vertex_start": "v_win_t", "vertex_end": "v1", "twin_id": "he_out_1_wt", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_wt", "vertex_start": "v1", "vertex_end": "v_win_t", "twin_id": "he_out_wt_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_2", "vertex_start": "v1", "vertex_end": "v2", "twin_id": "he_out_2_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_2_1", "vertex_start": "v2", "vertex_end": "v1", "twin_id": "he_out_1_2", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_2_ee", "vertex_start": "v2", "vertex_end": "v_ent_e", "twin_id": "he_out_ee_2", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_ee_2", "vertex_start": "v_ent_e", "vertex_end": "v2", "twin_id": "he_out_2_ee", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_ent_door", "vertex_start": "v_ent_e", "vertex_end": "v_ent_s", "twin_id": "he_ent_door_t", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_ent_door_t", "vertex_start": "v_ent_s", "vertex_end": "v_ent_e", "twin_id": "he_ent_door", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_es_3", "vertex_start": "v_ent_s", "vertex_end": "v3", "twin_id": "he_out_3_es", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_3_es", "vertex_start": "v3", "vertex_end": "v_ent_s", "twin_id": "he_out_es_3", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_3_0", "vertex_start": "v3", "vertex_end": "v0", "twin_id": "he_out_0_3", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_0_3", "vertex_start": "v0", "vertex_end": "v3", "twin_id": "he_out_3_0", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_in_4_d1s", "vertex_start": "v4", "vertex_end": "v_d1_s", "twin_id": "he_in_d1s_4", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_d1s_4", "vertex_start": "v_d1_s", "vertex_end": "v4", "twin_id": "he_in_4_d1s", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_d1", "vertex_start": "v_d1_s", "vertex_end": "v_d1_e", "twin_id": "he_d1_t", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_d1_t", "vertex_start": "v_d1_e", "vertex_end": "v_d1_s", "twin_id": "he_d1", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_d1e_5", "vertex_start": "v_d1_e", "vertex_end": "v5", "twin_id": "he_in_5_d1e", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_5_d1e", "vertex_start": "v5", "vertex_end": "v_d1_e", "twin_id": "he_in_d1e_5", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_6_d2s", "vertex_start": "v6", "vertex_end": "v_d2_s", "twin_id": "he_in_d2s_6", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_d2s_6", "vertex_start": "v_d2_s", "vertex_end": "v6", "twin_id": "he_in_6_d2s", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_d2", "vertex_start": "v_d2_s", "vertex_end": "v_d2_e", "twin_id": "he_d2_t", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_d2_t", "vertex_start": "v_d2_e", "vertex_end": "v_d2_s", "twin_id": "he_d2", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_d2e_7", "vertex_start": "v_d2_e", "vertex_end": "v7", "twin_id": "he_in_7_d2e", "wall_thickness": 10.0, "type": "WallInner" },
+    { "id": "he_in_7_d2e", "vertex_start": "v7", "vertex_end": "v_d2_e", "twin_id": "he_in_d2e_7", "wall_thickness": 10.0, "type": "WallInner" }
+  ],
+  "openings": [
+    {
+      "id": "door_ent",
+      "type": "Door",
+      "target_edge_id": "he_ent_door",
+      "width_cm": 100.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1",
+      "type": "Door",
+      "target_edge_id": "he_d1",
+      "width_cm": 90.0,
+      "height_cm": 200.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_2",
+      "type": "Door",
+      "target_edge_id": "he_d2",
+      "width_cm": 90.0,
+      "height_cm": 200.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "win_f",
+      "type": "Window",
+      "target_edge_id": "he_win_f",
+      "width_cm": 200.0,
+      "height_cm": 150.0,
+      "z_offset_cm": 90.0
+    }
+  ],
+  "faces": [
+    {
+      "face_id": "face_1",
+      "label": "FrontRoom",
+      "height_cm": 270.0,
+      "z_offset": 0.0,
+      "contour_vertex_ids": ["v0", "v1", "v5", "v_d1_e", "v_d1_s", "v4"]
+    },
+    {
+      "face_id": "face_2",
+      "label": "MiddleRoom",
+      "height_cm": 270.0,
+      "z_offset": 0.0,
+      "contour_vertex_ids": ["v4", "v_d1_s", "v_d1_e", "v5", "v7", "v_d2_e", "v_d2_s", "v6"]
+    },
+    {
+      "face_id": "face_3",
+      "label": "BackRoom",
+      "height_cm": 270.0,
+      "z_offset": 0.0,
+      "contour_vertex_ids": ["v6", "v_d2_s", "v_d2_e", "v7", "v2", "v_ent_e", "v_ent_s", "v3"]
+    }
+  ]
+}
