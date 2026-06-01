@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
+#include "Blueprint/UserWidget.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -44,6 +45,22 @@ void AEditModePlayerController::BeginPlay()
 			break;
 		}
 	}
+	
+	// Widget
+	if (PlacementTabWidget)
+	{
+		PlacementTabInstance = CreateWidget<UUserWidget>(this, PlacementTabWidget);
+		if (PlacementTabInstance)
+		{
+			PlacementTabInstance->AddToViewport();
+			
+			InputMode.SetWidgetToFocus(PlacementTabInstance->TakeWidget());
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+            
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
+		}
+	}
 }
 
 void AEditModePlayerController::SetupInputComponent()
@@ -62,7 +79,7 @@ void AEditModePlayerController::SetupInputComponent()
 
 	// 테스트용
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AEditModePlayerController::ToggleGrid);
-	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &AEditModePlayerController::OnTestSpawn);
+	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &AEditModePlayerController::OnRotatePreview);
 }
 
 void AEditModePlayerController::Tick(float DeltaTime)
@@ -144,21 +161,16 @@ void AEditModePlayerController::OnRemove()
 
 void AEditModePlayerController::OnRotatePreview()
 {
+	UE_LOG(LogTemp, Log, TEXT("[EditMode] OnRotatePreview called. PlacementManager: %s, HasActivePreview: %d"), 
+		PlacementManager ? *PlacementManager->GetName() : TEXT("Null"),
+		PlacementManager ? PlacementManager->HasActivePreview() : 0);
+
 	if (!PlacementManager || !PlacementManager->HasActivePreview())
 	{
 		return;
 	}
 
 	PlacementManager->RotatePreview(90.0f);
-}
-
-void AEditModePlayerController::OnTestSpawn()
-{
-	if (!PlacementManager || !bIsHitting)
-	{
-		return;
-	}
-	StartFurniturePlacement(PlacementManager->FurnitureDataList[0]);
 }
 
 void AEditModePlayerController::ReceiveWebCommand(const FString& JsonString)

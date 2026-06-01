@@ -38,6 +38,12 @@ protected:
 	FHitResult LastCursorHit;
 
 public:
+	UPROPERTY(editAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> PlacementTabWidget;
+	
+	UPROPERTY()
+	UUserWidget* PlacementTabInstance;
+	
 	UPROPERTY(EditAnywhere, Category = "EditMode")
 	AInteriorPlacementManager* PlacementManager;
 
@@ -67,5 +73,5 @@ private:
 	void OnPlace();
 	void OnRemove();
 	void OnRotatePreview();
-	void OnTestSpawn(); // TODO: 나중에 UI로 교체
+	// void OnTestSpawn(); // TODO: 나중에 UI로 교체
 };
