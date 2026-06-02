@@ -1,13 +1,18 @@
-﻿#include "InteReal/Harness/Public/HarnessTestActor.h"
+#include "InteReal/Harness/Public/HarnessTestActor.h"
 
 #include "Misc/Paths.h"
 #include "Blueprint/UserWidget.h"
 #include "EngineUtils.h"
 #include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "InteReal/Harness/Public/HarnessMinimapCaptureComponent.h"
-#include "InteReal/Harness/Public/HarnessCaptureMinimapWidget.h"
+#include "InteReal/Harness/Public/HarnessMainHUD.h"
 #include "InteReal/Harness/Public/HarnessJsonParser.h"
+#include "InteReal/Harness/Public/HarnessNetworkComponent.h"
+#include "InteReal/Harness/Public/HarnessSaveManagerComponent.h"
+#include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/ViewMode/ViewModeManager.h"
+#include "InteReal/ViewMode/ViewModePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 AHarnessTestActor::AHarnessTestActor()
@@ -20,99 +25,123 @@ AHarnessTestActor::AHarnessTestActor()
     // 도면 생성 컴포넌트
     HarnessComponent = CreateDefaultSubobject<UHarnessGeneratorComponent>(TEXT("HarnessGenerator"));
 
+    // 네트워크, 세이브, 파이프라인 컴포넌트 추가
+    NetworkComponent = CreateDefaultSubobject<UHarnessNetworkComponent>(TEXT("NetworkComponent"));
+    SaveManagerComponent = CreateDefaultSubobject<UHarnessSaveManagerComponent>(TEXT("SaveManagerComponent"));
+    PipelineManager = CreateDefaultSubobject<UHarnessPipelineManager>(TEXT("PipelineManager"));
+
     // 캡처 컴포넌트 생성 및 루트에 부착
     CaptureComponent = CreateDefaultSubobject<UHarnessMinimapCaptureComponent>(TEXT("MinimapCapture"));
     CaptureComponent->SetupAttachment(RootComponent);
 
-    // 💡 [수정됨] 이제 이 변수에는 전체 경로가 아닌 '파일 이름'만 적습니다. 
-    // 에디터 디테일 패널에서 이 이름을 바꿔가며 테스트할 수 있습니다.
-    JsonFilePath = TEXT("test1.json"); 
+    // 기본적으로 자동 로드는 꺼둡니다 (UI에서 선택)
+    JsonFilePath = TEXT("test1"); 
 }
 
 void AHarnessTestActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (!bBuildOnBeginPlay || !HarnessComponent || !CaptureComponent)
+    if (PipelineManager && NetworkComponent && SaveManagerComponent && HarnessComponent)
     {
-        return;
+        // 파이프라인 초기화
+        PipelineManager->InitializePipeline(NetworkComponent, SaveManagerComponent, HarnessComponent);
+        
+        // 파이프라인 완료 시 후속 작업(그리드, 미니맵) 수행을 위해 바인딩
+        PipelineManager->OnPipelineLoadFinished.AddDynamic(this, &AHarnessTestActor::DelayedCapture); 
     }
 
-    FHarnessFloorData FloorData;
-    FString ErrorMessage;
-    
-    // 💡 [수정됨] Content/TestData/파일명 형태로 경로를 동적 조합합니다.
-    FString RelativePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("TestData"), JsonFilePath);
-    FString AbsolutePath = FPaths::ConvertRelativePathToFull(RelativePath); // OS의 완벽한 절대 경로로 변환
-
-    UE_LOG(LogTemp, Log, TEXT("[HarnessTestActor] 로드 시도 경로: %s"), *AbsolutePath);
-    
-    // 💡 [수정됨] JsonFilePath 대신 방금 만든 AbsolutePath를 넘겨줍니다.
-    if (FHarnessJsonParser::LoadFloorDataFromJsonFile(AbsolutePath, FloorData, ErrorMessage))
+    // 메인 HUD(도면 목록 리스트) 생성 및 표시
+    if (MainHUDClass)
     {
-        // 1. 도면 생성 (Generator)
-        HarnessComponent->BuildHarness(FloorData);
-
-        // 2. 도면 생성 완료 후 그리드 매니저에 바운딩 데이터 주입
-        for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+        UHarnessMainHUD* MainHUD = CreateWidget<UHarnessMainHUD>(GetWorld(), MainHUDClass);
+        if (MainHUD)
         {
-            (*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
-            (*It)->SetGridVisible(true);
-            break;
-        }
+            MainHUD->SetupHUD(NetworkComponent, PipelineManager);
+            MainHUD->AddToViewport();
 
-        // 3. 바운딩 박스 계산 및 카메라 세팅 (Generator -> Capture)
-        FVector2D MinBounds, MaxBounds;
-        HarnessComponent->GetFloorBounds(MinBounds, MaxBounds);
-        CaptureComponent->AdjustToBoundingBox(MinBounds, MaxBounds);
-        
-        // 3. 렌더 타겟 생성 (Capture)
-        UTextureRenderTarget2D* MinimapRT = CaptureComponent->GetOrCreateRenderTarget();
-
-        // 4. 위젯 생성 및 데이터 주입, 뷰포트 출력 (UI)
-        if (MinimapWidgetClass)
-        {
-            MinimapWidget = CreateWidget<UHarnessCaptureMinimapWidget>(GetWorld(), MinimapWidgetClass);
-            if (MinimapWidget)
+            APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+            if (PC)
             {
-                MinimapWidget->InjectMinimapData(CaptureComponent, MinimapRT);
-                MinimapWidget->AddToViewport();
-
-                APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-                if (PC)
-                {
-                    PC->SetShowMouseCursor(true);
-                    FInputModeGameAndUI InputMode;
-                    InputMode.SetWidgetToFocus(MinimapWidget->TakeWidget());
-                    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-                    PC->SetInputMode(InputMode);
-                }
-
-                // 매 프레임 캡처를 비활성화하여 렌더링 성능 확보
-                CaptureComponent->bCaptureEveryFrame = false;
-                CaptureComponent->bCaptureOnMovement = false;
-
-                // 동적 메쉬에 머티리얼이 완전히 씌워질 시간을 확보한 뒤 수동으로 단일 캡처 실행
-                GetWorld()->GetTimerManager().SetTimer(CaptureTimerHandle, this, &AHarnessTestActor::DelayedCapture, 1.0f, false);
+                PC->SetShowMouseCursor(true);
+                FInputModeGameAndUI InputMode;
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
             }
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("[HarnessTestActor] MinimapWidgetClass is NULL. Please assign the Widget Blueprint in the details panel."));
-        }
     }
-    else
+
+    // 만약 디버그용으로 즉시 빌드가 필요하다면 실행 (기본 false)
+    if (bBuildOnBeginPlay && PipelineManager)
     {
-        UE_LOG(LogTemp, Error, TEXT("[HarnessTestActor] JSON Load Failed! Reason: %s"), *ErrorMessage);
+        PipelineManager->LoadProject(JsonFilePath);
     }
 }
 
 void AHarnessTestActor::DelayedCapture()
 {
+    UE_LOG(LogTemp, Log, TEXT("[Harness] AHarnessTestActor::DelayedCapture() 시작"));
+
+    if (!HarnessComponent) return;
+
+    // 1. 그리드 매니저 초기화
+    const FHarnessFloorData& FloorData = HarnessComponent->GetCachedFloorData();
+    for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+    {
+        (*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
+        (*It)->SetGridVisible(true);
+    }
+
+    // 💡 [수정] 2. 뷰모드를 무조건 TopDown(평면 뷰)으로 강제 초기화
+    EHarnessViewMode ModeToApply = EHarnessViewMode::TopDown;
+
+    for (TActorIterator<AViewModeManager> It(GetWorld()); It; ++It)
+    {
+        (*It)->SetViewMode(ModeToApply);   // 목표 상태를 평면 뷰로 설정
+        (*It)->FocusOnBuilding();          // 도면 크기에 맞춰 줌 거리 및 타겟 계산
+        (*It)->SnapToTarget();             // 💡 카메라가 서서히 날아가지 않고 즉시 찰칵! 이동
+    }
+
+    // 플레이어 컨트롤러 역시 평면 뷰 상태로 동기화
+    AViewModePlayerController* ViewPC = Cast<AViewModePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+    if (ViewPC)
+    {
+        ViewPC->SetViewMode(ModeToApply);
+    }
+
+    // 3. 미니맵 캡처 설정
     if (CaptureComponent)
     {
-        // 렌더 타겟에 현재 화면을 한 번만 업데이트(사진 찍기)
-        CaptureComponent->CaptureScene();
-        UE_LOG(LogTemp, Log, TEXT("[Harness] 미니맵 머티리얼 지연 캡처 완료!"));
+        FVector2D MinBounds, MaxBounds;
+        HarnessComponent->GetFloorBounds(MinBounds, MaxBounds);
+        
+        CaptureComponent->AdjustToBoundingBox(MinBounds, MaxBounds);
+        UTextureRenderTarget2D* MinimapRT = CaptureComponent->GetOrCreateRenderTarget();
+
+        if (ViewPC)
+        {
+            // 위젯을 생성하지만 처음에는 숨겨진(Hidden) 상태로 뷰포트에 올라감
+            ViewPC->SetupMinimapHUD(CaptureComponent, MinimapRT, MinimapWidgetClass);
+        }
+
+        CaptureComponent->bCaptureEveryFrame = false;
+        CaptureComponent->bCaptureOnMovement = false;
+
+        // 💡 [수정] 람다 안에서 안전하게 PC를 참조하기 위해 WeakPtr 사용
+        TWeakObjectPtr<AViewModePlayerController> WeakPC = ViewPC;
+
+        // 실제 렌더링은 머티리얼 적용 대기 후 수행 (1초 대기)
+        GetWorld()->GetTimerManager().SetTimer(CaptureTimerHandle, FTimerDelegate::CreateLambda([this, WeakPC]() {
+            if (CaptureComponent) 
+            {
+                CaptureComponent->CaptureScene();
+                
+                // 💡 [수정] 캡처가 성공적으로 끝난 직후, 숨겨뒀던 미니맵을 짠! 하고 나타나게 함
+                if (WeakPC.IsValid())
+                {
+                    WeakPC->ShowMinimap();
+                }
+            }
+        }), 1.0f, false);
     }
 }

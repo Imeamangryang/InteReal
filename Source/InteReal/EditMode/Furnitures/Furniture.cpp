@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Furniture.h"
 
 AFurniture::AFurniture()
@@ -10,65 +8,101 @@ AFurniture::AFurniture()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	RootComponent = MeshComponent;
 	MeshComponent->bReceivesDecals = false;
+
+	CollisionBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+	CollisionBoxComponent->SetupAttachment(MeshComponent);
+	CollisionBoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBoxComponent->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionBoxComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	CollisionBoxComponent->SetHiddenInGame(true);
+
+	GizmoComponent = CreateDefaultSubobject<UFurnitureGizmoComponent>(TEXT("GizmoComponent"));
+	GizmoComponent->SetupAttachment(RootComponent);
 }
 
 void AFurniture::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 원본 머터리얼로부터 Dynamic Instance 생성 (파라미터 변경용)
-	if (UMaterialInterface* OriginalMat = MeshComponent->GetMaterial(0))
-	{
-		DynamicMaterial = UMaterialInstanceDynamic::Create(OriginalMat, this);
-		MeshComponent->SetMaterial(0, DynamicMaterial);
-	}
 }
 
 void AFurniture::SetPlacementState(EPlacementState NewState)
 {
 	PlacementState = NewState;
 
-	if (!DynamicMaterial)
+	if (CollisionBoxComponent)
 	{
-		return;
-	}
-		
-
-	// TintColor: RGB = 색상, A = 강도 (0이면 원본 색 유지)
-	switch (NewState)
-	{
+		switch (NewState)
+		{
 		case EPlacementState::Preview:
-			DynamicMaterial->SetVectorParameterValue(TEXT("TintColor"), FLinearColor(0.0f, 1.0f, 0.0f, 0.4f));
+			CollisionBoxComponent->SetHiddenInGame(false);
+			CollisionBoxComponent->ShapeColor = FColor(0, 255, 255, 255);
 			break;
 		case EPlacementState::Invalid:
-			DynamicMaterial->SetVectorParameterValue(TEXT("TintColor"), FLinearColor(1.0f, 0.0f, 0.0f, 0.4f));
+			CollisionBoxComponent->SetHiddenInGame(false);
+			CollisionBoxComponent->ShapeColor = FColor(255, 0, 0, 255);
 			break;
 		case EPlacementState::Placed:
-			DynamicMaterial->SetVectorParameterValue(TEXT("TintColor"), FLinearColor(0.0f, 0.0f, 0.0f, 0.0f));
+			CollisionBoxComponent->SetHiddenInGame(true);
 			break;
+		}
+	}
+
+	if (GizmoComponent)
+	{
+		if (NewState == EPlacementState::Preview)
+		{
+			GizmoComponent->SetGizmoVisible(true);
+			GizmoComponent->SetGizmoColor(FLinearColor(0.0f, 1.0f, 1.0f, 1.0f), 4.0f);
+		}
+		else if (NewState == EPlacementState::Invalid)
+		{
+			GizmoComponent->SetGizmoVisible(true);
+			GizmoComponent->SetGizmoColor(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f), 4.0f);
+		}
+		else
+		{
+			GizmoComponent->SetGizmoVisible(false);
+		}
 	}
 }
 
-void AFurniture::ApplyFurnitureData(UFurnitureData* InFurnitureData)
+void AFurniture::SetSelected(bool bSelected)
 {
-	// Furniture Data를 기반으로 스태틱 메시 설정
-	
-	FurnitureData = InFurnitureData;
-
-	if (!FurnitureData)
+	if (CollisionBoxComponent)
 	{
-		return;
+		CollisionBoxComponent->SetHiddenInGame(!bSelected);
+		CollisionBoxComponent->ShapeColor = FColor::White;
 	}
 
-	if (FurnitureData->FurnitureMesh)
+	if (GizmoComponent)
 	{
-		MeshComponent->SetStaticMesh(FurnitureData->FurnitureMesh);
+		GizmoComponent->SetGizmoVisible(bSelected);
+		if (bSelected)
+		{
+			GizmoComponent->SetGizmoColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f), 4.0f);
+		}
+	}
+}
+
+void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
+{
+	FurnitureID = InFurnitureRow.ID;
+
+	if (InFurnitureRow.FurnitureMesh)
+	{
+		MeshComponent->SetStaticMesh(InFurnitureRow.FurnitureMesh);
+
+		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
+		CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
+		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);
 	}
 
-	if (UMaterialInterface* OriginalMat = MeshComponent->GetMaterial(0))
+	if (InFurnitureRow.FurnitureMesh && GizmoComponent)
 	{
-		DynamicMaterial = UMaterialInstanceDynamic::Create(OriginalMat, this);
-		MeshComponent->SetMaterial(0, DynamicMaterial);
-		SetPlacementState(PlacementState);
+		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
+		GizmoComponent->SetupFromLocalBounds(MeshBounds.GetBox());
 	}
+
+	SetPlacementState(EPlacementState::Preview);
 }

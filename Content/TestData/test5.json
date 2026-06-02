@@ -1,99 +1,69 @@
 {
   "project_info": {
-    "layout_type": "L_Shaped_Modern_House",
+    "layout_type": "Studio_L_Shaped_Apartment",
     "scale_unit": "cm",
     "reference_coordinate_system": "UE_Z_Up_Y_Right"
   },
   "vertices": [
     { "id": "v0", "x": 0.0, "y": 0.0 },
-    { "id": "v1", "x": 1200.0, "y": 0.0 },
-    { "id": "v2", "x": 1200.0, "y": 500.0 },
-    { "id": "v3", "x": 500.0, "y": 500.0 },
-    { "id": "v4", "x": 500.0, "y": 1200.0 },
-    { "id": "v5", "x": 0.0, "y": 1200.0 },
-    { "id": "v_win_s", "x": 200.0, "y": 0.0 },
-    { "id": "v_win_e", "x": 1000.0, "y": 0.0 },
-    { "id": "v_ent_s", "x": 0.0, "y": 600.0 },
-    { "id": "v_ent_e", "x": 0.0, "y": 700.0 },
-    { "id": "v_sep", "x": 500.0, "y": 0.0 },
-    { "id": "v_d_s", "x": 500.0, "y": 600.0 },
-    { "id": "v_d_e", "x": 500.0, "y": 690.0 }
+    { "id": "v1", "x": 700.0, "y": 0.0 },
+    { "id": "v2", "x": 700.0, "y": 250.0 },
+    { "id": "v3", "x": 450.0, "y": 250.0 },
+    { "id": "v4", "x": 450.0, "y": 550.0 },
+    { "id": "v5", "x": 0.0, "y": 550.0 },
+    { "id": "v_w1_start", "x": 120.0, "y": 0.0 },
+    { "id": "v_w1_end", "x": 520.0, "y": 0.0 },
+    { "id": "v_d_start", "x": 700.0, "y": 60.0 },
+    { "id": "v_d_end", "x": 700.0, "y": 160.0 }
   ],
   "half_edges": [
-    { "id": "he_out_0_ws", "vertex_start": "v0", "vertex_end": "v_win_s", "twin_id": "he_out_ws_0", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_ws_0", "vertex_start": "v_win_s", "vertex_end": "v0", "twin_id": "he_out_0_ws", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_win_main", "vertex_start": "v_win_s", "vertex_end": "v_win_e", "twin_id": "he_win_main_t", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_win_main_t", "vertex_start": "v_win_e", "vertex_end": "v_win_s", "twin_id": "he_win_main", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_we_1", "vertex_start": "v_win_e", "vertex_end": "v1", "twin_id": "he_out_1_we", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_1_we", "vertex_start": "v1", "vertex_end": "v_win_e", "twin_id": "he_out_we_1", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_1_2", "vertex_start": "v1", "vertex_end": "v2", "twin_id": "he_out_2_1", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_2_1", "vertex_start": "v2", "vertex_end": "v1", "twin_id": "he_out_1_2", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_0_w1s", "vertex_start": "v0", "vertex_end": "v_w1_start", "twin_id": "he_out_w1s_0", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_w1s_0", "vertex_start": "v_w1_start", "vertex_end": "v0", "twin_id": "he_out_0_w1s", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_window_main", "vertex_start": "v_w1_start", "vertex_end": "v_w1_end", "twin_id": "he_window_main_twin", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_window_main_twin", "vertex_start": "v_w1_end", "vertex_end": "v_w1_start", "twin_id": "he_window_main", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_w1e_1", "vertex_start": "v_w1_end", "vertex_end": "v1", "twin_id": "he_out_1_w1e", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_w1e", "vertex_start": "v1", "vertex_end": "v_w1_end", "twin_id": "he_out_w1e_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_1_ds", "vertex_start": "v1", "vertex_end": "v_d_start", "twin_id": "he_out_ds_1", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_ds_1", "vertex_start": "v_d_start", "vertex_end": "v1", "twin_id": "he_out_1_ds", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_lintel_door", "vertex_start": "v_d_start", "vertex_end": "v_d_end", "twin_id": "he_lintel_door_twin", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_lintel_door_twin", "vertex_start": "v_d_end", "vertex_end": "v_d_start", "twin_id": "he_lintel_door", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_de_2", "vertex_start": "v_d_end", "vertex_end": "v2", "twin_id": "he_out_2_de", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_2_de", "vertex_start": "v2", "vertex_end": "v_d_end", "twin_id": "he_out_de_2", "wall_thickness": 20.0, "type": "WallOuter" },
     { "id": "he_out_2_3", "vertex_start": "v2", "vertex_end": "v3", "twin_id": "he_out_3_2", "wall_thickness": 20.0, "type": "WallOuter" },
     { "id": "he_out_3_2", "vertex_start": "v3", "vertex_end": "v2", "twin_id": "he_out_2_3", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_3_ds", "vertex_start": "v3", "vertex_end": "v_d_s", "twin_id": "he_out_ds_3", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_ds_3", "vertex_start": "v_d_s", "vertex_end": "v3", "twin_id": "he_out_3_ds", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_d_inner", "vertex_start": "v_d_s", "vertex_end": "v_d_e", "twin_id": "he_d_inner_t", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_d_inner_t", "vertex_start": "v_d_e", "vertex_end": "v_d_s", "twin_id": "he_d_inner", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_de_4", "vertex_start": "v_d_e", "vertex_end": "v4", "twin_id": "he_out_4_de", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_4_de", "vertex_start": "v4", "vertex_end": "v_d_e", "twin_id": "he_out_de_4", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_3_4", "vertex_start": "v3", "vertex_end": "v4", "twin_id": "he_out_4_3", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_4_3", "vertex_start": "v4", "vertex_end": "v3", "twin_id": "he_out_3_4", "wall_thickness": 20.0, "type": "WallOuter" },
     { "id": "he_out_4_5", "vertex_start": "v4", "vertex_end": "v5", "twin_id": "he_out_5_4", "wall_thickness": 20.0, "type": "WallOuter" },
     { "id": "he_out_5_4", "vertex_start": "v5", "vertex_end": "v4", "twin_id": "he_out_4_5", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_5_ee", "vertex_start": "v5", "vertex_end": "v_ent_e", "twin_id": "he_out_ee_5", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_ee_5", "vertex_start": "v_ent_e", "vertex_end": "v5", "twin_id": "he_out_5_ee", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_ent_door", "vertex_start": "v_ent_e", "vertex_end": "v_ent_s", "twin_id": "he_ent_door_t", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_ent_door_t", "vertex_start": "v_ent_s", "vertex_end": "v_ent_e", "twin_id": "he_ent_door", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_es_0", "vertex_start": "v_ent_s", "vertex_end": "v0", "twin_id": "he_out_0_es", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_0_es", "vertex_start": "v0", "vertex_end": "v_ent_s", "twin_id": "he_out_es_0", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_sep", "vertex_start": "v_sep", "vertex_end": "v3", "twin_id": "he_in_sep_t", "wall_thickness": 10.0, "type": "WallInner" },
-    { "id": "he_in_sep_t", "vertex_start": "v3", "vertex_end": "v_sep", "twin_id": "he_in_sep", "wall_thickness": 10.0, "type": "WallInner" }
+    { "id": "he_out_5_0", "vertex_start": "v5", "vertex_end": "v0", "twin_id": "he_out_0_5", "wall_thickness": 20.0, "type": "WallOuter" },
+    { "id": "he_out_0_5", "vertex_start": "v0", "vertex_end": "v5", "twin_id": "he_out_5_0", "wall_thickness": 20.0, "type": "WallOuter" }
   ],
   "openings": [
     {
-      "id": "ent_door",
+      "id": "door_main_entrance",
       "type": "Door",
-      "target_edge_id": "he_ent_door",
-      "width_cm": 100.0,
-      "height_cm": 220.0,
-      "z_offset_cm": 0.0
-    },
-    {
-      "id": "main_win",
-      "type": "Window",
-      "target_edge_id": "he_win_main",
-      "width_cm": 800.0,
-      "height_cm": 240.0,
-      "z_offset_cm": 0.0
-    },
-    {
-      "id": "inner_door",
-      "type": "Door",
-      "target_edge_id": "he_d_inner",
+      "target_edge_id": "he_lintel_door",
       "width_cm": 90.0,
       "height_cm": 210.0,
       "z_offset_cm": 0.0
+    },
+    {
+      "id": "window_main",
+      "type": "Window",
+      "target_edge_id": "he_window_main",
+      "width_cm": 300.0,
+      "height_cm": 150.0,
+      "z_offset_cm": 85.0
     }
   ],
   "faces": [
     {
-      "face_id": "face_wing_a",
-      "label": "LivingWing",
-      "height_cm": 300.0,
+      "face_id": "face_main_room",
+      "label": "MainRoom",
+      "height_cm": 260.0,
       "z_offset": 0.0,
-      "contour_vertex_ids": ["v0", "v_sep", "v3", "v_d_s", "v_d_e", "v_ent_e", "v_ent_s"]
-    },
-    {
-      "face_id": "face_wing_b",
-      "label": "PrivateWing",
-      "height_cm": 300.0,
-      "z_offset": 0.0,
-      "contour_vertex_ids": ["v_sep", "v1", "v2", "v3"]
-    },
-    {
-      "face_id": "face_wing_c",
-      "label": "UpperWing",
-      "height_cm": 300.0,
-      "z_offset": 0.0,
-      "contour_vertex_ids": ["v_d_e", "v4", "v5", "v_ent_e"]
+      "contour_vertex_ids": ["v0", "v_w1_start", "v_w1_end", "v1", "v_d_start", "v_d_end", "v2", "v3", "v4", "v5"]
     }
   ]
 }
+

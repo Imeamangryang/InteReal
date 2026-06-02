@@ -64,8 +64,6 @@ void AViewModeManager::SetViewMode(EHarnessViewMode NewMode)
 void AViewModeManager::FocusOnBuilding()
 {
 	UHarnessGeneratorComponent* GenComp = nullptr;
-	
-	// 1. Try finding actor with tag "HarnessGenerator"
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("HarnessGenerator"), FoundActors);
 	
@@ -74,7 +72,6 @@ void AViewModeManager::FocusOnBuilding()
 		GenComp = FoundActors[0]->FindComponentByClass<UHarnessGeneratorComponent>();
 	}
 
-	// 2. If not found by tag, search by class
 	if (!GenComp)
 	{
 		TArray<AActor*> AllActors;
@@ -92,28 +89,78 @@ void AViewModeManager::FocusOnBuilding()
 		GenComp->GetFloorBounds(Min, Max);
 		FVector Center((Min.X + Max.X) / 2.0f, (Min.Y + Max.Y) / 2.0f, 0.0f);
 		TargetLocation = Center;
+
+		CalculateOptimalZoom();
+	}
+}
+
+void AViewModeManager::ToggleCanvasRotation()
+{
+	bIsCanvasRotated = !bIsCanvasRotated;
+	CalculateOptimalZoom();
+	UpdateTargetParameters();
+}
+
+void AViewModeManager::CalculateOptimalZoom()
+{
+	UHarnessGeneratorComponent* GenComp = nullptr;
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("HarnessGenerator"), FoundActors);
+	if (FoundActors.Num() > 0) GenComp = FoundActors[0]->FindComponentByClass<UHarnessGeneratorComponent>();
+
+	if (!GenComp) return;
+
+	FVector2D Min, Max;
+	GenComp->GetFloorBounds(Min, Max);
+	
+	float DistX = Max.X - Min.X; // 남북(세로) 길이
+	float DistY = Max.Y - Min.Y; // 동서(가로) 길이
+
+	// (캔버스 회전) 기능 대응을 위해 가로/세로 매핑
+	// bIsCanvasRotated 변수가 선언되어 있지 않다면 false로 하드코딩하거나 해당 기능을 추가해야 합니다.
+	bool bRotated = false; // 캔버스 회전 변수가 연동되었다면 bIsCanvasRotated 사용
+	float ScreenWidthRequired = bRotated ? DistX : DistY;
+	float ScreenHeightRequired = bRotated ? DistY : DistX;
+
+	// 16:9 모니터의 좁은 상하 폭에 담기 위해 세로 길이에 1.77배 가중치 적용
+	float AdjustedHeight = ScreenHeightRequired * 1.77f; 
+	float EffectiveSize = FMath::Max(ScreenWidthRequired, AdjustedHeight);
+
+	if (EffectiveSize > 0)
+	{
+		//  여백(Padding) 1.2배 추가 및 최대 줌아웃 한계(Clamp) 대폭 늘림
+		float BaseDist = (EffectiveSize * 0.5f) / FMath::Tan(FMath::DegreesToRadians(TargetFOV * 0.5f));
+		float OptimalArmLength = FMath::Clamp(BaseDist * 1.2f, 1000.f, 15000.f); 
+
+		TopDownArmLength = OptimalArmLength;
+		IsometricArmLength = OptimalArmLength * 1.2f;
+
+		if (CurrentMode == EHarnessViewMode::TopDown) TargetArmLength = TopDownArmLength;
+		else if (CurrentMode == EHarnessViewMode::Isometric) TargetArmLength = IsometricArmLength;
 	}
 }
 
 void AViewModeManager::UpdateTargetParameters()
 {
+	float BaseYaw = bIsCanvasRotated ? -90.f : 0.f;
+
 	switch (CurrentMode)
 	{
 	case EHarnessViewMode::TopDown:
-		TargetRotation = FRotator(-90.f, 0.f, 0.f);
+		TargetRotation = FRotator(-90.f, BaseYaw, 0.f);
 		TargetArmLength = TopDownArmLength;
 		TargetFOV = TopDownFOV;
 		break;
 
 	case EHarnessViewMode::Isometric:
-		TargetRotation = FRotator(-45.f, 45.f, 0.f);
+		TargetRotation = FRotator(-45.f, 45.f + BaseYaw, 0.f);
 		TargetArmLength = IsometricArmLength;
 		TargetFOV = IsometricFOV;
 		break;
 
 	case EHarnessViewMode::FirstPerson:
 		TargetLocation.Z = FirstPersonHeight; 
-		TargetRotation = FRotator(0.f, 0.f, 0.f);
+		TargetRotation = FRotator(0.f, BaseYaw, 0.f);
 		TargetArmLength = 0.f; 
 		TargetFOV = FirstPersonFOV;
 		break;
@@ -122,7 +169,7 @@ void AViewModeManager::UpdateTargetParameters()
 
 void AViewModeManager::AddRotationInput(float DeltaYaw, float DeltaPitch)
 {
-	if (CurrentMode == EHarnessViewMode::TopDown) return; // 평면 뷰는 회전 금지
+	if (CurrentMode == EHarnessViewMode::TopDown) return;
 
 	TargetRotation.Yaw += DeltaYaw * RotationSensitivity;
 	
@@ -132,40 +179,47 @@ void AViewModeManager::AddRotationInput(float DeltaYaw, float DeltaPitch)
 	}
 	else if (CurrentMode == EHarnessViewMode::Isometric)
 	{
-		// ISO 뷰에서는 Pitch를 약간만 조절 가능하거나 일정 범위로 제한
 		TargetRotation.Pitch = FMath::Clamp(TargetRotation.Pitch + DeltaPitch * RotationSensitivity, -85.f, -15.f);
 	}
 }
 
 void AViewModeManager::AddMovementInput(FVector Direction, float Scale)
 {
-	if (CurrentMode != EHarnessViewMode::FirstPerson) return;
+	// 1인칭은 PlayerController에서 Pawn을 직접 조작하므로 매니저 이동 제외
+	if (CurrentMode == EHarnessViewMode::FirstPerson) return;
 
-	// 현재 카메라 방향 기준으로 이동 방향 계산
-	FRotator Rotation = TargetRotation;
-	Rotation.Pitch = 0.f; // 수평 이동만 허용
+	// 카메라가 멀어질수록(줌아웃) 이동 속도도 비례해서 증폭
+	float ZoomSpeedMultiplier = FMath::Max(1.0f, TargetArmLength / 1000.0f);
+	float ActualSpeed = MovementSpeed * ZoomSpeedMultiplier; 
+
+	// 현재 캔버스 회전각(Yaw)을 기준으로 방향(Local Axis) 추출
+	FRotator YawRot(0.f, TargetRotation.Yaw, 0.f);
+	FVector WorldDir = FRotationMatrix(YawRot).TransformVector(Direction);
 	
-	FVector WorldDirection = FRotationMatrix(Rotation).TransformVector(Direction);
-	TargetLocation += WorldDirection * MovementSpeed * Scale * GetWorld()->GetDeltaSeconds();
+	TargetLocation += WorldDir * ActualSpeed * Scale * GetWorld()->GetDeltaSeconds();
 }
 
 void AViewModeManager::AddPanInput(float DeltaX, float DeltaY)
 {
-	if (CurrentMode == EHarnessViewMode::FirstPerson) return; // 1인칭은 WASD 사용
+	if (CurrentMode == EHarnessViewMode::FirstPerson) return;
 
-	// 현재 카메라의 Yaw 방향을 기준으로 화면 이동 (Pan)
-	FRotator YawRot(0.f, TargetRotation.Yaw, 0.f);
-	FVector RightDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
-	FVector ForwardDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+	FRotator YawRotation(0.f, TargetRotation.Yaw, 0.f);
+	FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-	// 마우스 이동 방향과 반대로 이동해야 "화면을 잡고 끄는" 느낌이 납니다.
 	TargetLocation -= (RightDir * DeltaX + ForwardDir * DeltaY) * PanSpeed;
 }
 
 void AViewModeManager::AddZoomInput(float Delta)
 {
-	if (CurrentMode == EHarnessViewMode::FirstPerson) return; // 1인칭은 줌인/아웃 없음
-
-	// 줌 인/아웃 (카메라와 타겟 사이의 거리 조절)
+	if (CurrentMode == EHarnessViewMode::FirstPerson) return;
 	TargetArmLength = FMath::Clamp(TargetArmLength - (Delta * ZoomSpeed), 300.f, 5000.f);
+}
+
+void AViewModeManager::SnapToTarget()
+{
+    SetActorLocation(TargetLocation);
+    SpringArm->SetRelativeRotation(TargetRotation);
+    SpringArm->TargetArmLength = TargetArmLength;
+    Camera->FieldOfView = TargetFOV;
 }

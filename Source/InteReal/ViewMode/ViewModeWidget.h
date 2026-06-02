@@ -32,6 +32,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Btn_FirstPerson;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_RotateCanvas;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_Save;
+
 private:
 	UFUNCTION()
 	void OnTopDownClicked();
@@ -41,4 +47,10 @@ private:
 
 	UFUNCTION()
 	void OnFirstPersonClicked();
+
+	UFUNCTION()
+	void OnRotateCanvasClicked();
+
+	UFUNCTION()
+	void OnSaveClicked();
 };

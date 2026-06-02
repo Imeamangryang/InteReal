@@ -1,39 +1,1392 @@
 {
   "project_info": {
-    "layout_type": "U_Shaped_Courtyard_House",
+    "layout_type": "Korean_Standard_3Room_Apartment",
     "scale_unit": "cm",
-    "reference_coordinate_system": "UE_Z_Up_Y_Right"
+    "reference_coordinate_system": "UE_Z_Up_Y_Right",
+    "warnings": [
+      "scale_mm_per_px missing; coordinates were exported assuming cm units."
+    ]
   },
   "vertices": [
-    { "id": "v0", "x": 0.0, "y": 0.0 },
-    { "id": "v1", "x": 1500.0, "y": 0.0 },
-    { "id": "v2", "x": 1500.0, "y": 1500.0 },
-    { "id": "v3", "x": 0.0, "y": 1500.0 },
-    { "id": "v4", "x": 500.0, "y": 500.0 },
-    { "id": "v5", "x": 1000.0, "y": 500.0 },
-    { "id": "v6", "x": 1000.0, "y": 1500.0 },
-    { "id": "v7", "x": 500.0, "y": 1500.0 }
+    {
+      "id": "v0",
+      "x": 29.5633,
+      "y": -24.5
+    },
+    {
+      "id": "v1",
+      "x": 777.997,
+      "y": -24.5
+    },
+    {
+      "id": "v2",
+      "x": 666.0007,
+      "y": -186.5
+    },
+    {
+      "id": "v3",
+      "x": 840.9993,
+      "y": -186.5
+    },
+    {
+      "id": "v4",
+      "x": 30.0012,
+      "y": -315.1319
+    },
+    {
+      "id": "v5",
+      "x": 322.5,
+      "y": -315.1319
+    },
+    {
+      "id": "v6",
+      "x": 29.2501,
+      "y": -534.2527
+    },
+    {
+      "id": "v7",
+      "x": 323.0334,
+      "y": -534.2527
+    },
+    {
+      "id": "v8",
+      "x": 669.0003,
+      "y": -627.0
+    },
+    {
+      "id": "v9",
+      "x": 755.4999,
+      "y": -627.0
+    },
+    {
+      "id": "v10",
+      "x": 323.0334,
+      "y": -653.4987
+    },
+    {
+      "id": "v11",
+      "x": 840.9979,
+      "y": -653.4987
+    },
+    {
+      "id": "v12",
+      "x": 841.0,
+      "y": -259.0
+    },
+    {
+      "id": "v13",
+      "x": 29.5633,
+      "y": -59.0074
+    },
+    {
+      "id": "v14",
+      "x": 29.5,
+      "y": -280.9965
+    },
+    {
+      "id": "v15",
+      "x": 29.5,
+      "y": -352.0035
+    },
+    {
+      "id": "v16",
+      "x": 29.5,
+      "y": -495.0
+    },
+    {
+      "id": "v17",
+      "x": 667.0004,
+      "y": -69.0
+    },
+    {
+      "id": "v18",
+      "x": 776.9996,
+      "y": -69.0
+    },
+    {
+      "id": "v19",
+      "x": 695.0006,
+      "y": -309.0
+    },
+    {
+      "id": "v20",
+      "x": 839.9994,
+      "y": -309.0
+    },
+    {
+      "id": "v21",
+      "x": 422.9905,
+      "y": -341.3333
+    },
+    {
+      "id": "v22",
+      "x": 619.9995,
+      "y": -341.3333
+    },
+    {
+      "id": "v23",
+      "x": 619.9852,
+      "y": -505.5722
+    },
+    {
+      "id": "v24",
+      "x": 668.4999,
+      "y": -505.5722
+    },
+    {
+      "id": "v25",
+      "x": 755.4999,
+      "y": -557.0
+    },
+    {
+      "id": "v26",
+      "x": 794.4999,
+      "y": -557.0
+    },
+    {
+      "id": "v27",
+      "x": 794.4999,
+      "y": -310.0
+    },
+    {
+      "id": "v28",
+      "x": 778.0,
+      "y": -185.0
+    },
+    {
+      "id": "v29",
+      "x": 695.0,
+      "y": -279.0
+    },
+    {
+      "id": "v30",
+      "x": 666.0,
+      "y": -25.0
+    },
+    {
+      "id": "v31",
+      "x": 666.0,
+      "y": -106.0
+    },
+    {
+      "id": "v32",
+      "x": 668.4999,
+      "y": -652.0
+    },
+    {
+      "id": "v33",
+      "x": 421.5,
+      "y": -276.0
+    },
+    {
+      "id": "v34",
+      "x": 421.5,
+      "y": -404.0
+    },
+    {
+      "id": "v35",
+      "x": 323.0334,
+      "y": -376.0
+    },
+    {
+      "id": "v36",
+      "x": 322.5,
+      "y": -376.0
+    },
+    {
+      "id": "v37",
+      "x": 322.5,
+      "y": -368.3819
+    },
+    {
+      "id": "v38",
+      "x": 322.5,
+      "y": -323.3819
+    },
+    {
+      "id": "v39",
+      "x": 322.5,
+      "y": -315.7638
+    },
+    {
+      "id": "v40",
+      "x": 323.0334,
+      "y": -651.9974
+    },
+    {
+      "id": "v41",
+      "x": 620.4835,
+      "y": -505.5722
+    },
+    {
+      "id": "v42",
+      "x": 620.4835,
+      "y": -496.5072
+    },
+    {
+      "id": "v43",
+      "x": 620.4835,
+      "y": -445.5072
+    },
+    {
+      "id": "v44",
+      "x": 620.4835,
+      "y": -436.4422
+    },
+    {
+      "id": "v45",
+      "x": 323.0334,
+      "y": -404.4943
+    },
+    {
+      "id": "v46",
+      "x": 323.0334,
+      "y": -405.4943
+    },
+    {
+      "id": "v47",
+      "x": 332.5319,
+      "y": -405.4786
+    },
+    {
+      "id": "v48",
+      "x": 377.5318,
+      "y": -405.4046
+    },
+    {
+      "id": "v49",
+      "x": 490.8607,
+      "y": -405.2181
+    },
+    {
+      "id": "v50",
+      "x": 555.8606,
+      "y": -405.1111
+    },
+    {
+      "id": "v51",
+      "x": 619.9785,
+      "y": -405.0056
+    },
+    {
+      "id": "v52",
+      "x": 621.0,
+      "y": -279.0
+    },
+    {
+      "id": "v53",
+      "x": 620.9818,
+      "y": -405.0056
+    },
+    {
+      "id": "v54",
+      "x": 620.9818,
+      "y": -436.4422
+    },
+    {
+      "id": "v55",
+      "x": 621.0,
+      "y": -277.0
+    },
+    {
+      "id": "v56",
+      "x": 630.1025,
+      "y": -277.0
+    },
+    {
+      "id": "v57",
+      "x": 675.1025,
+      "y": -277.0
+    },
+    {
+      "id": "v58",
+      "x": 695.0,
+      "y": -277.0
+    },
+    {
+      "id": "v59",
+      "x": 620.4835,
+      "y": -437.4422
+    },
+    {
+      "id": "v60",
+      "x": 792.922,
+      "y": -437.4422
+    },
+    {
+      "id": "v61",
+      "x": 666.0006,
+      "y": -177.6051
+    },
+    {
+      "id": "v62",
+      "x": 666.0,
+      "y": -111.6051
+    },
+    {
+      "id": "v63",
+      "x": 840.9995,
+      "y": -208.5339
+    },
+    {
+      "id": "v64",
+      "x": 840.9999,
+      "y": -253.5339
+    },
+    {
+      "id": "v65",
+      "x": 25.345,
+      "y": 7.2057
+    },
+    {
+      "id": "v66",
+      "x": 25.345,
+      "y": -27.3017
+    },
+    {
+      "id": "v67",
+      "x": 25.3448,
+      "y": -27.9443
+    },
+    {
+      "id": "v68",
+      "x": 25.2821,
+      "y": -247.9442
+    },
+    {
+      "id": "v69",
+      "x": 25.2817,
+      "y": -249.2908
+    },
+    {
+      "id": "v70",
+      "x": 25.2817,
+      "y": -320.2978
+    },
+    {
+      "id": "v71",
+      "x": 25.2817,
+      "y": -323.2427
+    },
+    {
+      "id": "v72",
+      "x": 25.2817,
+      "y": -463.2427
+    },
+    {
+      "id": "v73",
+      "x": 25.2817,
+      "y": -463.2943
+    },
+    {
+      "id": "v74",
+      "x": 25.0318,
+      "y": -502.547
+    }
   ],
   "half_edges": [
-    { "id": "he_out_0_1", "vertex_start": "v0", "vertex_end": "v1", "twin_id": "he_out_1_0", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_1_0", "vertex_start": "v1", "vertex_end": "v0", "twin_id": "he_out_0_1", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_1_2", "vertex_start": "v1", "vertex_end": "v2", "twin_id": "he_out_2_1", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_2_1", "vertex_start": "v2", "vertex_end": "v1", "twin_id": "he_out_1_2", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_2_6", "vertex_start": "v2", "vertex_end": "v6", "twin_id": "he_out_6_2", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_6_2", "vertex_start": "v6", "vertex_end": "v2", "twin_id": "he_out_2_6", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_6_5", "vertex_start": "v6", "vertex_end": "v5", "twin_id": "he_in_5_6", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_5_6", "vertex_start": "v5", "vertex_end": "v6", "twin_id": "he_in_6_5", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_5_4", "vertex_start": "v5", "vertex_end": "v4", "twin_id": "he_in_4_5", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_4_5", "vertex_start": "v4", "vertex_end": "v5", "twin_id": "he_in_5_4", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_4_7", "vertex_start": "v4", "vertex_end": "v7", "twin_id": "he_in_7_4", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_in_7_4", "vertex_start": "v7", "vertex_end": "v4", "twin_id": "he_in_4_7", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_7_3", "vertex_start": "v7", "vertex_end": "v3", "twin_id": "he_out_3_7", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_3_7", "vertex_start": "v3", "vertex_end": "v7", "twin_id": "he_out_7_3", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_3_0", "vertex_start": "v3", "vertex_end": "v0", "twin_id": "he_out_0_3", "wall_thickness": 20.0, "type": "WallOuter" },
-    { "id": "he_out_0_3", "vertex_start": "v0", "vertex_end": "v3", "twin_id": "he_out_3_0", "wall_thickness": 20.0, "type": "WallOuter" }
+    {
+      "id": "he_out_ws_wc_0_0_0",
+      "vertex_start": "v0",
+      "vertex_end": "v1",
+      "twin_id": "he_out_ws_wc_0_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_0_0_0_twin",
+      "vertex_start": "v1",
+      "vertex_end": "v0",
+      "twin_id": "he_out_ws_wc_0_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_2_0_0",
+      "vertex_start": "v2",
+      "vertex_end": "v3",
+      "twin_id": "he_out_ws_wc_2_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_2_0_0_twin",
+      "vertex_start": "v3",
+      "vertex_end": "v2",
+      "twin_id": "he_out_ws_wc_2_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_4_0_0",
+      "vertex_start": "v4",
+      "vertex_end": "v5",
+      "twin_id": "he_out_ws_wc_4_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_4_0_0_twin",
+      "vertex_start": "v5",
+      "vertex_end": "v4",
+      "twin_id": "he_out_ws_wc_4_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_11_0_0",
+      "vertex_start": "v6",
+      "vertex_end": "v7",
+      "twin_id": "he_out_ws_wc_11_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_11_0_0_twin",
+      "vertex_start": "v7",
+      "vertex_end": "v6",
+      "twin_id": "he_out_ws_wc_11_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_13_0_0",
+      "vertex_start": "v8",
+      "vertex_end": "v9",
+      "twin_id": "he_out_ws_wc_13_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_13_0_0_twin",
+      "vertex_start": "v9",
+      "vertex_end": "v8",
+      "twin_id": "he_out_ws_wc_13_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_14_0_0",
+      "vertex_start": "v10",
+      "vertex_end": "v11",
+      "twin_id": "he_out_ws_wc_14_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_14_0_0_twin",
+      "vertex_start": "v11",
+      "vertex_end": "v10",
+      "twin_id": "he_out_ws_wc_14_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_16_0_0",
+      "vertex_start": "v12",
+      "vertex_end": "v11",
+      "twin_id": "he_out_ws_wc_16_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_16_0_0_twin",
+      "vertex_start": "v11",
+      "vertex_end": "v12",
+      "twin_id": "he_out_ws_wc_16_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_26_0_0",
+      "vertex_start": "v0",
+      "vertex_end": "v13",
+      "twin_id": "he_out_ws_wc_26_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_26_0_0_twin",
+      "vertex_start": "v13",
+      "vertex_end": "v0",
+      "twin_id": "he_out_ws_wc_26_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_27_0_0",
+      "vertex_start": "v14",
+      "vertex_end": "v15",
+      "twin_id": "he_out_ws_wc_27_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_27_0_0_twin",
+      "vertex_start": "v15",
+      "vertex_end": "v14",
+      "twin_id": "he_out_ws_wc_27_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_28_0_0",
+      "vertex_start": "v16",
+      "vertex_end": "v6",
+      "twin_id": "he_out_ws_wc_28_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_ws_wc_28_0_0_twin",
+      "vertex_start": "v6",
+      "vertex_end": "v16",
+      "twin_id": "he_out_ws_wc_28_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_in_ws_wc_1_0_0",
+      "vertex_start": "v17",
+      "vertex_end": "v18",
+      "twin_id": "he_in_ws_wc_1_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_1_0_0_twin",
+      "vertex_start": "v18",
+      "vertex_end": "v17",
+      "twin_id": "he_in_ws_wc_1_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_5_0_0",
+      "vertex_start": "v19",
+      "vertex_end": "v20",
+      "twin_id": "he_in_ws_wc_5_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_5_0_0_twin",
+      "vertex_start": "v20",
+      "vertex_end": "v19",
+      "twin_id": "he_in_ws_wc_5_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_6_0_0",
+      "vertex_start": "v21",
+      "vertex_end": "v22",
+      "twin_id": "he_in_ws_wc_6_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_6_0_0_twin",
+      "vertex_start": "v22",
+      "vertex_end": "v21",
+      "twin_id": "he_in_ws_wc_6_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_10_0_0",
+      "vertex_start": "v23",
+      "vertex_end": "v24",
+      "twin_id": "he_in_ws_wc_10_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_10_0_0_twin",
+      "vertex_start": "v24",
+      "vertex_end": "v23",
+      "twin_id": "he_in_ws_wc_10_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_12_0_0",
+      "vertex_start": "v25",
+      "vertex_end": "v26",
+      "twin_id": "he_in_ws_wc_12_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_12_0_0_twin",
+      "vertex_start": "v26",
+      "vertex_end": "v25",
+      "twin_id": "he_in_ws_wc_12_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_17_0_0",
+      "vertex_start": "v27",
+      "vertex_end": "v26",
+      "twin_id": "he_in_ws_wc_17_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_17_0_0_twin",
+      "vertex_start": "v26",
+      "vertex_end": "v27",
+      "twin_id": "he_in_ws_wc_17_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_18_0_0",
+      "vertex_start": "v1",
+      "vertex_end": "v28",
+      "twin_id": "he_in_ws_wc_18_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_18_0_0_twin",
+      "vertex_start": "v28",
+      "vertex_end": "v1",
+      "twin_id": "he_in_ws_wc_18_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_19_0_0",
+      "vertex_start": "v25",
+      "vertex_end": "v9",
+      "twin_id": "he_in_ws_wc_19_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_19_0_0_twin",
+      "vertex_start": "v9",
+      "vertex_end": "v25",
+      "twin_id": "he_in_ws_wc_19_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_20_0_0",
+      "vertex_start": "v29",
+      "vertex_end": "v19",
+      "twin_id": "he_in_ws_wc_20_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_20_0_0_twin",
+      "vertex_start": "v19",
+      "vertex_end": "v29",
+      "twin_id": "he_in_ws_wc_20_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_21_0_0",
+      "vertex_start": "v30",
+      "vertex_end": "v31",
+      "twin_id": "he_in_ws_wc_21_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_21_0_0_twin",
+      "vertex_start": "v31",
+      "vertex_end": "v30",
+      "twin_id": "he_in_ws_wc_21_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_22_0_0",
+      "vertex_start": "v24",
+      "vertex_end": "v32",
+      "twin_id": "he_in_ws_wc_22_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_22_0_0_twin",
+      "vertex_start": "v32",
+      "vertex_end": "v24",
+      "twin_id": "he_in_ws_wc_22_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_24_0_0",
+      "vertex_start": "v33",
+      "vertex_end": "v34",
+      "twin_id": "he_in_ws_wc_24_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_24_0_0_twin",
+      "vertex_start": "v34",
+      "vertex_end": "v33",
+      "twin_id": "he_in_ws_wc_24_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_25_0_0",
+      "vertex_start": "v35",
+      "vertex_end": "v7",
+      "twin_id": "he_in_ws_wc_25_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_ws_wc_25_0_0_twin",
+      "vertex_start": "v7",
+      "vertex_end": "v35",
+      "twin_id": "he_in_ws_wc_25_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301327881_0_0",
+      "vertex_start": "v36",
+      "vertex_end": "v37",
+      "twin_id": "he_in_wall_1780301327881_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301327881_0_0_twin",
+      "vertex_start": "v37",
+      "vertex_end": "v36",
+      "twin_id": "he_in_wall_1780301327881_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780301977812",
+      "vertex_start": "v37",
+      "vertex_end": "v38",
+      "twin_id": "he_lintel_door_1780301977812_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780301977812_twin",
+      "vertex_start": "v38",
+      "vertex_end": "v37",
+      "twin_id": "he_lintel_door_1780301977812",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301327881_0_2",
+      "vertex_start": "v38",
+      "vertex_end": "v39",
+      "twin_id": "he_in_wall_1780301327881_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301327881_0_2_twin",
+      "vertex_start": "v39",
+      "vertex_end": "v38",
+      "twin_id": "he_in_wall_1780301327881_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301388329_0_0",
+      "vertex_start": "v40",
+      "vertex_end": "v7",
+      "twin_id": "he_in_wall_1780301388329_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301388329_0_0_twin",
+      "vertex_start": "v7",
+      "vertex_end": "v40",
+      "twin_id": "he_in_wall_1780301388329_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301442257_0_0",
+      "vertex_start": "v41",
+      "vertex_end": "v42",
+      "twin_id": "he_in_wall_1780301442257_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301442257_0_0_twin",
+      "vertex_start": "v42",
+      "vertex_end": "v41",
+      "twin_id": "he_in_wall_1780301442257_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302035580",
+      "vertex_start": "v42",
+      "vertex_end": "v43",
+      "twin_id": "he_lintel_door_1780302035580_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302035580_twin",
+      "vertex_start": "v43",
+      "vertex_end": "v42",
+      "twin_id": "he_lintel_door_1780302035580",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301442257_0_2",
+      "vertex_start": "v43",
+      "vertex_end": "v44",
+      "twin_id": "he_in_wall_1780301442257_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301442257_0_2_twin",
+      "vertex_start": "v44",
+      "vertex_end": "v43",
+      "twin_id": "he_in_wall_1780301442257_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_25_1780301553627_start_a_0_0",
+      "vertex_start": "v35",
+      "vertex_end": "v45",
+      "twin_id": "he_in_split_ws_wc_25_1780301553627_start_a_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_25_1780301553627_start_a_0_0_twin",
+      "vertex_start": "v45",
+      "vertex_end": "v35",
+      "twin_id": "he_in_split_ws_wc_25_1780301553627_start_a_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_25_1780301553627_start_b_0_0",
+      "vertex_start": "v45",
+      "vertex_end": "v7",
+      "twin_id": "he_in_split_ws_wc_25_1780301553627_start_b_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_25_1780301553627_start_b_0_0_twin",
+      "vertex_start": "v7",
+      "vertex_end": "v45",
+      "twin_id": "he_in_split_ws_wc_25_1780301553627_start_b_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_0",
+      "vertex_start": "v46",
+      "vertex_end": "v47",
+      "twin_id": "he_in_wall_1780301550199_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_0_twin",
+      "vertex_start": "v47",
+      "vertex_end": "v46",
+      "twin_id": "he_in_wall_1780301550199_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780301981201",
+      "vertex_start": "v47",
+      "vertex_end": "v48",
+      "twin_id": "he_lintel_door_1780301981201_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780301981201_twin",
+      "vertex_start": "v48",
+      "vertex_end": "v47",
+      "twin_id": "he_lintel_door_1780301981201",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_2",
+      "vertex_start": "v48",
+      "vertex_end": "v49",
+      "twin_id": "he_in_wall_1780301550199_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_2_twin",
+      "vertex_start": "v49",
+      "vertex_end": "v48",
+      "twin_id": "he_in_wall_1780301550199_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302008448",
+      "vertex_start": "v49",
+      "vertex_end": "v50",
+      "twin_id": "he_lintel_door_1780302008448_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302008448_twin",
+      "vertex_start": "v50",
+      "vertex_end": "v49",
+      "twin_id": "he_lintel_door_1780302008448",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_4",
+      "vertex_start": "v50",
+      "vertex_end": "v51",
+      "twin_id": "he_in_wall_1780301550199_0_4_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301550199_0_4_twin",
+      "vertex_start": "v51",
+      "vertex_end": "v50",
+      "twin_id": "he_in_wall_1780301550199_0_4",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_23_1780301569663_end_a_0_0",
+      "vertex_start": "v52",
+      "vertex_end": "v53",
+      "twin_id": "he_in_split_ws_wc_23_1780301569663_end_a_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_23_1780301569663_end_a_0_0_twin",
+      "vertex_start": "v53",
+      "vertex_end": "v52",
+      "twin_id": "he_in_split_ws_wc_23_1780301569663_end_a_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_23_1780301569663_end_b_0_0",
+      "vertex_start": "v53",
+      "vertex_end": "v54",
+      "twin_id": "he_in_split_ws_wc_23_1780301569663_end_b_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_split_ws_wc_23_1780301569663_end_b_0_0_twin",
+      "vertex_start": "v54",
+      "vertex_end": "v53",
+      "twin_id": "he_in_split_ws_wc_23_1780301569663_end_b_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301596534_0_0",
+      "vertex_start": "v55",
+      "vertex_end": "v56",
+      "twin_id": "he_in_wall_1780301596534_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301596534_0_0_twin",
+      "vertex_start": "v56",
+      "vertex_end": "v55",
+      "twin_id": "he_in_wall_1780301596534_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302041841",
+      "vertex_start": "v56",
+      "vertex_end": "v57",
+      "twin_id": "he_lintel_door_1780302041841_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302041841_twin",
+      "vertex_start": "v57",
+      "vertex_end": "v56",
+      "twin_id": "he_lintel_door_1780302041841",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301596534_0_2",
+      "vertex_start": "v57",
+      "vertex_end": "v58",
+      "twin_id": "he_in_wall_1780301596534_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301596534_0_2_twin",
+      "vertex_start": "v58",
+      "vertex_end": "v57",
+      "twin_id": "he_in_wall_1780301596534_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301787572_0_0",
+      "vertex_start": "v59",
+      "vertex_end": "v60",
+      "twin_id": "he_in_wall_1780301787572_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301787572_0_0_twin",
+      "vertex_start": "v60",
+      "vertex_end": "v59",
+      "twin_id": "he_in_wall_1780301787572_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301830384_0_0",
+      "vertex_start": "v2",
+      "vertex_end": "v61",
+      "twin_id": "he_in_wall_1780301830384_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301830384_0_0_twin",
+      "vertex_start": "v61",
+      "vertex_end": "v2",
+      "twin_id": "he_in_wall_1780301830384_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302068310",
+      "vertex_start": "v61",
+      "vertex_end": "v62",
+      "twin_id": "he_lintel_door_1780302068310_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302068310_twin",
+      "vertex_start": "v62",
+      "vertex_end": "v61",
+      "twin_id": "he_lintel_door_1780302068310",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301830384_0_2",
+      "vertex_start": "v62",
+      "vertex_end": "v31",
+      "twin_id": "he_in_wall_1780301830384_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301830384_0_2_twin",
+      "vertex_start": "v31",
+      "vertex_end": "v62",
+      "twin_id": "he_in_wall_1780301830384_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301838814_0_0",
+      "vertex_start": "v3",
+      "vertex_end": "v63",
+      "twin_id": "he_in_wall_1780301838814_0_0_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301838814_0_0_twin",
+      "vertex_start": "v63",
+      "vertex_end": "v3",
+      "twin_id": "he_in_wall_1780301838814_0_0",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302087399",
+      "vertex_start": "v63",
+      "vertex_end": "v64",
+      "twin_id": "he_lintel_door_1780302087399_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_lintel_door_1780302087399_twin",
+      "vertex_start": "v64",
+      "vertex_end": "v63",
+      "twin_id": "he_lintel_door_1780302087399",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301838814_0_2",
+      "vertex_start": "v64",
+      "vertex_end": "v12",
+      "twin_id": "he_in_wall_1780301838814_0_2_twin",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_in_wall_1780301838814_0_2_twin",
+      "vertex_start": "v12",
+      "vertex_end": "v64",
+      "twin_id": "he_in_wall_1780301838814_0_2",
+      "wall_thickness": 10.0,
+      "type": "WallInner"
+    },
+    {
+      "id": "he_out_weld_1780301910789_0_0",
+      "vertex_start": "v65",
+      "vertex_end": "v66",
+      "twin_id": "he_out_weld_1780301910789_0_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_0_0_twin",
+      "vertex_start": "v66",
+      "vertex_end": "v65",
+      "twin_id": "he_out_weld_1780301910789_0_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_1_0",
+      "vertex_start": "v66",
+      "vertex_end": "v67",
+      "twin_id": "he_out_weld_1780301910789_1_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_1_0_twin",
+      "vertex_start": "v67",
+      "vertex_end": "v66",
+      "twin_id": "he_out_weld_1780301910789_1_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_window_window_1780301913631",
+      "vertex_start": "v67",
+      "vertex_end": "v68",
+      "twin_id": "he_window_window_1780301913631_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_window_window_1780301913631_twin",
+      "vertex_start": "v68",
+      "vertex_end": "v67",
+      "twin_id": "he_window_window_1780301913631",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_1_2",
+      "vertex_start": "v68",
+      "vertex_end": "v69",
+      "twin_id": "he_out_weld_1780301910789_1_2_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_1_2_twin",
+      "vertex_start": "v69",
+      "vertex_end": "v68",
+      "twin_id": "he_out_weld_1780301910789_1_2",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_2_0",
+      "vertex_start": "v69",
+      "vertex_end": "v70",
+      "twin_id": "he_out_weld_1780301910789_2_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_2_0_twin",
+      "vertex_start": "v70",
+      "vertex_end": "v69",
+      "twin_id": "he_out_weld_1780301910789_2_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_3_0",
+      "vertex_start": "v70",
+      "vertex_end": "v71",
+      "twin_id": "he_out_weld_1780301910789_3_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_3_0_twin",
+      "vertex_start": "v71",
+      "vertex_end": "v70",
+      "twin_id": "he_out_weld_1780301910789_3_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_window_window_1780301963681",
+      "vertex_start": "v71",
+      "vertex_end": "v72",
+      "twin_id": "he_window_window_1780301963681_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_window_window_1780301963681_twin",
+      "vertex_start": "v72",
+      "vertex_end": "v71",
+      "twin_id": "he_window_window_1780301963681",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_3_2",
+      "vertex_start": "v72",
+      "vertex_end": "v73",
+      "twin_id": "he_out_weld_1780301910789_3_2_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_3_2_twin",
+      "vertex_start": "v73",
+      "vertex_end": "v72",
+      "twin_id": "he_out_weld_1780301910789_3_2",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_4_0",
+      "vertex_start": "v73",
+      "vertex_end": "v74",
+      "twin_id": "he_out_weld_1780301910789_4_0_twin",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    },
+    {
+      "id": "he_out_weld_1780301910789_4_0_twin",
+      "vertex_start": "v74",
+      "vertex_end": "v73",
+      "twin_id": "he_out_weld_1780301910789_4_0",
+      "wall_thickness": 20.0,
+      "type": "WallOuter"
+    }
   ],
-  "openings": [],
-  "faces": [
-    { "face_id": "f_main", "label": "HouseBody", "height_cm": 300.0, "z_offset": 0.0, "contour_vertex_ids": ["v0", "v1", "v2", "v6", "v5", "v4", "v7", "v3"] }
-  ]
+  "openings": [
+    {
+      "id": "window_1780301913631",
+      "type": "Window",
+      "target_edge_id": "he_window_window_1780301913631",
+      "width_cm": 220.0,
+      "height_cm": 120.0,
+      "z_offset_cm": 100.0
+    },
+    {
+      "id": "window_1780301963681",
+      "type": "Window",
+      "target_edge_id": "he_window_window_1780301963681",
+      "width_cm": 140.0,
+      "height_cm": 120.0,
+      "z_offset_cm": 100.0
+    },
+    {
+      "id": "door_1780301977812",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780301977812",
+      "width_cm": 45.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780301981201",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780301981201",
+      "width_cm": 45.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780302008448",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780302008448",
+      "width_cm": 65.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780302035580",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780302035580",
+      "width_cm": 51.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780302041841",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780302041841",
+      "width_cm": 45.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780302068310",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780302068310",
+      "width_cm": 66.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    },
+    {
+      "id": "door_1780302087399",
+      "type": "Door",
+      "target_edge_id": "he_lintel_door_1780302087399",
+      "width_cm": 45.0,
+      "height_cm": 210.0,
+      "z_offset_cm": 0.0
+    }
+  ],
+  "faces": []
 }

@@ -27,6 +27,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ViewMode")
 	void FocusOnBuilding();
 
+	UFUNCTION(BlueprintCallable, Category = "ViewMode")
+	void CalculateOptimalZoom();
+
+	UFUNCTION(BlueprintCallable, Category = "ViewMode")
+	void ToggleCanvasRotation();
+
+	UFUNCTION(BlueprintPure, Category = "ViewMode")
+	bool IsCanvasRotated() const { return bIsCanvasRotated; }
+
 	// Interactive Inputs
 	void AddRotationInput(float DeltaYaw, float DeltaPitch);
 	void AddMovementInput(FVector Direction, float Scale);
@@ -37,8 +46,12 @@ public:
 	EHarnessViewMode GetCurrentViewMode() const { return CurrentMode; }
 
 	UFUNCTION(BlueprintPure, Category = "ViewMode")
-	FVector GetTargetLocation() const { return TargetLocation; }
+	FVector GetCameraTargetLocation() const { return TargetLocation; }
 
+	// 타겟 위치로 즉시 카메라를 스냅시키는 함수
+	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
+	void SnapToTarget();
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "ViewMode|Components")
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -83,6 +96,9 @@ private:
 	float ZoomSpeed = 150.0f;
 
 	EHarnessViewMode CurrentMode = EHarnessViewMode::TopDown;
+
+	UPROPERTY(VisibleAnywhere, Category = "ViewMode")
+	bool bIsCanvasRotated = false;
 
 	// Target Parameters for Interpolation
 	FVector TargetLocation;

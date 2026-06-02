@@ -7,6 +7,9 @@
 class UHarnessGeneratorComponent;
 class UHarnessMinimapCaptureComponent;
 class UHarnessCaptureMinimapWidget;
+class UHarnessNetworkComponent;
+class UHarnessSaveManagerComponent;
+class UHarnessPipelineManager;
 
 UCLASS()
 class INTEREAL_API AHarnessTestActor : public AActor
@@ -27,6 +30,18 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
     TObjectPtr<UHarnessGeneratorComponent> HarnessComponent;
 
+    // 네트워크 컴포넌트
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
+    TObjectPtr<UHarnessNetworkComponent> NetworkComponent;
+
+    // 세이브 매니저 컴포넌트
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
+    TObjectPtr<UHarnessSaveManagerComponent> SaveManagerComponent;
+
+    // 파이프라인 매니저 컴포넌트
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
+    TObjectPtr<UHarnessPipelineManager> PipelineManager;
+
     // 캡처 컴포넌트 추가
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
     TObjectPtr<UHarnessMinimapCaptureComponent> CaptureComponent;
@@ -35,8 +50,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|UI")
     TSubclassOf<UHarnessCaptureMinimapWidget> MinimapWidgetClass;
 
+    // 메인 HUD 위젯 클래스 (도면 목록 UI)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|UI")
+    TSubclassOf<class UHarnessMainHUD> MainHUDClass;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
-    bool bBuildOnBeginPlay = true;
+    bool bBuildOnBeginPlay = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
     FString JsonFilePath;
@@ -48,5 +67,7 @@ private:
 
     // 머티리얼 적용 대기 후 캡처를 위한 타이머
     FTimerHandle CaptureTimerHandle;
+    
+    UFUNCTION()
     void DelayedCapture();
 };

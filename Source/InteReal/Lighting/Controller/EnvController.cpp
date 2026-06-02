@@ -1,40 +1,104 @@
 #include "EnvController.h"
+
+#include "Blueprint/UserWidget.h"
 #include "InteReal/Lighting/UIManager/WeatherUISubsystem.h"
 #include "InteReal/Struct/LightingDataStruct.h"
 #include "Engine/SkyLight.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/InputComponent.h"
+
 AEnvController::AEnvController()
 {
-	PrimaryActorTick.bCanEverTick = false; // 틱이 필요 없다면 false
+    PrimaryActorTick.bCanEverTick = true;
+    AutoReceiveInput = EAutoReceiveInput::Player0;
 }
 
 void AEnvController::BeginPlay() {
-	Super::BeginPlay();
-	auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
-	if (Sub) {
-		// 서브시스템의 FiveParams 델리게이트에 바인딩
-		Sub->OnEnvironmentUpdate.AddDynamic(this, &AEnvController::UpdateEnvironment);
-	}
+    Super::BeginPlay();
+    
+    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+    if (Sub) {
+       Sub->OnEnvironmentUpdate.AddDynamic(this, &AEnvController::UpdateEnvironment);
+    }
+    
+    if (WeatherWidgetClass) {
+       WeatherWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), WeatherWidgetClass);
+       if (WeatherWidgetInstance) {
+          WeatherWidgetInstance->AddToViewport();
+       }
+    }
+    
+    EnableInput(GetWorld()->GetFirstPlayerController());
+    if (InputComponent) {
+        InputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &AEnvController::OnToggleUIMode);
+    }
 }
 
-void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDetailData D, FSolarTermData S, float Time) {
-	if (!SunLight) return;
+void AEnvController::OnToggleUIMode() {
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (!PC) return;
 
-	// 1. 태양 위치 (고도: 위도-적위, 방위: 시간대)
-	float SunPitch = 90.0f - C.Latitude + S.Declination;
-	float SunYaw = (Time / 24.0f) * 360.0f;
-	SunLight->SetRelativeRotation(FRotator(SunPitch, SunYaw, 0.0f));
+    FInputModeGameAndUI InputMode;
+    if (IsValid(WeatherWidgetInstance)) {
+        InputMode.SetWidgetToFocus(WeatherWidgetInstance->TakeWidget());
+    }
+    PC->SetInputMode(InputMode);
+    PC->bShowMouseCursor = true;
+    bWasInFirstPerson = false;
+}
 
-	// 2. 조명 강도 및 색상 (CSV의 Temperature 변환)
-	SunLight->SetIntensity(W.IntensityLux);
-	SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(W.Temperature));
-	// 3. 루멘 및 안개 갱신
-	if (SkyLight) {
-		// SkyLight는 이제 액터이므로 GetLightComponent()를 통해 컴포넌트를 가져옴
-		USkyLightComponent* LightComp = SkyLight->GetLightComponent();
-		if (LightComp) {
-			LightComp->SetIntensity(W.SkyIntensity);
-			LightComp->RecaptureSky();
-		}
-	}
-	if (Fog) Fog->SetFogDensity(W.FogDensity);
+void AEnvController::Tick(float DeltaTime) {
+    Super::Tick(DeltaTime);
+
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (!PC) return;
+
+    bool bIsFirstPerson = (PC->GetViewTarget() == PC->GetPawn());
+
+    if (bIsFirstPerson != bWasInFirstPerson) {
+       if (bIsFirstPerson) {
+          FInputModeGameOnly InputMode;
+          PC->SetInputMode(InputMode);
+          PC->bShowMouseCursor = false;
+       } else {
+          FInputModeGameAndUI InputMode;
+          if (IsValid(WeatherWidgetInstance)) {
+             InputMode.SetWidgetToFocus(WeatherWidgetInstance->TakeWidget());
+          }
+          PC->SetInputMode(InputMode);
+          PC->bShowMouseCursor = true;
+       }
+       bWasInFirstPerson = bIsFirstPerson;
+    }
+}
+
+void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDetailData D, FSolarTermData S, float Time, float Orientation) {
+    if (!SunLight) return;
+
+    float HourAngle = (Time - 12.0f) * 15.0f;
+    float RadLat = FMath::DegreesToRadians(C.Latitude);
+    float RadDec = FMath::DegreesToRadians(S.Declination);
+    float RadHA = FMath::DegreesToRadians(HourAngle);
+
+    float SinAlt = FMath::Sin(RadLat) * FMath::Sin(RadDec) + FMath::Cos(RadLat) * FMath::Cos(RadDec) * FMath::Cos(RadHA);
+    float Altitude = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(SinAlt, -1.0f, 1.0f)));
+    float Azimuth = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Sin(RadHA), FMath::Cos(RadDec)*FMath::Sin(RadLat) - FMath::Sin(RadDec)*FMath::Cos(RadLat)*FMath::Cos(RadHA)));
+
+    SunLight->SetRelativeRotation(FRotator(-Altitude, Azimuth + Orientation, 0.0f));
+    
+    float IntensityMultiplier = (Altitude > 0) ? 1.0f : 0.05f; 
+    SunLight->SetIntensity(W.IntensityLux * IntensityMultiplier);
+    SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(W.Temperature));
+
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) {
+       SkyLight->GetLightComponent()->SetIntensity(W.SkyIntensity * IntensityMultiplier);
+       SkyLight->GetLightComponent()->RecaptureSky();
+    }
+
+    if (IsValid(Fog))
+    {
+       Fog->SetFogDensity(W.FogDensity);
+       FLinearColor FogColor = FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity);
+       Fog->SetFogInscatteringColor(FogColor);
+    }
 }

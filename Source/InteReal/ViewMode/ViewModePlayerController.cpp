@@ -34,9 +34,11 @@ void AViewModePlayerController::BeginPlay()
 		ViewModeWidgetInstance = CreateWidget<UUserWidget>(this, ViewModeWidgetClass);
 		if (ViewModeWidgetInstance)
 		{
+			// 💡 [ZOrder 수정] 상호작용 버튼들이 최상단에 오도록 10 설정
 			ViewModeWidgetInstance->AddToViewport();
 		}
 	}
+
 
 	FindViewModeManager();
 
@@ -162,6 +164,12 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 		FindViewModeManager();
 	}
 
+	// 💡 [핵심 수정 3] 1인칭이든 아니든 Manager의 상태(CurrentMode)를 무조건 동기화시킵니다.
+	if (CachedViewModeManager)
+	{
+		CachedViewModeManager->SetViewMode(NewMode);
+	}
+
 	APawn* P = GetPawn();
 	if (!P) return;
 
@@ -171,21 +179,34 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 		if (CachedViewModeManager)
 		{
 			CachedViewModeManager->FocusOnBuilding(); // 최신 센터 계산
-			FVector Center = CachedViewModeManager->GetTargetLocation();
+			FVector Center = CachedViewModeManager->GetCameraTargetLocation();
 			Center.Z = 160.0f; // 눈높이
 			P->SetActorLocation(Center);
+
+			// 캔버스 회전 시 캐릭터/컨트롤러 방위각 동기화
+			if (CachedViewModeManager->IsCanvasRotated())
+			{
+				FRotator Rot(0.f, -90.f, 0.f);
+				P->SetActorRotation(Rot);
+				SetControlRotation(Rot);
+			}
+			else
+			{
+				FRotator Rot(0.f, 0.f, 0.f);
+				P->SetActorRotation(Rot);
+				SetControlRotation(Rot);
+			}
 		}
 		
 		Possess(P);
 		SetViewTarget(P);
-		P->SetActorHiddenInGame(true); // 혹시 보이게 설정되었다면 다시 숨김
+		P->SetActorHiddenInGame(true);
 	}
 	else
 	{
 		// 평면/ISO: 카메라 매니저 액터를 뷰 타겟으로 설정
 		if (CachedViewModeManager)
 		{
-			CachedViewModeManager->SetViewMode(NewMode);
 			SetViewTarget(CachedViewModeManager);
 		}
 	}
@@ -193,21 +214,49 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 	UpdateMinimapIconVisibility(NewMode);
 }
 
+void AViewModePlayerController::SetupMinimapHUD(UHarnessMinimapCaptureComponent* InCaptureComp, UTextureRenderTarget2D* InRT, TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass)
+{
+	if (!InWidgetClass) return;
+
+	if (MinimapWidgetInstance)
+	{
+		MinimapWidgetInstance->RemoveFromParent();
+		MinimapWidgetInstance = nullptr;
+	}
+
+	MinimapWidgetInstance = CreateWidget<UHarnessCaptureMinimapWidget>(this, InWidgetClass);
+	if (MinimapWidgetInstance)
+	{
+		MinimapWidgetInstance->InjectMinimapData(InCaptureComp, InRT);
+
+		// 💡 [최종 수정] 미니맵을 버튼들(10)보다 아래인 ZOrder 5로 설정하여 차단 방지
+		MinimapWidgetInstance->AddToViewport();
+
+		// 아직 캡처 전이므로 미니맵 위젯 전체를 숨김 처리
+		MinimapWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+
+		EHarnessViewMode CurrentMode = EHarnessViewMode::TopDown;
+		if (CachedViewModeManager) CurrentMode = CachedViewModeManager->GetCurrentViewMode();
+		UpdateMinimapIconVisibility(CurrentMode);
+	}
+}
+
+// 캡처가 끝난 후 위젯을 다시 활성화
+void AViewModePlayerController::ShowMinimap()
+{
+	if (MinimapWidgetInstance)
+	{
+		// 미니맵은 클릭 상호작용이 필요하므로 Visible 처리
+		MinimapWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+}
+
 void AViewModePlayerController::UpdateMinimapIconVisibility(EHarnessViewMode NewMode)
 {
-	TArray<UUserWidget*> FoundWidgets;
-	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UHarnessCaptureMinimapWidget::StaticClass());
-
-	for (UUserWidget* Widget : FoundWidgets)
+	if (MinimapWidgetInstance && MinimapWidgetInstance->PlayerIcon)
 	{
-		if (UHarnessCaptureMinimapWidget* Minimap = Cast<UHarnessCaptureMinimapWidget>(Widget))
-		{
-			if (Minimap->PlayerIcon)
-			{
-				ESlateVisibility NewVisibility = (NewMode == EHarnessViewMode::FirstPerson) ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden;
-				Minimap->PlayerIcon->SetVisibility(NewVisibility);
-			}
-		}
+		ESlateVisibility NewVisibility = (NewMode == EHarnessViewMode::FirstPerson) ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden;
+		MinimapWidgetInstance->PlayerIcon->SetVisibility(NewVisibility);
 	}
 }
 

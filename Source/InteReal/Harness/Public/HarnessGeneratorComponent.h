@@ -54,4 +54,7 @@ public:
     // 카메라나 위젯 등 외부 모듈에서 도면의 전체 크기를 알 수 있도록 Bounds 반환
     UFUNCTION(BlueprintCallable, Category="Harness|Data")
     void GetFloorBounds(FVector2D& OutMin, FVector2D& OutMax) const;
+
+    UFUNCTION(BlueprintPure, Category="Harness|Data")
+    const FHarnessFloorData& GetCachedFloorData() const { return CachedFloorData; }
 };

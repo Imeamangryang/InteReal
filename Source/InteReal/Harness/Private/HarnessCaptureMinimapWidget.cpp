@@ -14,16 +14,8 @@ void UHarnessCaptureMinimapWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (PC)
-    {
-        PC->SetShowMouseCursor(true);
-
-        FInputModeGameAndUI InputMode;
-        InputMode.SetWidgetToFocus(TakeWidget());
-        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-        PC->SetInputMode(InputMode);
-    }
+    // 💡 [입력 차단 수정] 미니맵 생성 시 강제로 포커스를 가져오는 로직을 제거했습니다.
+    // 이제 다른 위젯(버튼 등)과 입력을 공유할 수 있습니다.
 }
 
 FReply UHarnessCaptureMinimapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

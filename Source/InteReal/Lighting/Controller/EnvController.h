@@ -20,9 +20,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Lighting") class ASkyLight* SkyLight;
 	UPROPERTY(EditAnywhere, Category = "Lighting") UExponentialHeightFogComponent* Fog;
 
+	UPROPERTY(EditAnywhere, Category = "UI") TSubclassOf<class UUserWidget> WeatherWidgetClass;
+    
 	virtual void BeginPlay() override;
-	
-	// 서브시스템의 5개 매개변수 델리게이트와 정확히 매칭되는 함수
+	virtual void Tick(float DeltaTime) override;
+    
 	UFUNCTION() 
-	void UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDetailData D, FSolarTermData S, float Time);
+	void UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDetailData D, FSolarTermData S, float Time, float Orientation);
+
+	void OnToggleUIMode();
+
+private:
+	UPROPERTY() UUserWidget* WeatherWidgetInstance;
+	bool bWasInFirstPerson = false;
 };

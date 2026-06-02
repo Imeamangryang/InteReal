@@ -5,11 +5,20 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/DecalComponent.h"
+#include "Engine/DataTable.h"
 #include "GridSpaceManager.h"
 #include "Intereal/EditMode/Furnitures/Furniture.h"
-#include "Intereal/EditMode/Furnitures/FurnitureData.h"
+#include "Intereal/EditMode/Furnitures/FFurnitureDataRow.h"
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "InteriorPlacementManager.generated.h"
+
+UENUM(BlueprintType)
+enum class EPlacementInvalidReason : uint8
+{
+	None          UMETA(DisplayName = "없음"),
+	Overlapping   UMETA(DisplayName = "다른 가구와 겹칩니다"),
+	OutOfBounds   UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
+};
 
 UCLASS()
 class INTEREAL_API AInteriorPlacementManager : public AActor
@@ -21,6 +30,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
@@ -39,28 +49,37 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Manual")
 	float GridCellSize = 10.0f;
 
-	// 배치 가능한 가구 데이터 목록 (FurnitureID = index)
+	// 프리뷰 이동 보간 속도 (높을수록 빠르게 따라옴, 10~20 권장)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Preview")
+	float PreviewInterpSpeed = 15.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
-	TArray<UFurnitureData*> FurnitureDataList;
+	UDataTable* FurnitureDataTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
+	TSubclassOf<AFurniture> FurnitureClass;
+
+	// 현재 배치 불가 이유 — UI에서 툴팁으로 표시
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	EPlacementInvalidReason InvalidReason = EPlacementInvalidReason::None;
 
 private:
 	AGridSpaceManager* Grid;
 
 	AFurniture* PreviewFurniture;
-	UFurnitureData* PreviewFurnitureData;
 	FVector2D PreviewGridAnchor;
 
-	// DataAsset 원본을 건드리지 않기 위한 런타임 복사본
-	// RotatePreview 시 이 값만 Swap하고 DataAsset은 불변 유지
 	FVector2D CurrentDimensions = FVector2D::ZeroVector;
+	FRotator PreviewRotation    = FRotator::ZeroRotator;
+	FVector LastRayPosition     = FVector::ZeroVector;
 
-	FRotator PreviewRotation = FRotator::ZeroRotator;
-	FVector LastRayPosition = FVector::ZeroVector;
+	// 보간 목표 위치 — Tick에서 lerp
+	FVector TargetPreviewLocation = FVector::ZeroVector;
+	bool bHasTargetLocation = false;
 
 	TArray<AFurniture*> PlacedFurnitures;
 
 public:
-	// 도면 파싱 후 호출 — vertex 좌표로 바운딩 박스 자동 계산
 	UFUNCTION(BlueprintCallable)
 	void InitializeFromFloorData(const FHarnessFloorData& FloorData, float Cell = 50.0f);
 
@@ -82,7 +101,7 @@ public:
 	void ConfirmFurniture();
 
 	UFUNCTION(BlueprintCallable)
-	void CreatePreviewFurnitureFromData(FVector RayPosition, FRotator Rotation, UFurnitureData* InFurnitureData);
+	void CreatePreviewFurnitureFromRow(FVector RayPosition, FRotator Rotation, const FFurnitureDataRow& InFurnitureRow);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdatePreviewLocation(FVector RayPosition);
@@ -93,7 +112,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveFurniture(AFurniture* Target);
 
-	// 프리뷰 가구를 90도 단위로 회전. 회전 시 CurrentDimensions X/Y가 스왑됨
 	UFUNCTION(BlueprintCallable)
 	void RotatePreview(float AngleDeg = 90.0f);
 
@@ -103,5 +121,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interior | WebCommunication")
 	void ImportPlacedFurnituresJson(const FString& JsonString);
 
-	UFurnitureData* FindFurnitureDataByID(int32 TargetID);
+	const FFurnitureDataRow* FindFurnitureRowByID(int32 TargetID) const;
 };

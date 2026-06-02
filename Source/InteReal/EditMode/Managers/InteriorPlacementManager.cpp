@@ -2,16 +2,19 @@
 
 #include "InteriorPlacementManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Engine/OverlapResult.h"   
+#include "CollisionQueryParams.h"    
+#include "Engine/World.h"               
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
 
 AInteriorPlacementManager::AInteriorPlacementManager()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	Grid = nullptr;
 	PreviewFurniture = nullptr;
-	PreviewFurnitureData = nullptr;
+	FurnitureDataTable = nullptr;
 
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
@@ -27,8 +30,17 @@ AInteriorPlacementManager::AInteriorPlacementManager()
 void AInteriorPlacementManager::BeginPlay()
 {
 	Super::BeginPlay();
-	// InitializeFromFloorData가 HarnessTestActor에서 호출되므로 여기서 초기화하지 않음
-	// 수동 테스트가 필요하면 에디터에서 직접 InitializeGrid를 호출하거나 bManualInit 플래그 추가
+}
+
+void AInteriorPlacementManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!PreviewFurniture || !bHasTargetLocation) return;
+
+	FVector Current = PreviewFurniture->GetActorLocation();
+	FVector Interpolated = FMath::VInterpTo(Current, TargetPreviewLocation, DeltaTime, PreviewInterpSpeed);
+	PreviewFurniture->SetActorLocation(Interpolated);
 }
 
 void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData& FloorData, float Cell)
@@ -73,6 +85,8 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 
 void AInteriorPlacementManager::InitializeGrid(int Length, int Breadth, float Cell)
 {
+	GridCellSize = Cell;
+
 	if (Grid)
 	{
 		Grid->Destroy();
@@ -105,7 +119,7 @@ bool AInteriorPlacementManager::HasActivePreview() const
 
 bool AInteriorPlacementManager::IsPreviewLotEmpty()
 {
-	if (!PreviewFurniture || !PreviewFurnitureData || !Grid)
+	if (!PreviewFurniture || !Grid)
 	{
 		return false;
 	}
@@ -141,7 +155,9 @@ bool AInteriorPlacementManager::IsPreviewBoundsEmpty() const
 		return false;
 	}
 
-	FBox PreviewBox = PreviewFurniture->GetComponentsBoundingBox().ExpandBy(-1.0f);
+	// GetComponentsBoundingBox는 기즈모 링까지 포함해서 너무 커짐
+	// 콜리전 박스만 사용해서 정확한 범위로 판정
+	FBox PreviewBox = PreviewFurniture->GetCollisionBounds().ExpandBy(-1.0f);
 
 	for (AFurniture* Placed : PlacedFurnitures)
 	{
@@ -150,11 +166,12 @@ bool AInteriorPlacementManager::IsPreviewBoundsEmpty() const
 			continue;
 		}
 
-		if (PreviewBox.Intersect(Placed->GetComponentsBoundingBox()))
+		if (PreviewBox.Intersect(Placed->GetCollisionBounds()))
 		{
 			return false;
 		}
 	}
+
 	return true;
 }
 
@@ -176,15 +193,18 @@ void AInteriorPlacementManager::ConfirmFurniture()
 		}
 	}
 
+	// 💡 [저장 시스템 연동] SaveManager가 인식할 수 있도록 태그 추가
+	PreviewFurniture->Tags.Add(TEXT("InteriorFurniture"));
+	PreviewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), PreviewFurniture->FurnitureID)));
+
 	PreviewFurniture->PlacedGridAnchor = PreviewGridAnchor;
 	PreviewFurniture->PlacedDimensions = CurrentDimensions;
 	PreviewFurniture->SetPlacementState(EPlacementState::Placed);
 	PlacedFurnitures.Add(PreviewFurniture);
 	PreviewFurniture = nullptr;
-	PreviewFurnitureData = nullptr;
 }
 
-void AInteriorPlacementManager::CreatePreviewFurnitureFromData(FVector RayPosition, FRotator Rotation, UFurnitureData* InFurnitureData)
+void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPosition, FRotator Rotation, const FFurnitureDataRow& InFurnitureRow)
 {
 	if (PreviewFurniture)
 	{
@@ -192,30 +212,29 @@ void AInteriorPlacementManager::CreatePreviewFurnitureFromData(FVector RayPositi
 		PreviewFurniture = nullptr;
 	}
 
-	if (!InFurnitureData || !InFurnitureData->FurnitureBP)
+	if (!FurnitureClass)
 	{
 		return;
 	}
 
-	PreviewFurnitureData = InFurnitureData;
-	CurrentDimensions = InFurnitureData->Dimensions;  // 원본에서 복사, 이후 원본은 건드리지 않음
+	CurrentDimensions = FVector2D(InFurnitureRow.Dimensions.X, InFurnitureRow.Dimensions.Y);
 	PreviewRotation = Rotation;
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(PreviewFurnitureData->FurnitureBP, RayPosition, Rotation, Params);
+	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(FurnitureClass, RayPosition, Rotation, Params);
 	if (!PreviewFurniture)
 	{
 		return;
 	}
 
-	PreviewFurniture->ApplyFurnitureData(PreviewFurnitureData);
+	PreviewFurniture->ApplyFurnitureRow(InFurnitureRow);
 	UpdatePreviewLocation(RayPosition);
 }
 
 void AInteriorPlacementManager::RotatePreview(float AngleDeg)
 {
-	if (!PreviewFurniture || !PreviewFurnitureData)
+	if (!PreviewFurniture)
 	{
 		return;
 	}
@@ -223,7 +242,6 @@ void AInteriorPlacementManager::RotatePreview(float AngleDeg)
 	PreviewRotation.Yaw = FRotator::NormalizeAxis(PreviewRotation.Yaw + AngleDeg);
 	PreviewFurniture->SetActorRotation(PreviewRotation);
 
-	// DataAsset 원본(PreviewFurnitureData->Dimensions)은 건드리지 않고 런타임 복사본만 Swap
 	Swap(CurrentDimensions.X, CurrentDimensions.Y);
 
 	UpdatePreviewLocation(LastRayPosition);
@@ -231,7 +249,7 @@ void AInteriorPlacementManager::RotatePreview(float AngleDeg)
 
 void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 {
-	if (!PreviewFurniture || !PreviewFurnitureData || !Grid)
+	if (!PreviewFurniture || !Grid)
 	{
 		return;
 	}
@@ -247,10 +265,36 @@ void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 	PreviewGridAnchor = FVector2D(SnapX - L / 2, SnapY - B / 2);
 
 	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(SnapX, SnapY));
-	PreviewFurniture->SetActorLocation(SnappedWorld);
+	SnappedWorld.Z = GetActorLocation().Z;
 
-	EPlacementState NewState = (IsPreviewBoundsEmpty() && IsPreviewLotEmpty()) ? EPlacementState::Preview : EPlacementState::Invalid;
-	PreviewFurniture->SetPlacementState(NewState);
+	// 직접 이동 대신 타겟 위치 저장 — Tick에서 VInterpTo로 부드럽게 이동
+	TargetPreviewLocation = SnappedWorld;
+	bHasTargetLocation    = true;
+
+	PreviewFurniture->SetActorRotation(PreviewRotation);
+
+	// Invalid 이유 판정
+	bool bBoundsOk = IsPreviewBoundsEmpty();
+	bool bLotOk    = IsPreviewLotEmpty();
+
+	if (bBoundsOk && bLotOk)
+	{
+		InvalidReason = EPlacementInvalidReason::None;
+		PreviewFurniture->SetPlacementState(EPlacementState::Preview);
+	}
+	else
+	{
+		// 그리드 범위 벗어남 여부 — IsPreviewLotEmpty에서 이미 범위 체크 포함
+		bool bOutOfBounds = (PreviewGridAnchor.X < 0 || PreviewGridAnchor.Y < 0 ||
+		                     PreviewGridAnchor.X + L > Grid->GetLength() ||
+		                     PreviewGridAnchor.Y + B > Grid->GetBreadth());
+
+		InvalidReason = bOutOfBounds
+			? EPlacementInvalidReason::OutOfBounds
+			: EPlacementInvalidReason::Overlapping;
+
+		PreviewFurniture->SetPlacementState(EPlacementState::Invalid);
+	}
 }
 
 void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
@@ -286,18 +330,29 @@ void AInteriorPlacementManager::CancelPreview()
 		PreviewFurniture->Destroy();
 		PreviewFurniture = nullptr;
 	}
-	PreviewFurnitureData = nullptr;
+	bHasTargetLocation = false;
+	InvalidReason = EPlacementInvalidReason::None;
 }
 
-UFurnitureData* AInteriorPlacementManager::FindFurnitureDataByID(int32 TargetID)
+const FFurnitureDataRow* AInteriorPlacementManager::FindFurnitureRowByID(int32 TargetID) const
 {
-	for (UFurnitureData* Data : FurnitureDataList)
+	if (!FurnitureDataTable)
 	{
-		if (Data && Data->ID == TargetID)
+		return nullptr;
+	}
+
+	static const FString ContextString(TEXT("FindFurnitureRowByID"));
+	TArray<FFurnitureDataRow*> AllRows;
+	FurnitureDataTable->GetAllRows<FFurnitureDataRow>(ContextString, AllRows);
+
+	for (const FFurnitureDataRow* Row : AllRows)
+	{
+		if (Row && Row->ID == TargetID)
 		{
-			return Data;
+			return Row;
 		}
 	}
+
 	return nullptr;
 }
 
@@ -308,13 +363,13 @@ FString AInteriorPlacementManager::ExportPlacedFurnituresJson()
 
 	for (AFurniture* Placed : PlacedFurnitures)
 	{
-		if (!IsValid(Placed) || !Placed->FurnitureData)
+		if (!IsValid(Placed))
 		{
 			continue;
 		}
 
 		TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
-		Obj->SetNumberField(TEXT("furnitureId"), Placed->FurnitureData->ID);
+		Obj->SetNumberField(TEXT("furnitureId"), Placed->FurnitureID);
 		Obj->SetNumberField(TEXT("gridX"), Placed->PlacedGridAnchor.X);
 		Obj->SetNumberField(TEXT("gridY"), Placed->PlacedGridAnchor.Y);
 		Obj->SetNumberField(TEXT("rotationYaw"), Placed->GetActorRotation().Yaw);
@@ -371,21 +426,19 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 		int32 GridY  = Obj->GetIntegerField(TEXT("gridY"));
 		float Yaw    = (float)Obj->GetNumberField(TEXT("rotationYaw"));
 
-		UFurnitureData* Data = FindFurnitureDataByID(FurnID);
-		if (!Data || !Data->FurnitureBP || !Grid)
+		const FFurnitureDataRow* Row = FindFurnitureRowByID(FurnID);
+		if (!Row || !FurnitureClass || !Grid)
 		{
 			continue;
 		}
 
-		// 회전 여부에 따라 확정 시점의 실제 점유 크기 복원
-		FVector2D Dims = Data->Dimensions;
+		FVector2D Dims = FVector2D(Row->Dimensions.X, Row->Dimensions.Y);
 		float NormYaw = FRotator::NormalizeAxis(Yaw);
 		if (FMath::Abs(FMath::Abs(NormYaw) - 90.0f) < 1.0f || FMath::Abs(FMath::Abs(NormYaw) - 270.0f) < 1.0f)
 		{
 			Swap(Dims.X, Dims.Y);
 		}
 
-		// GridX/GridY는 좌상단 앵커 인덱스. 스폰 위치는 풋프린트 중심으로 역산
 		int CenterIdxX = GridX + (int)Dims.X / 2;
 		int CenterIdxY = GridY + (int)Dims.Y / 2;
 		FVector SpawnLoc = Grid->ToWorldPosition(FVector2D(CenterIdxX, CenterIdxY));
@@ -393,13 +446,13 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(Data->FurnitureBP, SpawnLoc, FRotator(0.0f, Yaw, 0.0f), Params);
+		AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(FurnitureClass, SpawnLoc, FRotator(0.0f, Yaw, 0.0f), Params);
 		if (!NewFurniture)
 		{
 			continue;
 		}
 
-		NewFurniture->ApplyFurnitureData(Data);
+		NewFurniture->ApplyFurnitureRow(*Row);
 		NewFurniture->PlacedGridAnchor = FVector2D(GridX, GridY);
 		NewFurniture->PlacedDimensions = Dims;
 		NewFurniture->SetPlacementState(EPlacementState::Placed);

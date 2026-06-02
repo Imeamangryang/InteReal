@@ -5,6 +5,7 @@
 #include "ViewModeData.h"
 #include "ViewModePlayerController.generated.h"
 
+class UHarnessMinimapCaptureComponent;
 class AViewModeManager;
 class UInputMappingContext;
 class UInputAction;
@@ -23,6 +24,12 @@ public:
 	// Mode switching logic
 	UFUNCTION(BlueprintCallable, Category = "ViewMode")
 	void SetViewMode(EHarnessViewMode NewMode);
+
+	UFUNCTION(BlueprintCallable, Category = "ViewMode|UI")
+	void SetupMinimapHUD(UHarnessMinimapCaptureComponent* InCaptureComp, UTextureRenderTarget2D* InRT, TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass);
+	
+	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
+	void ShowMinimap();
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -62,12 +69,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
 	TSubclassOf<UUserWidget> ViewModeWidgetClass;
 
+	// 미니맵 위젯 클래스
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
+	TSubclassOf<class UHarnessCaptureMinimapWidget> MinimapWidgetClass;
+
 private:
 	UPROPERTY()
 	TObjectPtr<AViewModeManager> CachedViewModeManager;
 
 	UPROPERTY()
 	TObjectPtr<UUserWidget> ViewModeWidgetInstance;
+
+	UPROPERTY()
+	TObjectPtr<class UHarnessCaptureMinimapWidget> MinimapWidgetInstance;
 
 	void FindViewModeManager();
 	void UpdateMinimapIconVisibility(EHarnessViewMode NewMode);

@@ -3,8 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "FurnitureData.h"
+#include "FFurnitureDataRow.h"
+#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
 #include "Furniture.generated.h"
 
 UENUM(BlueprintType)
@@ -30,22 +32,40 @@ protected:
 	UStaticMeshComponent* MeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	UBoxComponent* CollisionBoxComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	UFurnitureGizmoComponent* GizmoComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
-	UFurnitureData* FurnitureData;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	int32 FurnitureID = 0;
 
-	UPROPERTY()
-	UMaterialInstanceDynamic* DynamicMaterial;
-
-	// ConfirmFurniture 시점에 매니저가 주입. RemoveFurniture에서 전수조사 없이 해당 타일만 정리하는 데 사용
 	FVector2D PlacedGridAnchor = FVector2D::ZeroVector;
 	FVector2D PlacedDimensions = FVector2D::ZeroVector;
+
+	EPlacementState GetPlacementState() const { return PlacementState; }
+
+	// 기즈모 포함 전체 바운드가 아닌 콜리전 박스만 반환 — 배치 겹침 판정용
+	FBox GetCollisionBounds() const
+	{
+		if (CollisionBoxComponent)
+		{
+			return CollisionBoxComponent->Bounds.GetBox();
+		}
+		return MeshComponent->Bounds.GetBox();
+	}
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	void SetPlacementState(EPlacementState NewState);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
-	void ApplyFurnitureData(UFurnitureData* InFurnitureData);
+	void ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow);
+
+	UFUNCTION(BlueprintCallable, Category = "Furniture")
+	void SetSelected(bool bSelected);
+
 };
