@@ -69,7 +69,12 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 
 void AFurniture::SetSelected(bool bSelected)
 {
-	if (CollisionBoxComponent)
+	CollisionBoxComponent->SetHiddenInGame(true);
+	
+	MeshComponent->SetRenderCustomDepth(bSelected);
+	
+	
+	/*if (CollisionBoxComponent)
 	{
 		CollisionBoxComponent->SetHiddenInGame(!bSelected);
 		CollisionBoxComponent->ShapeColor = FColor::White;
@@ -82,7 +87,7 @@ void AFurniture::SetSelected(bool bSelected)
 		{
 			GizmoComponent->SetGizmoColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f), 4.0f);
 		}
-	}
+	}*/
 }
 
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)

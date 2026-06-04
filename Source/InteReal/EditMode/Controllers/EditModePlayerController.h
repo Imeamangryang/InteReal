@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "InteReal/EditMode/UI/PlacementTooltipWidget.h"
+#include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "Furnitures/FFurnitureDataRow.h"
 #include "Furnitures/Furniture.h"
 #include "EditModePlayerController.generated.h"
@@ -49,6 +50,12 @@ public:
 
 	UPROPERTY()
 	UPlacementTooltipWidget* TooltipInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<URotationGuideWidget> RotationGuideWidgetClass;
+
+	UPROPERTY()
+	URotationGuideWidget* RotationGuideInstance;
 
 	UPROPERTY(EditAnywhere, Category = "EditMode")
 	AInteriorPlacementManager* PlacementManager;
