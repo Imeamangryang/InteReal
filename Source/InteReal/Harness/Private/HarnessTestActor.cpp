@@ -12,7 +12,7 @@
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
-#include "InteReal/ViewMode/ViewModePlayerController.h"
+#include "InteReal/Master/InteRealPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 AHarnessTestActor::AHarnessTestActor()
@@ -103,7 +103,7 @@ void AHarnessTestActor::DelayedCapture()
     }
 
     // 플레이어 컨트롤러 역시 평면 뷰 상태로 동기화
-    AViewModePlayerController* ViewPC = Cast<AViewModePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+    AInteRealPlayerController* ViewPC = Cast<AInteRealPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
     if (ViewPC)
     {
         ViewPC->SetViewMode(ModeToApply);
@@ -128,7 +128,7 @@ void AHarnessTestActor::DelayedCapture()
         CaptureComponent->bCaptureOnMovement = false;
 
         // 💡 [수정] 람다 안에서 안전하게 PC를 참조하기 위해 WeakPtr 사용
-        TWeakObjectPtr<AViewModePlayerController> WeakPC = ViewPC;
+        TWeakObjectPtr<AInteRealPlayerController> WeakPC = ViewPC;
 
         // 실제 렌더링은 머티리얼 적용 대기 후 수행 (1초 대기)
         GetWorld()->GetTimerManager().SetTimer(CaptureTimerHandle, FTimerDelegate::CreateLambda([this, WeakPC]() {

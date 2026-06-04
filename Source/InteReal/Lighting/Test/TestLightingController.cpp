@@ -74,6 +74,11 @@ void ATestLightingController::BeginPlay()
         
         PC->InputComponent->BindKey(EKeys::O, IE_Pressed, this, &ATestLightingController::OnKeyO);
         PC->InputComponent->BindKey(EKeys::P, IE_Pressed, this, &ATestLightingController::OnKeyP);
+        PC->InputComponent->BindKey(EKeys::I, IE_Pressed, this, &ATestLightingController::OnKeyI);
+        PC->InputComponent->BindKey(EKeys::U, IE_Pressed, this, &ATestLightingController::OnKeyU);
+        PC->InputComponent->BindKey(EKeys::Y, IE_Pressed, this, &ATestLightingController::OnKeyY);
+        PC->InputComponent->BindKey(EKeys::T, IE_Pressed, this, &ATestLightingController::OnKeyT);
+        
         
         // 시간 자동 흐름 온오프 키
         PC->InputComponent->BindKey(EKeys::Nine, IE_Pressed, this, &ATestLightingController::OnKey9);
@@ -260,6 +265,18 @@ void ATestLightingController::AdjustTargetRoughness(float Delta)
 {
     AMaterialManager* MM = Cast<AMaterialManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMaterialManager::StaticClass()));
     if (MM) MM->AdjustRoughness(Delta);
+}
+
+void ATestLightingController::AdjustTargetMetallic(float Delta)
+{
+    AMaterialManager* MM = Cast<AMaterialManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMaterialManager::StaticClass()));
+    if (MM)  MM->AdjustMetallic(MM->Metallic + Delta);
+}
+
+void ATestLightingController::AdjustTargetSpecular(float Delta)
+{
+    AMaterialManager* MM = Cast<AMaterialManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMaterialManager::StaticClass()));
+    if (MM) MM->AdjustSpecular(MM->Specular + Delta);
 }
 
 void ATestLightingController::Tick(float DeltaTime)

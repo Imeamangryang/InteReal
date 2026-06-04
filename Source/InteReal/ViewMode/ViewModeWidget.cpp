@@ -2,7 +2,7 @@
 
 #include "ViewModeManager.h"
 #include "Components/Button.h"
-#include "ViewModePlayerController.h"
+#include "InteReal/Master/InteRealPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Public/HarnessPipelineManager.h"
 
@@ -38,7 +38,7 @@ void UViewModeWidget::NativeConstruct()
 
 void UViewModeWidget::ChangeViewMode(EHarnessViewMode NewMode)
 {
-	if (AViewModePlayerController* PC = Cast<AViewModePlayerController>(GetOwningPlayer()))
+	if (AInteRealPlayerController* PC = Cast<AInteRealPlayerController>(GetOwningPlayer()))
 	{
 		PC->SetViewMode(NewMode);
 	}

@@ -3,8 +3,8 @@
 #include "Components/ComboBoxString.h"
 #include "Components/Slider.h"
 #include "Components/Button.h"
-#include "InteReal/Struct/LightingDataStruct.h"
 
+#include "InteReal/Struct/LightingDataStruct.h"
 
 void UWeatherWidget::NativeConstruct() {
     Super::NativeConstruct();
@@ -13,13 +13,13 @@ void UWeatherWidget::NativeConstruct() {
 
     // 1. 초기 리스트 채우기
     for(auto& Name : Sub->CityMainTable->GetRowNames()) CB_CityMain->AddOption(Name.ToString());
-    CB_Season->AddOption(TEXT("Spring")); CB_Season->AddOption(TEXT("Summer"));
-    CB_Season->AddOption(TEXT("Autumn")); CB_Season->AddOption(TEXT("Winter"));
+    /*CB_Season->AddOption(TEXT("Spring")); CB_Season->AddOption(TEXT("Summer"));
+    CB_Season->AddOption(TEXT("Autumn")); CB_Season->AddOption(TEXT("Winter"));*/
     for(auto& Name : Sub->WeatherTable->GetRowNames()) CB_Weather->AddOption(Name.ToString());
 
-    // 2. 이벤트 연결
+    // 이벤트 연결
     CB_CityMain->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnCityMainChanged);
-    CB_Season->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnSeasonChanged);
+    /*CB_Season->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnSeasonChanged);*/
     
     // 나머지 옵션 변경 시 즉시 업데이트
     CB_Weather->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
@@ -27,16 +27,14 @@ void UWeatherWidget::NativeConstruct() {
     CB_Solar->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     Slider_Time->OnValueChanged.AddDynamic(this, &UWeatherWidget::OnSliderChanged); 
     
+    // 버튼 이벤트 연결
+    Btn_Spring->OnClicked.AddDynamic(this, &UWeatherWidget::OnSpringClicked);
+    Btn_Summer->OnClicked.AddDynamic(this, &UWeatherWidget::OnSummerClicked);
+    Btn_Autumn->OnClicked.AddDynamic(this, &UWeatherWidget::OnAutumnClicked);
+    Btn_Winter->OnClicked.AddDynamic(this, &UWeatherWidget::OnWinterClicked);
+    
     // 텍스트 박스 바인딩
     Text_Time->OnTextCommitted.AddDynamic(this, &UWeatherWidget::OnTimeTextChanged);
-    
-    /*// 1. 방향 리스트 채우기
-    CB_Orientation->AddOption(TEXT("North"));
-    CB_Orientation->AddOption(TEXT("East"));
-    CB_Orientation->AddOption(TEXT("South"));
-    CB_Orientation->AddOption(TEXT("West"));
-    // 2. 이벤트 바인딩
-    CB_Orientation->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnOrientationChanged);*/
     
     // 버튼 이벤트 연결
     Btn_North->OnClicked.AddDynamic(this, &UWeatherWidget::OnNorthClicked);
@@ -51,6 +49,12 @@ void UWeatherWidget::NativeConstruct() {
     Text_Time->SetText(FText::FromString(FormatTime(CurrentTime)));
 }
 
+// 계절 버튼 이벤트 
+void UWeatherWidget::OnSpringClicked() { UpdateSolarBySeason(TEXT("Spring")); }
+void UWeatherWidget::OnSummerClicked() { UpdateSolarBySeason(TEXT("Summer")); }
+void UWeatherWidget::OnAutumnClicked() { UpdateSolarBySeason(TEXT("Autumn")); }
+void UWeatherWidget::OnWinterClicked() { UpdateSolarBySeason(TEXT("Winter")); }
+// 방향 버튼 이벤트
 void UWeatherWidget::OnNorthClicked() { UpdateOrientation(0.0f); }
 void UWeatherWidget::OnEastClicked()  { UpdateOrientation(90.0f); }
 void UWeatherWidget::OnSouthClicked() { UpdateOrientation(180.0f); }
@@ -66,6 +70,39 @@ void UWeatherWidget::UpdateOrientation(float Angle)
         Btn_West->SetBackgroundColor(Angle == 270.0f ? FLinearColor::Blue : FLinearColor::White);
     }
 }
+
+void UWeatherWidget::UpdateSolarBySeason(FString SeasonName)
+{
+    // 모든 버튼 색상 초기화 (흰색)
+    Btn_Spring->SetBackgroundColor(FLinearColor::White);
+    Btn_Summer->SetBackgroundColor(FLinearColor::White);
+    Btn_Autumn->SetBackgroundColor(FLinearColor::White);
+    Btn_Winter->SetBackgroundColor(FLinearColor::White);
+
+    // 선택된 버튼만 파란색으로 변경
+    if (SeasonName == TEXT("Spring")) Btn_Spring->SetBackgroundColor(FLinearColor::Blue);
+    else if (SeasonName == TEXT("Summer")) Btn_Summer->SetBackgroundColor(FLinearColor::Blue);
+    else if (SeasonName == TEXT("Autumn")) Btn_Autumn->SetBackgroundColor(FLinearColor::Blue);
+    else if (SeasonName == TEXT("Winter")) Btn_Winter->SetBackgroundColor(FLinearColor::Blue);
+    
+    // 기존 절기 로직
+    CB_Solar->ClearOptions();
+    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+    if (!Sub) return;
+
+    for (auto RowName : Sub->SolarTermTable->GetRowNames()) {
+        auto* Data = Sub->SolarTermTable->FindRow<FSolarTermData>(RowName, TEXT(""));
+        if (Data && Data->Season == SeasonName) {
+            CB_Solar->AddOption(Data->Name_KR); 
+        }
+    }
+    if (CB_Solar->GetOptionCount() > 0) 
+    {
+        CB_Solar->SetSelectedIndex(0); 
+        TriggerUpdate();
+    }
+}
+
 // 광역시 선택 시 상세지역 갱신
 void UWeatherWidget::OnCityMainChanged(FString Selected, ESelectInfo::Type Type) {
     CB_CityDetail->ClearOptions();
@@ -75,7 +112,7 @@ void UWeatherWidget::OnCityMainChanged(FString Selected, ESelectInfo::Type Type)
 }
 
 // 계절 선택 시 절기 갱신
-void UWeatherWidget::OnSeasonChanged(FString Selected, ESelectInfo::Type Type) {
+/*void UWeatherWidget::OnSeasonChanged(FString Selected, ESelectInfo::Type Type) {
     CB_Solar->ClearOptions();
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
@@ -89,12 +126,9 @@ void UWeatherWidget::OnSeasonChanged(FString Selected, ESelectInfo::Type Type) {
         }
     }
     TriggerUpdate();
-}
+}*/
 
-void UWeatherWidget::OnAnySelectionChanged(FString Selected, ESelectInfo::Type Type) 
-{
-    TriggerUpdate();
-}
+void UWeatherWidget::OnAnySelectionChanged(FString Selected, ESelectInfo::Type Type) { TriggerUpdate(); }
 
 // 시간 문자열 생성 (00:00 포맷)
 FString UWeatherWidget::FormatTime(float Hours) {
@@ -147,12 +181,12 @@ void UWeatherWidget::OnTimeTextChanged(const FText& Text, ETextCommit::Type Comm
         if (Sub) Sub->SetTime(NewHours);
     }
 }
-void UWeatherWidget::OnOrientationChanged(FString Selected, ESelectInfo::Type Type) {
+/*void UWeatherWidget::OnOrientationChanged(FString Selected, ESelectInfo::Type Type) {
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
     float Offset = (Selected == TEXT("South")) ? 180.0f : (Selected == TEXT("East") ? 90.0f : (Selected == TEXT("West") ? 270.0f : 0.0f));
     Sub->SetOrientation(Offset);
-}
+}*/
 
 void UWeatherWidget::TriggerUpdate() {
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();

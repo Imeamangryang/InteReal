@@ -79,8 +79,14 @@ private:
     void OnKeyO() { AdjustTargetRoughness(0.1f); }
     void OnKeyP() { AdjustTargetRoughness(-0.1f); }
     void AdjustTargetRoughness(float Delta);
+    void AdjustTargetMetallic(float Delta);
+    void AdjustTargetSpecular(float Delta);
     
-    
+    // 새로운 키 바인딩 래퍼
+    void OnKeyY() { AdjustTargetMetallic(0.1f); }
+    void OnKeyT() { AdjustTargetMetallic(-0.1f); }
+    void OnKeyU() { AdjustTargetSpecular(0.1f); }
+    void OnKeyI() { AdjustTargetSpecular(-0.1f); }
     // Tick 활성화 및 시간 흐름 제어 변수
 public:
     virtual void Tick(float DeltaTime) override;
