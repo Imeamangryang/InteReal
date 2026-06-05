@@ -6,7 +6,6 @@
 #include "Components/BoxComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "FFurnitureDataRow.h"
-#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
 #include "Furniture.generated.h"
 
 UENUM(BlueprintType)
@@ -33,9 +32,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UBoxComponent* CollisionBoxComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
-	UFurnitureGizmoComponent* GizmoComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;

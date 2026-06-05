@@ -16,9 +16,6 @@ AFurniture::AFurniture()
 	CollisionBoxComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionBoxComponent->SetHiddenInGame(true);
-
-	GizmoComponent = CreateDefaultSubobject<UFurnitureGizmoComponent>(TEXT("GizmoComponent"));
-	GizmoComponent->SetupAttachment(RootComponent);
 }
 
 void AFurniture::BeginPlay()
@@ -37,32 +34,23 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 		case EPlacementState::Preview:
 			CollisionBoxComponent->SetHiddenInGame(false);
 			CollisionBoxComponent->ShapeColor = FColor(0, 255, 255, 255);
+			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			// 메시도 Visibility 트레이스에서 제외 — 프리뷰 자신이 커서 레이를 막으면 바닥을 못 찾음
+			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			break;
+
 		case EPlacementState::Invalid:
 			CollisionBoxComponent->SetHiddenInGame(false);
 			CollisionBoxComponent->ShapeColor = FColor(255, 0, 0, 255);
+			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			break;
+
 		case EPlacementState::Placed:
 			CollisionBoxComponent->SetHiddenInGame(true);
+			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			break;
-		}
-	}
-
-	if (GizmoComponent)
-	{
-		if (NewState == EPlacementState::Preview)
-		{
-			GizmoComponent->SetGizmoVisible(true);
-			GizmoComponent->SetGizmoColor(FLinearColor(0.0f, 1.0f, 1.0f, 1.0f), 4.0f);
-		}
-		else if (NewState == EPlacementState::Invalid)
-		{
-			GizmoComponent->SetGizmoVisible(true);
-			GizmoComponent->SetGizmoColor(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f), 4.0f);
-		}
-		else
-		{
-			GizmoComponent->SetGizmoVisible(false);
 		}
 	}
 }
@@ -74,20 +62,11 @@ void AFurniture::SetSelected(bool bSelected)
 	MeshComponent->SetRenderCustomDepth(bSelected);
 	
 	
-	/*if (CollisionBoxComponent)
+	if (CollisionBoxComponent)
 	{
 		CollisionBoxComponent->SetHiddenInGame(!bSelected);
 		CollisionBoxComponent->ShapeColor = FColor::White;
 	}
-
-	if (GizmoComponent)
-	{
-		GizmoComponent->SetGizmoVisible(bSelected);
-		if (bSelected)
-		{
-			GizmoComponent->SetGizmoColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f), 4.0f);
-		}
-	}*/
 }
 
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
@@ -101,12 +80,6 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
 		CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
 		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);
-	}
-
-	if (InFurnitureRow.FurnitureMesh && GizmoComponent)
-	{
-		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
-		GizmoComponent->SetupFromLocalBounds(MeshBounds.GetBox());
 	}
 
 	SetPlacementState(EPlacementState::Preview);

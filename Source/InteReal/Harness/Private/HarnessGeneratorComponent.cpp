@@ -2,7 +2,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/DynamicMeshComponent.h"
-#include "Components/PointLightComponent.h" // 💡 [추가] 포인트 라이트 컴포넌트 헤더
+#include "Components/PointLightComponent.h" 
 #include "UDynamicMesh.h"
 #include "DynamicMesh/DynamicMesh3.h"
 #include "DynamicMesh/MeshNormals.h"
@@ -31,7 +31,8 @@ void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& Fl
 {
     for (const FTopologyVertex& V : FloorData.vertices)
     {
-        VertexCache.Add(V.id, V.ToVector2D());
+        // 💡 [수정 1] 축 교차 매핑: 부호 반전 없이 도면의 Y를 언리얼 X로, 도면의 X를 언리얼 Y로 설정하여 상하반전 해결
+        VertexCache.Add(V.id, FVector2D(V.y, V.x));
     }
     for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
     {
@@ -54,7 +55,6 @@ void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData
     FabricateDynamicPlanes(FloorData);       
     InstallOpeningComponents(FloorData);     
     
-    // 💡 [추가] 토글이 켜져 있을 때만 인테리어 조명 스폰
     if (bEnableInteriorLights)
     {
         InstallInteriorLights(FloorData);
@@ -62,7 +62,7 @@ void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData
 }
 
 // ==============================================================================
-// 💡 [추가] 방 중앙 위치를 계산하여 Point Light 동적 스폰
+// 방 중앙 위치를 계산하여 Point Light 동적 스폰
 // ==============================================================================
 void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& FloorData)
 {
@@ -75,7 +75,6 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
         FVector2D Centroid(0.0, 0.0);
         int32 ValidPts = 0;
 
-        // 1. 방을 구성하는 모든 정점의 평균 좌표(무게중심) 계산
         for (const FString& VId : Face.contour_vertex_ids)
         {
             if (VertexCache.Contains(VId))
@@ -90,10 +89,8 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
 
         float ActualRoomHeight = Face.height_cm > 0.0f ? Face.height_cm : GlobalWallHeight;
         
-        // 2. 조명의 Z 위치를 천장에서 30cm 아래로 설정
         FVector LightPos(Centroid.X, Centroid.Y, Face.z_offset + ActualRoomHeight - 30.0f);
 
-        // 3. 포인트 라이트 생성 및 설정
         UPointLightComponent* PointLight = NewObject<UPointLightComponent>(GetOwner());
         PointLight->SetMobility(EComponentMobility::Movable);
         PointLight->RegisterComponent();
@@ -101,13 +98,11 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
         
         PointLight->SetRelativeLocation(LightPos);
         
-        // 광량, 반경 및 그림자 설정 (테스트용으로 은은하게 설정)
         PointLight->SetIntensity(2500.0f);
         PointLight->SetAttenuationRadius(1000.0f);
         PointLight->SetCastShadows(true);
-        PointLight->LightColor = FColor(255, 245, 230); // 약간 따뜻한 톤
+        PointLight->LightColor = FColor(255, 245, 230); 
 
-        // 나중에 블루프린트에서 찾기 쉽도록 태그 부여
         PointLight->ComponentTags.Add(TEXT("InteriorLight"));
 
         SpawnedComponents.Add(PointLight);
@@ -115,7 +110,7 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
 }
 
 // ==============================================================================
-// 벽체(Wall) 메쉬 절차적 생성 및 Boolean 타공(구멍 뚫기) 로직
+// 벽체(Wall) 메쉬 절차적 생성
 // ==============================================================================
 void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData& FloorData)
 {
@@ -133,6 +128,10 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
 
     const float WallHeight = (FloorData.faces.Num() > 0) ? FloorData.faces[0].height_cm : 260.0f;
     
+    // 💡 [수정] 시각적으로 티가 나지 않도록 빛 샘 차단 마진을 1cm로 최소화
+    const float VerticalOverlap = 1.0f;   // 위아래 천장/바닥으로 1cm씩만 파고들게 함
+    const float HorizontalOverlap = 1.0f; // 좌우 코너 1cm 겹침
+    
     for (const auto& Pair : EdgeCache)
     {
         const FTopologyHalfEdge& Edge = Pair.Value;
@@ -146,7 +145,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         float Angle = FMath::RadiansToDegrees(FMath::Atan2(pEnd.Y - pStart.Y, pEnd.X - pStart.X));
 
         FVector2D Dir = (pEnd - pStart).GetSafeNormal();
-        FVector2D Normal(-Dir.Y, Dir.X); 
+        FVector2D Normal(Dir.Y, -Dir.X); 
 
         FString ActualWallType = Edge.type;
         if (ActualWallType.Equals(TEXT("WallLintel"))) {
@@ -162,16 +161,20 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             WallComp->RegisterComponent();
             WallComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
             
+            WallComp->ComponentTags.Add(TEXT("EditableWall"));
             WallComp->SetRelativeLocationAndRotation(FVector(CenterPos.X, CenterPos.Y, 0.0f), FRotator(0.0f, Angle, 0.0f));
 
             UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(WallComp);
             WallComp->SetDynamicMesh(DynMesh);
 
+            float ExtendedLength = Length + HorizontalOverlap;
+            float ExtendedWallHeight = WallHeight + (VerticalOverlap * 2.0f);
+
             FGeometryScriptPrimitiveOptions PrimOptions;
             FTransform BaseTransform(FRotator::ZeroRotator, FVector(0, 0, WallHeight / 2.0f), FVector::OneVector);
 
-            FVector BoxMin(-Length / 2.0f, -HalfThickness / 2.0f, -WallHeight / 2.0f);
-            FVector BoxMax(Length / 2.0f, HalfThickness / 2.0f, WallHeight / 2.0f);
+            FVector BoxMin(-ExtendedLength / 2.0f, -HalfThickness / 2.0f, -ExtendedWallHeight / 2.0f);
+            FVector BoxMax(ExtendedLength / 2.0f, HalfThickness / 2.0f, ExtendedWallHeight / 2.0f);
             FBox WallBox(BoxMin, BoxMax);
 
             UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBoundingBox(
@@ -183,12 +186,23 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
                 if (Opening.target_edge_id == Edge.id || Opening.target_edge_id == Edge.twin_id)
                 {
                     UDynamicMesh* HoleMesh = NewObject<UDynamicMesh>();
-                    float HoleZCenter = Opening.z_offset_cm + (Opening.height_cm / 2.0f);
+                    
+                    float HoleThickness = HalfThickness + 10.0f; 
+                    float HoleWidth = Opening.width_cm + 1.0f; 
+                    float HoleHeight = Opening.height_cm;
+                    float HoleZOffset = Opening.z_offset_cm;
+
+                    // 💡 바닥 마진이 줄어듦에 따라 문(Door) 바닥의 턱 타공 크기도 1cm에 맞춰짐
+                    if (HoleZOffset <= 0.1f) {
+                        HoleZOffset -= (VerticalOverlap + 1.0f);
+                        HoleHeight += (VerticalOverlap + 1.0f);
+                    }
+
+                    float HoleZCenter = HoleZOffset + (HoleHeight / 2.0f);
                     FTransform HoleTransform(FRotator::ZeroRotator, FVector(0, 0, HoleZCenter), FVector::OneVector);
 
-                    float HoleThickness = HalfThickness + 10.0f; 
-                    FVector HoleMin(-Opening.width_cm / 2.0f, -HoleThickness / 2.0f, -Opening.height_cm / 2.0f);
-                    FVector HoleMax(Opening.width_cm / 2.0f, HoleThickness / 2.0f, Opening.height_cm / 2.0f);
+                    FVector HoleMin(-HoleWidth / 2.0f, -HoleThickness / 2.0f, -HoleHeight / 2.0f);
+                    FVector HoleMax(HoleWidth / 2.0f, HoleThickness / 2.0f, HoleHeight / 2.0f);
                     FBox HoleBox(HoleMin, HoleMax);
 
                     UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBoundingBox(
@@ -244,14 +258,47 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
     {
         if (Face.contour_vertex_ids.Num() < 3) continue;
 
-        TArray<FVector2D> TriangulationPoints;
+        TArray<FVector2D> RawPoints;
         for (const FString& VId : Face.contour_vertex_ids)
         {
             if (VertexCache.Contains(VId))
             {
-                TriangulationPoints.Add(VertexCache[VId]);
+                RawPoints.Add(VertexCache[VId]);
             }
         }
+
+        // 1단계: 1cm 이내로 겹쳐있는 중복 정점 제거
+        TArray<FVector2D> CleanPoints;
+        for (const FVector2D& Pt : RawPoints) {
+            if (CleanPoints.Num() == 0 || FVector2D::Distance(CleanPoints.Last(), Pt) > 1.0f) {
+                CleanPoints.Add(Pt);
+            }
+        }
+        if (CleanPoints.Num() > 1 && FVector2D::Distance(CleanPoints.Last(), CleanPoints[0]) <= 1.0f) {
+            CleanPoints.Pop();
+        }
+
+        // 2단계: 문/창문 때문에 생긴 180도 일직선 정점(Collinear) 제거
+        TArray<FVector2D> TriangulationPoints;
+        int32 CNum = CleanPoints.Num();
+        if (CNum >= 3) {
+            for (int32 i = 0; i < CNum; ++i) {
+                FVector2D Prev = CleanPoints[(i - 1 + CNum) % CNum];
+                FVector2D Curr = CleanPoints[i];
+                FVector2D Next = CleanPoints[(i + 1) % CNum];
+
+                FVector2D Dir1 = (Curr - Prev).GetSafeNormal();
+                FVector2D Dir2 = (Next - Curr).GetSafeNormal();
+
+                float Cross = (Dir1.X * Dir2.Y) - (Dir1.Y * Dir2.X);
+                if (FMath::Abs(Cross) > 0.01f) {
+                    TriangulationPoints.Add(Curr);
+                }
+            }
+        }
+        
+        if (TriangulationPoints.Num() < 3) TriangulationPoints = CleanPoints;
+        if (TriangulationPoints.Num() < 3) continue;
 
         double SignedArea = 0.0;
         int32 NumPts = TriangulationPoints.Num();
@@ -288,13 +335,16 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         for (const FClipSMTriangle& Tri : OutTris)
         {
             auto FindVertexIndex = [&](const auto& Pos) -> int32 {
+                float MinDistSq = UE_BIG_NUMBER;
+                int32 BestIndex = 0;
                 for (int32 i = 0; i < TriangulationPoints.Num(); ++i) {
-                    if (FMath::IsNearlyEqual(TriangulationPoints[i].X, static_cast<double>(Pos.X), 0.1) &&
-                        FMath::IsNearlyEqual(TriangulationPoints[i].Y, static_cast<double>(Pos.Y), 0.1)) {
-                        return i;
+                    float DistSq = FMath::Square(TriangulationPoints[i].X - Pos.X) + FMath::Square(TriangulationPoints[i].Y - Pos.Y);
+                    if (DistSq < MinDistSq) {
+                        MinDistSq = DistSq;
+                        BestIndex = i;
                     }
                 }
-                return 0;
+                return BestIndex;
             };
 
             TriangleIndices.Add(FindVertexIndex(Tri.Vertices[0].Pos));
@@ -407,6 +457,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             int32 B = TriangleIndices[i+1];
             int32 C = TriangleIndices[i+2];
 
+            // 💡 [핵심 수정] 위에서는 뚫려 보이고, 아래(방 안쪽)에서만 천장이 보이도록 A, B, C 순서로 배치합니다.
             CeilingMesh.AppendTriangle(CeilBottomVIds[A], CeilBottomVIds[B], CeilBottomVIds[C]); 
         }
         
@@ -453,9 +504,6 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
     }
 }
 
-// ==============================================================================
-// 타공된 개구부 위치에 창문 및 문 프롭(StaticMesh) 배치
-// ==============================================================================
 void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorData& FloorData)
 {
     TMap<FString, FTopologyHalfEdge> RawEdgeMap;
@@ -514,9 +562,10 @@ void UHarnessGeneratorComponent::GetFloorBounds(FVector2D& OutMin, FVector2D& Ou
 
     for (const FTopologyVertex& V : CachedFloorData.vertices)
     {
-        if (V.x < OutMin.X) OutMin.X = V.x;
-        if (V.x > OutMax.X) OutMax.X = V.x;
-        if (V.y < OutMin.Y) OutMin.Y = V.y;
-        if (V.y > OutMax.Y) OutMax.Y = V.y;
+        // 💡 [수정 4] 바운딩 박스를 계산할 때도 교차된 좌표(V.y -> X, V.x -> Y) 기준으로 비교
+        if (V.y < OutMin.X) OutMin.X = V.y;
+        if (V.y > OutMax.X) OutMax.X = V.y;
+        if (V.x < OutMin.Y) OutMin.Y = V.x;
+        if (V.x > OutMax.Y) OutMax.Y = V.x;
     }
 }

@@ -44,15 +44,19 @@ float AGridSpaceManager::GetCellSize()
 
 FVector2D AGridSpaceManager::ToGridPosition(FVector WorldPosition)
 {
-	int GridX = FMath::FloorToInt((WorldPosition.X - GridOrigin.X) / CellSize + Length * 0.5f);
-	int GridY = FMath::FloorToInt((WorldPosition.Y - GridOrigin.Y) / CellSize + Breadth * 0.5f);
+	float RawX = (WorldPosition.X - GridOrigin.X) / CellSize + (float)Length * 0.5f;
+	float RawY = (WorldPosition.Y - GridOrigin.Y) / CellSize + (float)Breadth * 0.5f;
+	
+	int GridX = FMath::FloorToInt(RawX);
+	int GridY = FMath::FloorToInt(RawY);
+	
 	return FVector2D(GridX, GridY);
 }
 
 FVector AGridSpaceManager::ToWorldPosition(FVector2D GridPosition)
 {
-	float WorldX = (GridPosition.X - Length * 0.5f + 0.5f) * CellSize + GridOrigin.X;
-	float WorldY = (GridPosition.Y - Breadth * 0.5f + 0.5f) * CellSize + GridOrigin.Y;
+	float WorldX = (GridPosition.X - (float)Length * 0.5f + 0.5f) * CellSize + GridOrigin.X;
+	float WorldY = (GridPosition.Y - (float)Breadth * 0.5f + 0.5f) * CellSize + GridOrigin.Y;
 	return FVector(WorldX, WorldY, 0.0f);
 }
 

@@ -7,8 +7,12 @@ public class InteReal : ModuleRules
 	public InteReal(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Json", "JsonUtilities", "Http", "DynamicMesh", "GeometryCore", "GeometryFramework", "GeometryScriptingCore", "UMG", "Slate", "SlateCore"});
+
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Json", "JsonUtilities", "Http",
+			"DynamicMesh", "GeometryCore", "GeometryFramework", "GeometryScriptingCore", "UMG", "Slate", "SlateCore",
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent" });
 

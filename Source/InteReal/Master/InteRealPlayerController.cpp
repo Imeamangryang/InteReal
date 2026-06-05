@@ -1,6 +1,6 @@
 #include "InteRealPlayerController.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
-#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
+//#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -14,6 +14,8 @@
 #include "Serialization/JsonSerializer.h"
 #include "InteReal/SubSystems/InteRealUISubSystem.h"
 #include "Engine/GameInstance.h"
+#include "Components/DynamicMeshComponent.h"
+#include "Materials/MaterialInterface.h"
 
 AInteRealPlayerController::AInteRealPlayerController()
 {
@@ -39,6 +41,7 @@ void AInteRealPlayerController::BeginPlay()
 		{
 			UISubsystem->OnModeChanged.AddDynamic(this, &AInteRealPlayerController::HandleModeChanged);
 			UISubsystem->OnFurnitureSpawn.AddDynamic(this, &AInteRealPlayerController::HandleFurnitureSpawn);
+			UISubsystem->OnWallMaterialChanged.AddDynamic(this, &AInteRealPlayerController::HandleWallMaterialChanged);
 		}
 	}
 
@@ -139,11 +142,11 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 
 		SelectedFurniture->SetActorRotation(NewRot);
 
-		if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
-		{
-			float BoundsMax = SelectedFurniture->GetComponentsBoundingBox().GetExtent().GetMax();
-			GizmoComp->UpdateRadialRotationRing(BoundsMax, DeltaAngle);
-		}
+		//if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
+		//{
+		//	float BoundsMax = SelectedFurniture->GetComponentsBoundingBox().GetExtent().GetMax();
+		//	GizmoComp->UpdateRadialRotationRing(BoundsMax, DeltaAngle);
+		//}
 		return;
 	}
 
@@ -235,6 +238,36 @@ void AInteRealPlayerController::HandleFurnitureSpawn(FFurnitureDataRow Furniture
 	StartFurniturePlacement(FurnitureData);
 }
 
+void AInteRealPlayerController::HandleWallMaterialChanged(UMaterialInterface* NewMaterial)
+{
+	ApplyMaterialToSelectedWall(NewMaterial);
+}
+
+void AInteRealPlayerController::SelectWall(UDynamicMeshComponent* WallComponent)
+{
+	if (SelectedWallComponent == WallComponent)
+	{
+		return;
+	}
+
+	DeselectFurniture();
+	SelectedWallComponent = WallComponent;
+}
+
+void AInteRealPlayerController::DeselectWall()
+{
+	SelectedWallComponent = nullptr;
+}
+
+void AInteRealPlayerController::ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SelectedWallComponent) return;
+	if (!NewMaterial) return;
+
+	SelectedWallComponent->SetMaterial(0, NewMaterial);
+}
+
 void AInteRealPlayerController::ApplyCurrentControlMode()
 {
 	UpdateMappingContexts();
@@ -304,8 +337,8 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 void AInteRealPlayerController::UpdateModeUIVisibility()
 {
 	const bool bIsEdit = (CurrentControlMode == EInteRealControlMode::Edit);
-	const ESlateVisibility EditVisibility = bIsEdit ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
-	const ESlateVisibility ViewVisibility = bIsEdit ? ESlateVisibility::Hidden : ESlateVisibility::Visible;
+	const ESlateVisibility EditVisibility = bIsEdit ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden;
+	const ESlateVisibility ViewVisibility = bIsEdit ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
 
 	if (PlacementTabInstance)
 	{
@@ -391,6 +424,7 @@ void AInteRealPlayerController::OnPlace()
 	if (!bIsHitting)
 	{
 		DeselectFurniture();
+		DeselectWall();
 		return;
 	}
 
@@ -438,8 +472,19 @@ void AInteRealPlayerController::OnPlace()
 			return;
 		}
 	}
+	
+	if (UDynamicMeshComponent* HitWallComp = Cast<UDynamicMeshComponent>(HitComp))
+	{
+		if (HitWallComp->ComponentHasTag(TEXT("EditableWall")))
+		{
+			DeselectFurniture();
+			SelectWall(HitWallComp);
+			return;
+		}
+	}
 
 	DeselectFurniture();
+	DeselectWall();
 }
 
 void AInteRealPlayerController::OnPlaceReleased()
@@ -448,11 +493,11 @@ void AInteRealPlayerController::OnPlaceReleased()
 
 	if (bIsDraggingGizmo && SelectedFurniture)
 	{
-		if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
-		{
-			FBox Bounds = SelectedFurniture->GetComponentsBoundingBox();
-			GizmoComp->SetupFromLocalBounds(Bounds.TransformBy(SelectedFurniture->GetActorTransform().Inverse()));
-		}
+		//if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
+		//{
+		//	FBox Bounds = SelectedFurniture->GetComponentsBoundingBox();
+		//	GizmoComp->SetupFromLocalBounds(Bounds.TransformBy(SelectedFurniture->GetActorTransform().Inverse()));
+		//}
 	}
 
 	bIsDraggingGizmo = false;
@@ -504,6 +549,7 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	if (SelectedFurniture == Furniture) return;
 
+	DeselectWall();
 	DeselectFurniture();
 	SelectedFurniture = Furniture;
 

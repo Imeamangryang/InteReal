@@ -19,6 +19,8 @@ class UInputMappingContext;
 class UInputAction;
 class UUserWidget;
 class UTextureRenderTarget2D;
+class UDynamicMeshComponent;
+class UMaterialInterface;
 
 UENUM(BlueprintType)
 enum class EInteRealControlMode : uint8
@@ -48,6 +50,9 @@ public:
 	
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
+	
+	UFUNCTION()
+	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
 
 	UFUNCTION(BlueprintPure, Category = "InteReal|Mode")
 	EInteRealControlMode GetControlMode() const { return CurrentControlMode; }
@@ -66,6 +71,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Web")
 	void ReceiveWebCommand(const FString& JsonString);
 
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Wall")
+	void ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial);
+	
 protected:
 	void UpdateCursorHit();
 	void UpdateTooltip();
@@ -78,6 +86,9 @@ protected:
 
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
+	
+	void SelectWall(UDynamicMeshComponent* WallComponent);
+	void DeselectWall();
 
 	UFUNCTION(BlueprintPure, Category = "EditMode|Input")
 	FVector GetCurrentCursorWorldLocation() const { return CurrentCursorWorldLoc; }
@@ -197,6 +208,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UDynamicMeshComponent> SelectedWallComponent = nullptr;
 
 	bool bIsDraggingGizmo = false;
 	float DragStartAngleDeg = 0.0f;

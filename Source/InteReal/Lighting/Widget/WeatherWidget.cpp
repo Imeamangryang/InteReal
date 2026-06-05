@@ -10,22 +10,35 @@ void UWeatherWidget::NativeConstruct() {
     Super::NativeConstruct();
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
-
-    // 1. 초기 리스트 채우기
-    for(auto& Name : Sub->CityMainTable->GetRowNames()) CB_CityMain->AddOption(Name.ToString());
+    
+    /*// 1. 초기 리스트 채우기
+    for(auto& RowName : Sub->CityMainTable->GetRowNames()) {
+        auto* Data = Sub->CityMainTable->FindRow<FCityMainData>(RowName, TEXT(""));
+        if (Data) {
+            CB_CityMain->AddOption(Data->Name_KR);
+        }
+    }*/
     /*CB_Season->AddOption(TEXT("Spring")); CB_Season->AddOption(TEXT("Summer"));
     CB_Season->AddOption(TEXT("Autumn")); CB_Season->AddOption(TEXT("Winter"));*/
-    for(auto& Name : Sub->WeatherTable->GetRowNames()) CB_Weather->AddOption(Name.ToString());
+    // for(auto& Name : Sub->WeatherTable->GetRowNames()) CB_Weather->AddOption(Name.ToString());
 
     // 이벤트 연결
-    CB_CityMain->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnCityMainChanged);
+    //CB_CityMain->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnCityMainChanged);
     /*CB_Season->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnSeasonChanged);*/
     
     // 나머지 옵션 변경 시 즉시 업데이트
-    CB_Weather->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
+    // CB_Weather->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     CB_CityDetail->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     CB_Solar->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     Slider_Time->OnValueChanged.AddDynamic(this, &UWeatherWidget::OnSliderChanged); 
+    
+    // 날씨 버튼 연결
+    Btn_Clear->OnClicked.AddDynamic(this, &UWeatherWidget::OnClearClicked);
+    Btn_Cloudy->OnClicked.AddDynamic(this, &UWeatherWidget::OnCloudyClicked);
+    Btn_Rainy->OnClicked.AddDynamic(this, &UWeatherWidget::OnRainyClicked);
+    Btn_Snowy->OnClicked.AddDynamic(this, &UWeatherWidget::OnSnowyClicked);
+    Btn_Foggy->OnClicked.AddDynamic(this, &UWeatherWidget::OnFoggyClicked);
+    Btn_Stormy->OnClicked.AddDynamic(this, &UWeatherWidget::OnStormyClicked);
     
     // 버튼 이벤트 연결
     Btn_Spring->OnClicked.AddDynamic(this, &UWeatherWidget::OnSpringClicked);
@@ -42,12 +55,55 @@ void UWeatherWidget::NativeConstruct() {
     Btn_South->OnClicked.AddDynamic(this, &UWeatherWidget::OnSouthClicked);
     Btn_West->OnClicked.AddDynamic(this, &UWeatherWidget::OnWestClicked);
     
+    // [추가] 도시 버튼 17개 이벤트 연결
+    Btn_Gyeonggi->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeonggiClicked);
+    Btn_Gyeongnam->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeongnamClicked);
+    Btn_Gyeongbuk->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeongbukClicked);
+    Btn_Chungnam->OnClicked.AddDynamic(this, &UWeatherWidget::OnChungnamClicked);
+    Btn_Jeonnam->OnClicked.AddDynamic(this, &UWeatherWidget::OnJeonnamClicked);
+    Btn_Jeonbuk->OnClicked.AddDynamic(this, &UWeatherWidget::OnJeonbukClicked);
+    Btn_Chungbuk->OnClicked.AddDynamic(this, &UWeatherWidget::OnChungbukClicked);
+    Btn_Gangwon->OnClicked.AddDynamic(this, &UWeatherWidget::OnGangwonClicked);
+    Btn_Jeju->OnClicked.AddDynamic(this, &UWeatherWidget::OnJejuClicked);
+    Btn_Busan->OnClicked.AddDynamic(this, &UWeatherWidget::OnBusanClicked);
+    Btn_Incheon->OnClicked.AddDynamic(this, &UWeatherWidget::OnIncheonClicked);
+    Btn_Daegu->OnClicked.AddDynamic(this, &UWeatherWidget::OnDaeguClicked);
+    Btn_Daejeon->OnClicked.AddDynamic(this, &UWeatherWidget::OnDaejeonClicked);
+    Btn_Gwangju->OnClicked.AddDynamic(this, &UWeatherWidget::OnGwangjuClicked);
+    Btn_Ulsan->OnClicked.AddDynamic(this, &UWeatherWidget::OnUlsanClicked);
+    Btn_Seoul->OnClicked.AddDynamic(this, &UWeatherWidget::OnSeoulClicked);
+    Btn_Sejong->OnClicked.AddDynamic(this, &UWeatherWidget::OnSejongClicked);
     
     // 서브시스템의 현재 시간값 가져와서 초기 UI 동기화
     float CurrentTime = 12.0f; // 서브시스템 변수값
     Slider_Time->SetValue(CurrentTime / 24.0f);
     Text_Time->SetText(FText::FromString(FormatTime(CurrentTime)));
 }
+
+// 날씨 통합 로직
+void UWeatherWidget::HandleWeatherUpdate(FName RowName, UButton* ClickedButton) {
+    // 1. 버튼 색상 초기화
+    TArray<UButton*> AllBtns = { Btn_Clear, Btn_Cloudy, Btn_Rainy, Btn_Snowy, Btn_Foggy, Btn_Stormy };
+    for(auto* Btn : AllBtns) Btn->SetBackgroundColor(FLinearColor::White);
+    
+    // 2. 선택된 버튼 색상 변경
+    if(ClickedButton) ClickedButton->SetBackgroundColor(FLinearColor::Blue);
+
+    // 3. 서브시스템 업데이트
+    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+    if (Sub) {
+        Sub->SetWeather(RowName);
+        TriggerUpdate();
+    }
+}
+
+// 날씨 버튼 이벤트
+void UWeatherWidget::OnClearClicked()    { HandleWeatherUpdate(FName("Clear"), Btn_Clear); }
+void UWeatherWidget::OnCloudyClicked()   { HandleWeatherUpdate(FName("Cloudy"), Btn_Cloudy); }
+void UWeatherWidget::OnRainyClicked() { HandleWeatherUpdate(FName("Rainy"), Btn_Rainy); }
+void UWeatherWidget::OnSnowyClicked()     { HandleWeatherUpdate(FName("Snowy"), Btn_Snowy); }
+void UWeatherWidget::OnFoggyClicked()  { HandleWeatherUpdate(FName("Foggy"), Btn_Foggy); }
+void UWeatherWidget::OnStormyClicked()     { HandleWeatherUpdate(FName("Stormy"), Btn_Stormy); }
 
 // 계절 버튼 이벤트 
 void UWeatherWidget::OnSpringClicked() { UpdateSolarBySeason(TEXT("Spring")); }
@@ -59,6 +115,46 @@ void UWeatherWidget::OnNorthClicked() { UpdateOrientation(0.0f); }
 void UWeatherWidget::OnEastClicked()  { UpdateOrientation(90.0f); }
 void UWeatherWidget::OnSouthClicked() { UpdateOrientation(180.0f); }
 void UWeatherWidget::OnWestClicked()  { UpdateOrientation(270.0f); }
+
+// 도시 버튼 이벤트 구현
+void UWeatherWidget::OnGyeonggiClicked() { HandleCityClicked(FName("Gyeonggi"), Btn_Gyeonggi); }
+void UWeatherWidget::OnGyeongnamClicked() { HandleCityClicked(FName("Gyeongnam"), Btn_Gyeongnam); }
+void UWeatherWidget::OnGyeongbukClicked() { HandleCityClicked(FName("Gyeongbuk"), Btn_Gyeongbuk); }
+void UWeatherWidget::OnChungnamClicked() { HandleCityClicked(FName("Chungnam"), Btn_Chungnam); }
+void UWeatherWidget::OnJeonnamClicked() { HandleCityClicked(FName("Jeonnam"), Btn_Jeonnam); }
+void UWeatherWidget::OnJeonbukClicked() { HandleCityClicked(FName("Jeonbuk"), Btn_Jeonbuk); }
+void UWeatherWidget::OnChungbukClicked() { HandleCityClicked(FName("Chungbuk"), Btn_Chungbuk); }
+void UWeatherWidget::OnGangwonClicked() { HandleCityClicked(FName("Gangwon"), Btn_Gangwon); }
+void UWeatherWidget::OnJejuClicked() { HandleCityClicked(FName("Jeju"), Btn_Jeju); }
+void UWeatherWidget::OnBusanClicked() { HandleCityClicked(FName("Busan"), Btn_Busan); }
+void UWeatherWidget::OnIncheonClicked() { HandleCityClicked(FName("Incheon"), Btn_Incheon); }
+void UWeatherWidget::OnDaeguClicked() { HandleCityClicked(FName("Daegu"), Btn_Daegu); }
+void UWeatherWidget::OnDaejeonClicked() { HandleCityClicked(FName("Daejeon"), Btn_Daejeon); }
+void UWeatherWidget::OnGwangjuClicked() { HandleCityClicked(FName("Gwangju"), Btn_Gwangju); }
+void UWeatherWidget::OnUlsanClicked() { HandleCityClicked(FName("Ulsan"), Btn_Ulsan); }
+void UWeatherWidget::OnSeoulClicked() { HandleCityClicked(FName("Seoul"), Btn_Seoul); }
+void UWeatherWidget::OnSejongClicked() { HandleCityClicked(FName("Sejong"), Btn_Sejong); }
+
+void UWeatherWidget::HandleCityClicked(FName CityRowName, UButton* ClickedButton) {
+    TArray<UButton*> AllBtns = { Btn_Seoul, Btn_Busan, Btn_Incheon, Btn_Daegu, Btn_Daejeon, Btn_Gwangju, Btn_Ulsan, Btn_Sejong, Btn_Gyeonggi, Btn_Gangwon, Btn_Chungbuk, Btn_Chungnam, Btn_Jeonbuk, Btn_Jeonnam, Btn_Gyeongbuk, Btn_Gyeongnam, Btn_Jeju };
+    for(auto* Btn : AllBtns) Btn->SetBackgroundColor(FLinearColor::White);
+    if(ClickedButton) ClickedButton->SetBackgroundColor(FLinearColor::Blue);
+
+    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+    if (!Sub) return;
+    CB_CityDetail->ClearOptions();
+    auto* Data = Sub->CityMainTable->FindRow<FCityMainData>(CityRowName, TEXT(""));
+    if (Data) {
+        for (auto& RowName : Sub->CityDetailTable->GetRowNames()) {
+            auto* DetailData = Sub->CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
+            if (DetailData && DetailData->Parent_CityID == Data->CityID) {
+                CB_CityDetail->AddOption(DetailData->Name_KR);
+            }
+        }
+    }
+    TriggerUpdate();
+}
+
 void UWeatherWidget::UpdateOrientation(float Angle)
 {
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
@@ -103,28 +199,32 @@ void UWeatherWidget::UpdateSolarBySeason(FString SeasonName)
     }
 }
 
-// 광역시 선택 시 상세지역 갱신
-void UWeatherWidget::OnCityMainChanged(FString Selected, ESelectInfo::Type Type) {
+/*// 광역시 선택 시 상세지역 갱신
+void UWeatherWidget::OnCityMainChanged(FString SelectedKR, ESelectInfo::Type Type) {
     CB_CityDetail->ClearOptions();
-    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
-    for(auto& Name : Sub->GetCityDetails(FName(*Selected))) CB_CityDetail->AddOption(Name);
-    TriggerUpdate();
-}
-
-// 계절 선택 시 절기 갱신
-/*void UWeatherWidget::OnSeasonChanged(FString Selected, ESelectInfo::Type Type) {
-    CB_Solar->ClearOptions();
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
 
-    // 계절별 절기 필터링 후 Name_KR 추출
-    for (auto RowName : Sub->SolarTermTable->GetRowNames()) {
-        auto* Data = Sub->SolarTermTable->FindRow<FSolarTermData>(RowName, TEXT(""));
-        if (Data && Data->Season == Selected) {
-            // RowName 대신 Name_KR을 콤보박스에 추가
-            CB_Solar->AddOption(Data->Name_KR); 
+    // 1. 선택된 한글 이름에 해당하는 Parent_CityID 찾기
+    int32 FoundCityID = -1;
+    for (auto& RowName : Sub->CityMainTable->GetRowNames()) {
+        auto* Data = Sub->CityMainTable->FindRow<FCityMainData>(RowName, TEXT(""));
+        if (Data && Data->Name_KR == SelectedKR) {
+            FoundCityID = Data->CityID;
+            break;
         }
     }
+
+    // 2. 해당 CityID를 가진 상세 지역들의 Name_KR 추가
+    if (FoundCityID != -1) {
+        for (auto& RowName : Sub->CityDetailTable->GetRowNames()) {
+            auto* Data = Sub->CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
+            if (Data && Data->Parent_CityID == FoundCityID) {
+                CB_CityDetail->AddOption(Data->Name_KR);
+            }
+        }
+    }
+    
     TriggerUpdate();
 }*/
 
@@ -181,19 +281,22 @@ void UWeatherWidget::OnTimeTextChanged(const FText& Text, ETextCommit::Type Comm
         if (Sub) Sub->SetTime(NewHours);
     }
 }
-/*void UWeatherWidget::OnOrientationChanged(FString Selected, ESelectInfo::Type Type) {
-    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
-    if (!Sub) return;
-    float Offset = (Selected == TEXT("South")) ? 180.0f : (Selected == TEXT("East") ? 90.0f : (Selected == TEXT("West") ? 270.0f : 0.0f));
-    Sub->SetOrientation(Offset);
-}*/
 
 void UWeatherWidget::TriggerUpdate() {
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
 
-    // 선택된 값들로 서브시스템 상태만 갱신
-    Sub->SetCityDetail(FName(*CB_CityDetail->GetSelectedOption()));
-    Sub->SetWeather(FName(*CB_Weather->GetSelectedOption()));
+    // 상세 지역 처리 (한글 이름을 RowName으로 변환)
+    FString SelectedDetailKR = CB_CityDetail->GetSelectedOption();
+    if (!SelectedDetailKR.IsEmpty()) {
+        for (auto& RowName : Sub->CityDetailTable->GetRowNames()) {
+            auto* Data = Sub->CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
+            if (Data && Data->Name_KR == SelectedDetailKR) {
+                Sub->SetCityDetail(RowName); // 서브시스템에는 실제 RowName을 전달
+                break;
+            }
+        }
+    }
+    // 절기 처리
     Sub->SetSolar(Sub->GetSolarRowName(CB_Solar->GetSelectedOption()));
 }

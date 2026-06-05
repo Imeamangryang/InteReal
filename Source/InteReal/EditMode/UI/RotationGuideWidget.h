@@ -24,11 +24,6 @@ public:
 
 private:
 	UPROPERTY(meta=(BindWidget))
-	UImage* Img_Radial;
-
-	UPROPERTY(meta=(BindWidget))
 	UTextBlock* Txt_Angle;
-
-	UPROPERTY()
-	UMaterialInstanceDynamic* RadialDynMat = nullptr;
+	
 };

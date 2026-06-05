@@ -19,3 +19,8 @@ void UInteRealUISubSystem::NotifyFurnitureSpawn(const FFurnitureDataRow& Furnitu
 {
 	OnFurnitureSpawn.Broadcast(FurnitureData);
 }
+
+void UInteRealUISubSystem::NotifyWallMaterialChanged(UMaterialInterface* NewMaterial)
+{
+	OnWallMaterialChanged.Broadcast(NewMaterial);
+}

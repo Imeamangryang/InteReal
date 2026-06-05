@@ -1,7 +1,6 @@
 #include "EditModePlayerController.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "InteReal/EditMode/Furnitures/Furniture.h"
-#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
@@ -92,34 +91,68 @@ void AEditModePlayerController::Tick(float DeltaTime)
 	UpdateCursorHit();
 	UpdateTooltip();
 
-	// 기즈모 링 드래그 중 → 래디얼 추적 Yaw 회전
-	if (bIsDraggingGizmo && SelectedFurniture)
+	if (bIsDraggingGizmo && SelectedFurniture && ActiveGizmoActor)
 	{
-		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
-		FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
-		FVector Hit = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
-		FVector Center = SelectedFurniture->GetActorLocation();
-
-		float CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
-		float DeltaAngle = CurrentAngle - DragStartAngleDeg;
-
-		FRotator NewRot = DragStartFurnitureRot;
-		NewRot.Yaw = FRotator::NormalizeAxis(NewRot.Yaw + DeltaAngle);
-
-		if (IsInputKeyDown(EKeys::LeftControl))
+		// ── 회전 드래그 ──────────────────────────────────────────
+		if (CurrentDraggingAxis.StartsWith(TEXT("Rotate")))
 		{
-			NewRot.Yaw = FMath::GridSnap(NewRot.Yaw, 15.0f);
+			FVector WorldOrigin, WorldDir;
+			DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+			FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
+			FVector Hit    = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
+			FVector Center = SelectedFurniture->GetActorLocation();
+
+			float CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
+			float DeltaAngle   = FRotator::NormalizeAxis(CurrentAngle - DragStartAngleDeg);
+
+			if (IsInputKeyDown(EKeys::LeftControl))
+			{
+				DeltaAngle = FMath::GridSnap(DeltaAngle, 15.0f);
+			}
+
+			FRotator NewRot = DragStartFurnitureRot;
+			if      (CurrentDraggingAxis == TEXT("RotateYaw"))   NewRot.Yaw   = FRotator::NormalizeAxis(NewRot.Yaw   + DeltaAngle);
+			else if (CurrentDraggingAxis == TEXT("RotatePitch")) NewRot.Pitch = FRotator::NormalizeAxis(NewRot.Pitch + DeltaAngle);
+			else if (CurrentDraggingAxis == TEXT("RotateRoll"))  NewRot.Roll  = FRotator::NormalizeAxis(NewRot.Roll  + DeltaAngle);
+
+			SelectedFurniture->SetActorRotation(NewRot);
+			ActiveGizmoActor->SetActorRotation(NewRot);
+
+			// 드래그 중인 링 머티리얼의 RadialWipe 파라미터 실시간 갱신
+			float WipeValue = FMath::Clamp(FMath::Abs(DeltaAngle) / 360.0f, 0.0f, 1.0f);
+			TArray<UStaticMeshComponent*> Meshes;
+			ActiveGizmoActor->GetComponents<UStaticMeshComponent>(Meshes);
+			for (UStaticMeshComponent* Mesh : Meshes)
+			{
+				if (Mesh->ComponentTags.Contains(FName(*CurrentDraggingAxis)))
+				{
+					if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)))
+					{
+						DynMat->SetScalarParameterValue(TEXT("RadialWipe"), WipeValue);
+					}
+				}
+			}
+		}
+		// ── 이동 드래그 ──────────────────────────────────────────
+		else if (CurrentDraggingAxis.StartsWith(TEXT("Move")))
+		{
+			float MouseX, MouseY;
+			GetMousePosition(MouseX, MouseY);
+
+			FVector WorldOrigin, WorldDir;
+			DeprojectScreenPositionToWorld(MouseX, MouseY, WorldOrigin, WorldDir);
+			FPlane GroundPlane(DragStartFurnitureLocation, FVector::UpVector);
+			FVector CursorOnGround = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, GroundPlane);
+
+			FVector NewLoc = DragStartFurnitureLocation;
+			if      (CurrentDraggingAxis == TEXT("MoveX")) NewLoc.X = CursorOnGround.X;
+			else if (CurrentDraggingAxis == TEXT("MoveY")) NewLoc.Y = CursorOnGround.Y;
+			else if (CurrentDraggingAxis == TEXT("MoveZ")) NewLoc.Z += (CursorOnGround.Z - DragStartFurnitureLocation.Z);
+
+			SelectedFurniture->SetActorLocation(NewLoc);
+			ActiveGizmoActor->SetActorLocation(NewLoc);
 		}
 
-		SelectedFurniture->SetActorRotation(NewRot);
-
-		// 드래그 각도만큼 링을 실시간으로 다시 그려서 게이지 시각화
-		if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
-		{
-			float BoundsMax = SelectedFurniture->GetComponentsBoundingBox().GetExtent().GetMax();
-			GizmoComp->UpdateRadialRotationRing(BoundsMax, DeltaAngle);
-		}
 		return;
 	}
 
@@ -162,18 +195,35 @@ void AEditModePlayerController::OnPlace()
 	}
 	
 	UPrimitiveComponent* HitComp = LastCursorHit.GetComponent();
-	if (HitComp && HitComp->GetFName() == FName(TEXT("RingMeshComp")) && SelectedFurniture)
+	if (HitComp && SelectedFurniture && ActiveGizmoActor)
 	{
-		bIsDraggingGizmo = true;
-		DragStartFurnitureRot = SelectedFurniture->GetActorRotation();
+		for (const FName& Tag : HitComp->ComponentTags)
+		{
+			const FString TagStr = Tag.ToString();
 
-		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
-		FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
-		FVector Hit = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
-		FVector Center = SelectedFurniture->GetActorLocation();
-		DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
-		return;
+			if (TagStr.StartsWith(TEXT("Rotate")))
+			{
+				CurrentDraggingAxis    = TagStr;
+				bIsDraggingGizmo       = true;
+				DragStartFurnitureRot  = SelectedFurniture->GetActorRotation();
+
+				FVector WorldOrigin, WorldDir;
+				DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+				FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
+				FVector Hit    = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
+				FVector Center = SelectedFurniture->GetActorLocation();
+				DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
+				return;
+			}
+
+			if (TagStr.StartsWith(TEXT("Move")))
+			{
+				CurrentDraggingAxis       = TagStr;
+				bIsDraggingGizmo          = true;
+				DragStartFurnitureLocation = SelectedFurniture->GetActorLocation();
+				return;
+			}
+		}
 	}
 	
 	if (AFurniture* HitFurniture = Cast<AFurniture>(LastCursorHit.GetActor()))
@@ -205,16 +255,22 @@ void AEditModePlayerController::OnPlace()
 
 void AEditModePlayerController::OnPlaceReleased()
 {
-	if (bIsDraggingGizmo && SelectedFurniture)
+	if (bIsDraggingGizmo && ActiveGizmoActor)
 	{
-		// 드래그 종료 후 링을 360도 풀 링으로 원복
-		if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
+		// 드래그 중이던 링 머티리얼 RadialWipe 초기화
+		TArray<UStaticMeshComponent*> Meshes;
+		ActiveGizmoActor->GetComponents<UStaticMeshComponent>(Meshes);
+		for (UStaticMeshComponent* Mesh : Meshes)
 		{
-			FBox Bounds = SelectedFurniture->GetComponentsBoundingBox();
-			GizmoComp->SetupFromLocalBounds(Bounds.TransformBy(SelectedFurniture->GetActorTransform().Inverse()));
+			if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)))
+			{
+				DynMat->SetScalarParameterValue(TEXT("RadialWipe"), 0.0f);
+			}
 		}
 	}
+
 	bIsDraggingGizmo = false;
+	CurrentDraggingAxis = TEXT("");
 }
 
 void AEditModePlayerController::OnRemove()
@@ -255,6 +311,11 @@ void AEditModePlayerController::OnRotatePreview()
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 90.0f);
 		SelectedFurniture->SetActorRotation(Rot);
+
+		if (ActiveGizmoActor)
+		{
+			ActiveGizmoActor->SetActorRotation(Rot);
+		}
 	}
 }
 
@@ -264,6 +325,23 @@ void AEditModePlayerController::SelectFurniture(AFurniture* Furniture)
 	DeselectFurniture();
 	SelectedFurniture = Furniture;
 	SelectedFurniture->SetSelected(true);
+
+	// 기즈모 액터 스폰 — 가구 트랜스폼에 붙임
+	if (GizmoActorClass && GetWorld())
+	{
+		ActiveGizmoActor = GetWorld()->SpawnActor<AActor>(
+			GizmoActorClass,
+			SelectedFurniture->GetActorTransform()
+		);
+
+		// 가구 크기에 맞게 링 스케일 조정
+		if (ActiveGizmoActor)
+		{
+			FBoxSphereBounds Bounds = SelectedFurniture->GetComponentsBoundingBox();
+			float RadiusScale = FMath::Max(Bounds.BoxExtent.X, Bounds.BoxExtent.Y) / 50.0f;
+			ActiveGizmoActor->SetActorScale3D(FVector(RadiusScale, RadiusScale, 1.0f));
+		}
+	}
 }
 
 void AEditModePlayerController::DeselectFurniture()
@@ -273,6 +351,13 @@ void AEditModePlayerController::DeselectFurniture()
 		SelectedFurniture->SetSelected(false);
 		SelectedFurniture = nullptr;
 	}
+
+	if (ActiveGizmoActor)
+	{
+		ActiveGizmoActor->Destroy();
+		ActiveGizmoActor = nullptr;
+	}
+
 	bIsDraggingGizmo = false;
 }
 

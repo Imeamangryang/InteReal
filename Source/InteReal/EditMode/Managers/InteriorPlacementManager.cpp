@@ -2,9 +2,9 @@
 
 #include "InteriorPlacementManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "Engine/OverlapResult.h"   
-#include "CollisionQueryParams.h"    
-#include "Engine/World.h"               
+#include "Engine/OverlapResult.h"
+#include "CollisionQueryParams.h"
+#include "Engine/World.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
@@ -39,8 +39,8 @@ void AInteriorPlacementManager::Tick(float DeltaTime)
 	if (!PreviewFurniture || !bHasTargetLocation) return;
 
 	FVector Current = PreviewFurniture->GetActorLocation();
-	FVector Interpolated = FMath::VInterpTo(Current, TargetPreviewLocation, DeltaTime, PreviewInterpSpeed);
-	PreviewFurniture->SetActorLocation(Interpolated);
+	/*FVector Interpolated = FMath::VInterpTo(Current, TargetPreviewLocation, DeltaTime, PreviewInterpSpeed);
+	PreviewFurniture->SetActorLocation(Interpolated);*/
 }
 
 void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData& FloorData, float Cell)
@@ -63,13 +63,13 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 		MaxY = FMath::Max(MaxY, V.y);
 	}
 
-	float TotalWidth  = MaxX - MinX;
+	float TotalWidth = MaxX - MinX;
 	float TotalHeight = MaxY - MinY;
 	float CenterX = (MinX + MaxX) * 0.5f;
 	float CenterY = (MinY + MaxY) * 0.5f;
 	SetActorLocation(FVector(CenterX, CenterY, 1.0f));
 
-	int Length  = FMath::CeilToInt(TotalWidth  / Cell);
+	int Length = FMath::CeilToInt(TotalWidth / Cell);
 	int Breadth = FMath::CeilToInt(TotalHeight / Cell);
 	InitializeGrid(Length, Breadth, Cell);
 
@@ -139,10 +139,17 @@ bool AInteriorPlacementManager::IsPreviewLotEmpty()
 				return false;
 			}
 
-			if (Grid->GetFurniture(Cell) != nullptr)
+			// 타 가구 충돌 체크
+			AActor* ExistingFurniture = Grid->GetFurniture(Cell);
+			if (ExistingFurniture != nullptr && ExistingFurniture != PreviewFurniture)
 			{
 				return false;
 			}
+
+			/*if (Grid->GetFurniture(Cell) != nullptr)
+			{
+				return false;
+			}*/
 		}
 	}
 	return true;
@@ -177,7 +184,7 @@ bool AInteriorPlacementManager::IsPreviewBoundsEmpty() const
 
 void AInteriorPlacementManager::ConfirmFurniture()
 {
-	if (!PreviewFurniture || !IsPreviewBoundsEmpty() || !IsPreviewLotEmpty())
+	if (!PreviewFurniture || !IsPreviewLotEmpty() || InvalidReason != EPlacementInvalidReason::None)
 	{
 		return;
 	}
@@ -192,19 +199,25 @@ void AInteriorPlacementManager::ConfirmFurniture()
 			Grid->SetFurniture(FVector2D(PreviewGridAnchor.X + i, PreviewGridAnchor.Y + j), PreviewFurniture);
 		}
 	}
-
-	// 💡 [저장 시스템 연동] SaveManager가 인식할 수 있도록 태그 추가
+	
 	PreviewFurniture->Tags.Add(TEXT("InteriorFurniture"));
 	PreviewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), PreviewFurniture->FurnitureID)));
 
+	PreviewFurniture->SetActorLocation(TargetPreviewLocation);
 	PreviewFurniture->PlacedGridAnchor = PreviewGridAnchor;
 	PreviewFurniture->PlacedDimensions = CurrentDimensions;
+	
 	PreviewFurniture->SetPlacementState(EPlacementState::Placed);
 	PlacedFurnitures.Add(PreviewFurniture);
+	
+	
 	PreviewFurniture = nullptr;
+	bHasTargetLocation = false;
 }
 
-void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPosition, FRotator Rotation, const FFurnitureDataRow& InFurnitureRow)
+void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPosition,
+                                                              FRotator Rotation,
+                                                              const FFurnitureDataRow& InFurnitureRow)
 {
 	if (PreviewFurniture)
 	{
@@ -249,49 +262,68 @@ void AInteriorPlacementManager::RotatePreview(float AngleDeg)
 
 void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 {
-	if (!PreviewFurniture || !Grid)
-	{
-		return;
-	}
+	if (!PreviewFurniture || !Grid) return;
 
 	LastRayPosition = RayPosition;
 
 	FVector2D GridPos = Grid->ToGridPosition(RayPosition);
-	int SnapX = (int)GridPos.X;
-	int SnapY = (int)GridPos.Y;
+	int SnapX = FMath::FloorToInt(GridPos.X);
+	int SnapY = FMath::FloorToInt(GridPos.Y);
 
 	int L = (int)CurrentDimensions.X;
 	int B = (int)CurrentDimensions.Y;
-	PreviewGridAnchor = FVector2D(SnapX - L / 2, SnapY - B / 2);
 
-	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(SnapX, SnapY));
+	// 앵커는 int 나눗셈 — 홀수(L=1,3)·짝수(L=2,4) 모두 커서 셀 기준 올바른 중앙 확보
+	PreviewGridAnchor.X = SnapX - L / 2;
+	PreviewGridAnchor.Y = SnapY - B / 2;
+
+	// 시각 중심은 앵커 + 크기/2 - 0.5 → 짝수 크기 가구도 점유 영역 정중앙에 렌더링
+	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(
+		(float)PreviewGridAnchor.X + ((float)L / 2.0f) - 0.5f,
+		(float)PreviewGridAnchor.Y + ((float)B / 2.0f) - 0.5f
+	));
 	SnappedWorld.Z = GetActorLocation().Z;
 
-	// 직접 이동 대신 타겟 위치 저장 — Tick에서 VInterpTo로 부드럽게 이동
 	TargetPreviewLocation = SnappedWorld;
-	bHasTargetLocation    = true;
-
+	bHasTargetLocation = true;
 	PreviewFurniture->SetActorRotation(PreviewRotation);
 
-	// Invalid 이유 판정
-	bool bBoundsOk = IsPreviewBoundsEmpty();
-	bool bLotOk    = IsPreviewLotEmpty();
+	// 영역 이탈 검사
+	bool bOutOfBounds = (PreviewGridAnchor.X < 0 || PreviewGridAnchor.Y < 0 ||
+		(PreviewGridAnchor.X + L) > Grid->GetLength() ||
+		(PreviewGridAnchor.Y + B) > Grid->GetBreadth());
 
-	if (bBoundsOk && bLotOk)
+	// 실시간 가구 겹침 검사 (그리드 데이터 활용)
+	bool bOverlapping = false;
+	if (!bOutOfBounds)
+	{
+		for (int i = 0; i < L; i++)
+		{
+			for (int j = 0; j < B; j++)
+			{
+				FVector2D Cell(PreviewGridAnchor.X + i, PreviewGridAnchor.Y + j);
+				AActor* ExistingFurniture = Grid->GetFurniture(Cell);
+
+				if (ExistingFurniture != nullptr && ExistingFurniture != PreviewFurniture)
+				{
+					bOverlapping = true;
+					break;
+				}
+			}
+			if (bOverlapping) break;
+		}
+	}
+
+	if (!bOutOfBounds && !bOverlapping)
 	{
 		InvalidReason = EPlacementInvalidReason::None;
 		PreviewFurniture->SetPlacementState(EPlacementState::Preview);
 	}
 	else
 	{
-		// 그리드 범위 벗어남 여부 — IsPreviewLotEmpty에서 이미 범위 체크 포함
-		bool bOutOfBounds = (PreviewGridAnchor.X < 0 || PreviewGridAnchor.Y < 0 ||
-		                     PreviewGridAnchor.X + L > Grid->GetLength() ||
-		                     PreviewGridAnchor.Y + B > Grid->GetBreadth());
-
 		InvalidReason = bOutOfBounds
-			? EPlacementInvalidReason::OutOfBounds
-			: EPlacementInvalidReason::Overlapping;
+			                ? EPlacementInvalidReason::OutOfBounds
+			                : EPlacementInvalidReason::Overlapping;
 
 		PreviewFurniture->SetPlacementState(EPlacementState::Invalid);
 	}
@@ -398,6 +430,10 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 	if (Grid)
 	{
 		InitializeGrid(Grid->GetLength(), Grid->GetBreadth(), GridCellSize);
+		// InitializeGrid가 새 그리드를 생성하면서 GridOrigin이 (0,0)으로 리셋됨
+		// 매니저 액터 위치를 기반으로 원점 복원
+		FVector Loc = GetActorLocation();
+		Grid->SetOrigin(FVector2D(Loc.X, Loc.Y));
 	}
 
 	TSharedPtr<FJsonObject> Root;
@@ -422,9 +458,9 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 		}
 
 		int32 FurnID = Obj->GetIntegerField(TEXT("furnitureId"));
-		int32 GridX  = Obj->GetIntegerField(TEXT("gridX"));
-		int32 GridY  = Obj->GetIntegerField(TEXT("gridY"));
-		float Yaw    = (float)Obj->GetNumberField(TEXT("rotationYaw"));
+		int32 GridX = Obj->GetIntegerField(TEXT("gridX"));
+		int32 GridY = Obj->GetIntegerField(TEXT("gridY"));
+		float Yaw = (float)Obj->GetNumberField(TEXT("rotationYaw"));
 
 		const FFurnitureDataRow* Row = FindFurnitureRowByID(FurnID);
 		if (!Row || !FurnitureClass || !Grid)
@@ -439,14 +475,17 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 			Swap(Dims.X, Dims.Y);
 		}
 
-		int CenterIdxX = GridX + (int)Dims.X / 2;
-		int CenterIdxY = GridY + (int)Dims.Y / 2;
-		FVector SpawnLoc = Grid->ToWorldPosition(FVector2D(CenterIdxX, CenterIdxY));
+		float CenterGridX = (float)GridX + ((float)Dims.X / 2.0f);
+		float CenterGridY = (float)GridY + ((float)Dims.Y / 2.0f);
+		FVector SpawnLoc = Grid->ToWorldPosition(FVector2D(CenterGridX - 0.5f, CenterGridY - 0.5f));
 		SpawnLoc.Z = GetActorLocation().Z;
 
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(FurnitureClass, SpawnLoc, FRotator(0.0f, Yaw, 0.0f), Params);
+		AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(FurnitureClass,
+		                                                              SpawnLoc,
+		                                                              FRotator(0.0f, Yaw, 0.0f),
+		                                                              Params);
 		if (!NewFurniture)
 		{
 			continue;
@@ -470,3 +509,54 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 		PlacedFurnitures.Add(NewFurniture);
 	}
 }
+
+
+/*void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
+{
+	if (!PreviewFurniture || !Grid)
+	{
+		return;
+	}
+
+	LastRayPosition = RayPosition;
+
+	FVector2D GridPos = Grid->ToGridPosition(RayPosition);
+	int SnapX = (int)GridPos.X;
+	int SnapY = (int)GridPos.Y;
+
+	int L = (int)CurrentDimensions.X;
+	int B = (int)CurrentDimensions.Y;
+	PreviewGridAnchor = FVector2D(SnapX - L / 2, SnapY - B / 2);
+
+	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(SnapX, SnapY));
+	SnappedWorld.Z = GetActorLocation().Z;
+
+	// 직접 이동 대신 타겟 위치 저장 — Tick에서 VInterpTo로 부드럽게 이동
+	TargetPreviewLocation = SnappedWorld;
+	bHasTargetLocation    = true;
+
+	PreviewFurniture->SetActorRotation(PreviewRotation);
+
+	// Invalid 이유 판정
+	bool bBoundsOk = IsPreviewBoundsEmpty();
+	bool bLotOk    = IsPreviewLotEmpty();
+
+	if (bBoundsOk && bLotOk)
+	{
+		InvalidReason = EPlacementInvalidReason::None;
+		PreviewFurniture->SetPlacementState(EPlacementState::Preview);
+	}
+	else
+	{
+		// 그리드 범위 벗어남 여부 — IsPreviewLotEmpty에서 이미 범위 체크 포함
+		bool bOutOfBounds = (PreviewGridAnchor.X < 0 || PreviewGridAnchor.Y < 0 ||
+							 PreviewGridAnchor.X + L > Grid->GetLength() ||
+							 PreviewGridAnchor.Y + B > Grid->GetBreadth());
+
+		InvalidReason = bOutOfBounds
+			? EPlacementInvalidReason::OutOfBounds
+			: EPlacementInvalidReason::Overlapping;
+
+		PreviewFurniture->SetPlacementState(EPlacementState::Invalid);
+	}
+}*/

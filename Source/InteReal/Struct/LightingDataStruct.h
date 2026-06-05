@@ -23,6 +23,7 @@ struct FCityMainData : public FTableRowBase {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Latitude = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Longitude = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Description = TEXT("");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name_KR = TEXT("");
 };
 
 // 3. CityDetail
@@ -33,6 +34,7 @@ struct FCityDetailData : public FTableRowBase {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 Parent_CityID = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Latitude = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Longitude = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString Name_KR = TEXT("");
 };
 
 // 4. SolarTerm

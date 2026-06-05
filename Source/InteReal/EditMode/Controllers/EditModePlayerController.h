@@ -76,18 +76,30 @@ public:
 	UPROPERTY(EditAnywhere, Category = "EditMode | Gizmo")
 	float GizmoRotationSensitivity = 1.5f;
 
+	// BP_GizmoActor 클래스 — 에디터 디테일 패널에서 지정
+	UPROPERTY(EditAnywhere, Category = "EditMode | Gizmo")
+	TSubclassOf<AActor> GizmoActorClass;
+
+	// 현재 선택된 가구에 붙은 기즈모 액터 인스턴스
+	UPROPERTY()
+	AActor* ActiveGizmoActor = nullptr;
+
 private:
 	bool bGridVisible = false;
 
 	// 선택된 가구 (nullptr = 선택 없음)
 	AFurniture* SelectedFurniture = nullptr;
 
-	// 기즈모 링 드래그 중 여부
+	// 기즈모 드래그 중 여부
 	bool bIsDraggingGizmo = false;
 
-	// 래디얼 회전 추적용 — 드래그 시작 시점의 각도와 가구 회전값 저장
+	// 드래그 중인 축 태그 ("RotateYaw", "MoveX" 등) — 빈 문자열 = 드래그 없음
+	FString CurrentDraggingAxis;
+
+	// 드래그 시작 시점 스냅샷
 	float DragStartAngleDeg = 0.0f;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
+	FVector DragStartFurnitureLocation = FVector::ZeroVector;
 
 	UFUNCTION(BlueprintPure, Category = "EditMode | Input")
 	FVector GetCurrentCursorWorldLocation() const { return CurrentCursorWorldLoc; }
