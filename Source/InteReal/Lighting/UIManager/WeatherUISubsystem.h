@@ -24,13 +24,16 @@ public:
 	UFUNCTION(BlueprintCallable) TArray<FString> GetSolarTermsBySeason(FString Season);
 	UFUNCTION(BlueprintCallable) FName GetSolarRowName(FString NameKR);
     
-	// 개별 업데이트 함수 (이것들만 사용하세요)
+	// 개별 업데이트 함수
 	UFUNCTION(BlueprintCallable) void SetCityDetail(FName ID);
 	UFUNCTION(BlueprintCallable) void SetWeather(FName ID);
 	UFUNCTION(BlueprintCallable) void SetSolar(FName ID);
 	UFUNCTION(BlueprintCallable) void SetTime(float Time);
 	UFUNCTION(BlueprintCallable) void SetOrientation(float Offset);
 
+	// 현재 설정된 값으로 즉시 브로드캐스트
+	UFUNCTION(BlueprintCallable) void ForceUpdate();
+	
 private:
 	FName CurrentCityDetailID = TEXT("Seoul_Gangnam");
 	FName CurrentWeatherID = TEXT("Clear");

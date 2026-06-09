@@ -24,9 +24,6 @@ public:
 	// Mode switching logic
 	UFUNCTION(BlueprintCallable, Category = "ViewMode")
 	void SetViewMode(EHarnessViewMode NewMode);
-
-	UFUNCTION(BlueprintCallable, Category = "ViewMode|UI")
-	void SetupMinimapHUD(UHarnessMinimapCaptureComponent* InCaptureComp, UTextureRenderTarget2D* InRT, TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass);
 	
 	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
 	void ShowMinimap();

@@ -6,6 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "GridSpaceManager.generated.h"
 
+UENUM(BlueprintType)
+enum class EGridTileState : uint8
+{
+	None UMETA(DisplayName = "배치 불가 (도면 외부)"),
+	Walkable UMETA(DisplayName = "배치 가능 (도면 내부)"),
+};
+
 UCLASS()
 class INTEREAL_API AGridSpaceManager : public AActor
 {
@@ -20,6 +27,7 @@ private:
 	float CellSize;
 	FVector2D GridOrigin;
 	TArray<AActor*> GridCells;
+	TArray<EGridTileState> TileStates;
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -27,22 +35,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetOrigin(FVector2D Origin);
-	
+
 	UFUNCTION(BlueprintPure)
 	int GetLength();
-	
+
 	UFUNCTION(BlueprintPure)
 	int GetBreadth();
-	
+
 	UFUNCTION(BlueprintPure)
 	float GetCellSize();
-	
+
 	UFUNCTION(BlueprintPure)
 	FVector2D ToGridPosition(FVector WorldPosition);
-	
+
 	UFUNCTION(BlueprintPure)
 	FVector ToWorldPosition(FVector2D GridPosition);
-	
+
 	UFUNCTION(BlueprintPure)
 	int GetIndex(FVector2D GridPosition);
 
@@ -52,5 +60,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetFurniture(FVector2D GridPosition, AActor* Furniture);
-	
+
+	// --- tile state (도면 내부/외부 판정)
+	UFUNCTION(BlueprintPure)
+	EGridTileState GetTileState(FVector2D GridPosition);
+
+	UFUNCTION(BlueprintCallable)
+	void SetTileState(FVector2D GridPosition, EGridTileState State);
 };

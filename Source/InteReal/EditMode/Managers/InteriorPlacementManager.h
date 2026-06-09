@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/DecalComponent.h"
+#include "Components/DynamicMeshComponent.h"
 #include "Engine/DataTable.h"
 #include "GridSpaceManager.h"
 #include "Intereal/EditMode/Furnitures/Furniture.h"
@@ -15,9 +16,9 @@
 UENUM(BlueprintType)
 enum class EPlacementInvalidReason : uint8
 {
-	None          UMETA(DisplayName = "없음"),
-	Overlapping   UMETA(DisplayName = "다른 가구와 겹칩니다"),
-	OutOfBounds   UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
+	None UMETA(DisplayName = "없음"),
+	Overlapping UMETA(DisplayName = "다른 가구와 겹칩니다"),
+	OutOfBounds UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
 };
 
 UCLASS()
@@ -30,14 +31,32 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
 	UDecalComponent* GridDecal;
 
+	// 도면 모양으로 잘린 그리드 메시 (데칼 대체)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
+	UDynamicMeshComponent* GridMeshComp;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
 	UMaterialInterface* GridMaterial;
+
+
+
+	// 배치 유효성 시각화 — 가구 footprint 아래 통으로 색 표시
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlacementViz")
+	UDynamicMeshComponent* PlacementVizValid;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlacementViz")
+	UDynamicMeshComponent* PlacementVizInvalid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlacementViz")
+	UMaterialInterface* ValidCellMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlacementViz")
+	UMaterialInterface* InvalidCellMaterial;
 
 	// 도면 없이 수동 테스트할 때만 사용. 평소엔 InitializeFromFloorData로 자동 계산
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Manual")
@@ -48,10 +67,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Manual")
 	float GridCellSize = 10.0f;
-
-	// 프리뷰 이동 보간 속도 (높을수록 빠르게 따라옴, 10~20 권장)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid|Preview")
-	float PreviewInterpSpeed = 15.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture")
 	UDataTable* FurnitureDataTable;
@@ -70,12 +85,8 @@ private:
 	FVector2D PreviewGridAnchor;
 
 	FVector2D CurrentDimensions = FVector2D::ZeroVector;
-	FRotator PreviewRotation    = FRotator::ZeroRotator;
-	FVector LastRayPosition     = FVector::ZeroVector;
-
-	// 보간 목표 위치 — Tick에서 lerp
-	FVector TargetPreviewLocation = FVector::ZeroVector;
-	bool bHasTargetLocation = false;
+	FRotator PreviewRotation = FRotator::ZeroRotator;
+	FVector LastRayPosition = FVector::ZeroVector;
 
 	TArray<AFurniture*> PlacedFurnitures;
 
@@ -92,10 +103,10 @@ public:
 	UFUNCTION(BlueprintPure)
 	bool HasActivePreview() const;
 
+	AFurniture* GetPreviewFurniture() const { return PreviewFurniture; }
+
 	UFUNCTION(BlueprintPure)
 	bool IsPreviewLotEmpty();
-
-	bool IsPreviewBoundsEmpty() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ConfirmFurniture();
@@ -122,4 +133,43 @@ public:
 	void ImportPlacedFurnituresJson(const FString& JsonString);
 
 	const FFurnitureDataRow* FindFurnitureRowByID(int32 TargetID) const;
+
+	// 기즈모 이동 드래그 — 시작/업데이트/확정/취소
+	UFUNCTION(BlueprintCallable)
+	void BeginGizmoMove(AFurniture* Target);
+
+	// 축 제한 이동 (EditModePlayerController 기즈모 화살표용)
+	UFUNCTION(BlueprintCallable)
+	void UpdateGizmoMoveLocation(FVector CursorOnGround, AFurniture* Target, const FString& Axis);
+
+	// 자유 이동 (InteRealPlayerController 드래그용 — X/Y 동시 추적)
+	UFUNCTION(BlueprintCallable)
+	void UpdateGizmoMoveFree(FVector TargetWorldLocation, AFurniture* Target);
+
+	UFUNCTION(BlueprintCallable)
+	void FinalizeGizmoMove(AFurniture* Target);
+
+	UFUNCTION(BlueprintCallable)
+	void AbortGizmoMove(AFurniture* Target);
+
+private:
+	FVector2D GizmoDragOriginalAnchor;
+	FVector GizmoDragStartLocation;
+
+	// 도면 외곽 폴리곤 (WallOuter 정점, 월드 좌표)
+	TArray<FVector2D> FloorPolygon;
+
+	void RefreshPlacementCellViz(AFurniture* Target, bool bInvalid);
+	void ClearPlacementCellViz();
+	void BuildFloorPolygon(const FHarnessFloorData& FloorData);
+	void BuildWallSegments(const FHarnessFloorData& FloorData);
+	void MarkOutOfBoundsTiles();
+	void RebuildGridMesh();
+	static bool IsPointInPolygon(FVector2D Point, const TArray<FVector2D>& Polygon);
+	bool IsFurnitureCornersInsideFloor(AFurniture* Target) const;
+	bool FurnitureIntersectsWalls(AFurniture* Target) const;
+
+	// 내벽 세그먼트 (문/창 개구부 제외)
+	TArray<TPair<FVector2D, FVector2D>> InnerWallSegments;
+
 };

@@ -3,6 +3,7 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
+#include "InteReal/Harness/Public/HarnessPipelineManager.h"
 
 AViewModeManager::AViewModeManager()
 {
@@ -14,7 +15,7 @@ AViewModeManager::AViewModeManager()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bDoCollisionTest = false; 
-	SpringArm->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	SpringArm->SetRelativeRotation(FRotator(-45.f, 45.f, 0.f));
 	SpringArm->TargetArmLength = 1500.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -22,9 +23,9 @@ AViewModeManager::AViewModeManager()
 
 	// Initial Targets
 	TargetLocation = FVector::ZeroVector;
-	TargetRotation = FRotator(-90.f, 0.f, 0.f);
+	TargetRotation = FRotator(-45.f, 45.f, 0.f);
 	TargetArmLength = 1500.f;
-	TargetFOV = 90.f;
+	TargetFOV = 60.f;
 }
 
 void AViewModeManager::BeginPlay()
@@ -64,23 +65,10 @@ void AViewModeManager::SetViewMode(EHarnessViewMode NewMode)
 void AViewModeManager::FocusOnBuilding()
 {
 	UHarnessGeneratorComponent* GenComp = nullptr;
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("HarnessGenerator"), FoundActors);
-	
-	if (FoundActors.Num() > 0)
-	{
-		GenComp = FoundActors[0]->FindComponentByClass<UHarnessGeneratorComponent>();
-	}
 
-	if (!GenComp)
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
 	{
-		TArray<AActor*> AllActors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllActors);
-		for (AActor* Actor : AllActors)
-		{
-			GenComp = Actor->FindComponentByClass<UHarnessGeneratorComponent>();
-			if (GenComp) break;
-		}
+		GenComp = PipelineManager->GetGeneratorComp();
 	}
 
 	if (GenComp)
@@ -104,9 +92,11 @@ void AViewModeManager::ToggleCanvasRotation()
 void AViewModeManager::CalculateOptimalZoom()
 {
 	UHarnessGeneratorComponent* GenComp = nullptr;
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("HarnessGenerator"), FoundActors);
-	if (FoundActors.Num() > 0) GenComp = FoundActors[0]->FindComponentByClass<UHarnessGeneratorComponent>();
+
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		GenComp = PipelineManager->GetGeneratorComp();
+	}
 
 	if (!GenComp) return;
 
@@ -117,10 +107,8 @@ void AViewModeManager::CalculateOptimalZoom()
 	float DistY = Max.Y - Min.Y; // 동서(가로) 길이
 
 	// (캔버스 회전) 기능 대응을 위해 가로/세로 매핑
-	// bIsCanvasRotated 변수가 선언되어 있지 않다면 false로 하드코딩하거나 해당 기능을 추가해야 합니다.
-	bool bRotated = false; // 캔버스 회전 변수가 연동되었다면 bIsCanvasRotated 사용
-	float ScreenWidthRequired = bRotated ? DistX : DistY;
-	float ScreenHeightRequired = bRotated ? DistY : DistX;
+	float ScreenWidthRequired = bIsCanvasRotated ? DistX : DistY;
+	float ScreenHeightRequired = bIsCanvasRotated ? DistY : DistX;
 
 	// 16:9 모니터의 좁은 상하 폭에 담기 위해 세로 길이에 1.77배 가중치 적용
 	float AdjustedHeight = ScreenHeightRequired * 1.77f; 
@@ -128,12 +116,13 @@ void AViewModeManager::CalculateOptimalZoom()
 
 	if (EffectiveSize > 0)
 	{
-		//  여백(Padding) 1.2배 추가 및 최대 줌아웃 한계(Clamp) 대폭 늘림
-		float BaseDist = (EffectiveSize * 0.5f) / FMath::Tan(FMath::DegreesToRadians(TargetFOV * 0.5f));
-		float OptimalArmLength = FMath::Clamp(BaseDist * 1.2f, 1000.f, 15000.f); 
+		// 1. TopDown 전용 ArmLength 계산 (TopDownFOV 기준)
+		float BaseDistTD = (EffectiveSize * 0.5f) / FMath::Tan(FMath::DegreesToRadians(TopDownFOV * 0.5f));
+		TopDownArmLength = FMath::Clamp(BaseDistTD * 1.2f, 1000.f, 15000.f);
 
-		TopDownArmLength = OptimalArmLength;
-		IsometricArmLength = OptimalArmLength * 1.2f;
+		// 2. Isometric 전용 ArmLength 계산 (IsometricFOV 기준)
+		float BaseDistIso = (EffectiveSize * 0.5f) / FMath::Tan(FMath::DegreesToRadians(IsometricFOV * 0.5f));
+		IsometricArmLength = FMath::Clamp(BaseDistIso * 1.2f, 1000.f, 15000.f) * 1.2f;
 
 		if (CurrentMode == EHarnessViewMode::TopDown) TargetArmLength = TopDownArmLength;
 		else if (CurrentMode == EHarnessViewMode::Isometric) TargetArmLength = IsometricArmLength;

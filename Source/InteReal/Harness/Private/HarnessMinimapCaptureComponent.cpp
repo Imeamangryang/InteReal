@@ -1,4 +1,6 @@
 #include "Public/HarnessMinimapCaptureComponent.h"
+#include "Public/HarnessPipelineManager.h"
+#include "EngineUtils.h"
 
 UHarnessMinimapCaptureComponent::UHarnessMinimapCaptureComponent()
 {
@@ -50,6 +52,23 @@ void UHarnessMinimapCaptureComponent::AdjustToBoundingBox(FVector2D MinBounds, F
 
 	// 가로/세로 중 긴 쪽을 선택하여 OrthoWidth 재설정
 	this->OrthoWidth = FMath::Max(PhysicalWidth, PhysicalHeight) + Padding;
+}
+
+void UHarnessMinimapCaptureComponent::UpdateMinimap()
+{
+	// 명시적으로 씬을 캡처하여 렌더 타겟 업데이트
+	CaptureScene();
+}
+
+void UHarnessMinimapCaptureComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// PipelineManager 서브시스템에서 월드 상태 변경 이벤트 구독
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		PipelineManager->OnWorldStateChanged.AddDynamic(this, &UHarnessMinimapCaptureComponent::UpdateMinimap);
+	}
 }
 
 void UHarnessMinimapCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

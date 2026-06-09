@@ -25,7 +25,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
 	void AdjustToBoundingBox(FVector2D MinBounds, FVector2D MaxBounds, float Padding = 500.0f);
 
+	// 미니맵 수동 업데이트 트리거 (가구 배치, 재질 변경 시 호출)
+	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
+	void UpdateMinimap();
+
 protected:
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:

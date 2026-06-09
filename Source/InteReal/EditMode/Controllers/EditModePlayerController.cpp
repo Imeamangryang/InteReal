@@ -144,13 +144,20 @@ void AEditModePlayerController::Tick(float DeltaTime)
 			FPlane GroundPlane(DragStartFurnitureLocation, FVector::UpVector);
 			FVector CursorOnGround = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, GroundPlane);
 
-			FVector NewLoc = DragStartFurnitureLocation;
-			if      (CurrentDraggingAxis == TEXT("MoveX")) NewLoc.X = CursorOnGround.X;
-			else if (CurrentDraggingAxis == TEXT("MoveY")) NewLoc.Y = CursorOnGround.Y;
-			else if (CurrentDraggingAxis == TEXT("MoveZ")) NewLoc.Z += (CursorOnGround.Z - DragStartFurnitureLocation.Z);
+			if ((CurrentDraggingAxis == TEXT("MoveX") || CurrentDraggingAxis == TEXT("MoveY")) && PlacementManager)
+			{
+				// 부드러운 이동 + 실시간 그리드 유효성 판정은 PlacementManager에서 처리
+				PlacementManager->UpdateGizmoMoveLocation(CursorOnGround, SelectedFurniture, CurrentDraggingAxis);
+			}
+			else
+			{
+				// MoveZ: 그리드 무관, 직접 이동
+				FVector NewLoc = DragStartFurnitureLocation;
+				NewLoc.Z += (CursorOnGround.Z - DragStartFurnitureLocation.Z);
+				SelectedFurniture->SetActorLocation(NewLoc);
+			}
 
-			SelectedFurniture->SetActorLocation(NewLoc);
-			ActiveGizmoActor->SetActorLocation(NewLoc);
+			ActiveGizmoActor->SetActorLocation(SelectedFurniture->GetActorLocation());
 		}
 
 		return;
@@ -218,9 +225,14 @@ void AEditModePlayerController::OnPlace()
 
 			if (TagStr.StartsWith(TEXT("Move")))
 			{
-				CurrentDraggingAxis       = TagStr;
-				bIsDraggingGizmo          = true;
+				CurrentDraggingAxis        = TagStr;
+				bIsDraggingGizmo           = true;
 				DragStartFurnitureLocation = SelectedFurniture->GetActorLocation();
+
+				if ((TagStr == TEXT("MoveX") || TagStr == TEXT("MoveY")) && PlacementManager)
+				{
+					PlacementManager->BeginGizmoMove(SelectedFurniture);
+				}
 				return;
 			}
 		}
@@ -255,6 +267,8 @@ void AEditModePlayerController::OnPlace()
 
 void AEditModePlayerController::OnPlaceReleased()
 {
+	bool bWasGridMoveDrag = (CurrentDraggingAxis == TEXT("MoveX") || CurrentDraggingAxis == TEXT("MoveY"));
+
 	if (bIsDraggingGizmo && ActiveGizmoActor)
 	{
 		// 드래그 중이던 링 머티리얼 RadialWipe 초기화
@@ -271,6 +285,16 @@ void AEditModePlayerController::OnPlaceReleased()
 
 	bIsDraggingGizmo = false;
 	CurrentDraggingAxis = TEXT("");
+
+	// 그리드 이동 드래그였다면 탁! 스냅으로 최종 확정 (불가 위치면 원래 자리로 복귀)
+	if (bWasGridMoveDrag && SelectedFurniture && PlacementManager)
+	{
+		PlacementManager->FinalizeGizmoMove(SelectedFurniture);
+		if (ActiveGizmoActor)
+		{
+			ActiveGizmoActor->SetActorLocation(SelectedFurniture->GetActorLocation());
+		}
+	}
 }
 
 void AEditModePlayerController::OnRemove()

@@ -1,4 +1,31 @@
 #include "Furniture.h"
+#include "Engine/PostProcessVolume.h"
+#include "EngineUtils.h"
+
+static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color)
+{
+	if (!World) return;
+	for (TActorIterator<APostProcessVolume> It(World); It; ++It)
+	{
+		for (FWeightedBlendable& WB : It->Settings.WeightedBlendables.Array)
+		{
+			UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(WB.Object);
+			if (!MID)
+			{
+				if (UMaterialInterface* MI = Cast<UMaterialInterface>(WB.Object))
+				{
+					MID = UMaterialInstanceDynamic::Create(MI, *It);
+					WB.Object = MID;
+				}
+			}
+			if (MID)
+			{
+				MID->SetVectorParameterValue(TEXT("OutlineColor"), Color);
+			}
+		}
+		break; // 첫 번째 PostProcessVolume만 적용
+	}
+}
 
 AFurniture::AFurniture()
 {
@@ -18,11 +45,6 @@ AFurniture::AFurniture()
 	CollisionBoxComponent->SetHiddenInGame(true);
 }
 
-void AFurniture::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AFurniture::SetPlacementState(EPlacementState NewState)
 {
 	PlacementState = NewState;
@@ -33,23 +55,30 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 		{
 		case EPlacementState::Preview:
 			CollisionBoxComponent->SetHiddenInGame(false);
-			CollisionBoxComponent->ShapeColor = FColor(0, 255, 255, 255);
+			CollisionBoxComponent->ShapeColor = FLinearColor(0.090755f, 0.328019f, 0.850000f, 0.5f).ToFColor(true);
+			CollisionBoxComponent->MarkRenderStateDirty();
 			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			// 메시도 Visibility 트레이스에서 제외 — 프리뷰 자신이 커서 레이를 막으면 바닥을 못 찾음
 			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			MeshComponent->SetRenderCustomDepth(true);
+			// UpdatePostProcessOutlineColor(GetWorld(), FLinearColor(0.090755f, 0.328019f, 0.850000f, 0.5f));
 			break;
 
 		case EPlacementState::Invalid:
 			CollisionBoxComponent->SetHiddenInGame(false);
-			CollisionBoxComponent->ShapeColor = FColor(255, 0, 0, 255);
+			CollisionBoxComponent->ShapeColor = FLinearColor(0.85, 0.08f, 0.12f, 0.5f).ToFColor(true);
+			CollisionBoxComponent->MarkRenderStateDirty();
 			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			MeshComponent->SetRenderCustomDepth(true);
+			// UpdatePostProcessOutlineColor(GetWorld(), FLinearColor(0.85f, 0.08f, 0.12f, 0.5f));
 			break;
 
 		case EPlacementState::Placed:
 			CollisionBoxComponent->SetHiddenInGame(true);
 			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+			MeshComponent->SetRenderCustomDepth(false);
+			// UpdatePostProcessOutlineColor(GetWorld(), FLinearColor(1.f, 1.f, 1.f, 1.f)); // 선택 색상(흰색)으로 복원
 			break;
 		}
 	}
@@ -57,16 +86,16 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 
 void AFurniture::SetSelected(bool bSelected)
 {
+	MeshComponent->SetRenderCustomDepth(bSelected);
 	CollisionBoxComponent->SetHiddenInGame(true);
 	
-	MeshComponent->SetRenderCustomDepth(bSelected);
-	
-	
-	if (CollisionBoxComponent)
+	/*if (CollisionBoxComponent)
 	{
 		CollisionBoxComponent->SetHiddenInGame(!bSelected);
 		CollisionBoxComponent->ShapeColor = FColor::White;
-	}
+		// CollisionBoxComponent->LineThickness = 0.5f;
+		CollisionBoxComponent->MarkRenderStateDirty();
+	}*/
 }
 
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
@@ -78,8 +107,13 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 		MeshComponent->SetStaticMesh(InFurnitureRow.FurnitureMesh);
 
 		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
-		CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
-		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);
+		FVector Extent = MeshBounds.BoxExtent;
+		Extent.Z = 2.0f;
+		CollisionBoxComponent->SetBoxExtent(Extent);
+		CollisionBoxComponent->SetRelativeLocation(FVector(MeshBounds.Origin.X, MeshBounds.Origin.Y, 0.0f));
+		
+		/*CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
+		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);*/
 	}
 
 	SetPlacementState(EPlacementState::Preview);

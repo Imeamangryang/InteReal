@@ -74,15 +74,9 @@ void UViewModeWidget::OnRotateCanvasClicked()
 
 void UViewModeWidget::OnSaveClicked()
 {
-	// PipelineManager를 찾아 저장 명령 전달
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
-	for (AActor* Actor : FoundActors)
+	// PipelineManager 서브시스템을 통해 저장 명령 전달
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
 	{
-		if (UHarnessPipelineManager* Pipeline = Actor->FindComponentByClass<UHarnessPipelineManager>())
-		{
-			Pipeline->SaveCurrentProject();
-			break;
-		}
+		Pipeline->SaveCurrentProject();
 	}
 }

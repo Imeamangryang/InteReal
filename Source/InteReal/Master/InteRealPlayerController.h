@@ -3,8 +3,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InteReal/ViewMode/ViewModeData.h"
-#include "InteReal/EditMode/UI/PlacementTooltipWidget.h"
-#include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/Furnitures/FFurnitureDataRow.h"
 #include "InteReal/EditMode/Furnitures/Furniture.h"
 #include "InputActionValue.h"
@@ -12,6 +10,7 @@
 
 class AInteriorPlacementManager;
 class AViewModeManager;
+class AInteRealHUD;
 class UFurnitureGizmoComponent;
 class UHarnessMinimapCaptureComponent;
 class UHarnessCaptureMinimapWidget;
@@ -61,7 +60,8 @@ protected:
 	void ApplyCurrentControlMode();
 	void UpdateMappingContexts();
 	void UpdateInputModeForCurrentControlMode();
-	void UpdateModeUIVisibility();
+
+	AInteRealHUD* GetInteRealHUD() const;
 
 	// ===== Edit Mode =====
 public:
@@ -76,13 +76,13 @@ public:
 	
 protected:
 	void UpdateCursorHit();
-	void UpdateTooltip();
 	void ToggleGrid();
 
 	void OnPlace();
 	void OnPlaceReleased();
 	void OnRemove();
 	void OnRotatePreview();
+	void OnRotate15();
 
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
@@ -115,7 +115,6 @@ public:
 
 protected:
 	void FindViewModeManager();
-	void UpdateMinimapIconVisibility(EHarnessViewMode NewMode);
 
 	void OnTopDownKey();
 	void OnIsometricKey();
@@ -129,25 +128,6 @@ public:
 	// ===== Mode =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Mode")
 	EInteRealControlMode CurrentControlMode = EInteRealControlMode::View;
-
-	// ===== Edit Mode UI =====
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
-	TSubclassOf<UUserWidget> PlacementTabWidget;
-
-	UPROPERTY()
-	TObjectPtr<UUserWidget> PlacementTabInstance = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
-	TSubclassOf<UPlacementTooltipWidget> TooltipWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<UPlacementTooltipWidget> TooltipInstance = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
-	TSubclassOf<URotationGuideWidget> RotationGuideWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<URotationGuideWidget> RotationGuideInstance = nullptr;
 
 	// ===== Edit Mode References =====
 	UPROPERTY(EditAnywhere, Category = "EditMode")
@@ -167,6 +147,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Rotate = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Rotate15 = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
 	float GizmoRotationSensitivity = 1.5f;
@@ -193,18 +176,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
 	TObjectPtr<UInputAction> IA_Zoom = nullptr;
 
-	// ===== View Mode UI =====
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
-	TSubclassOf<UUserWidget> ViewModeWidgetClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
-	TSubclassOf<UHarnessCaptureMinimapWidget> MinimapWidgetClass;
-
 private:
 	// ===== Edit Mode State =====
 	bool bIsHitting = false;
 	FHitResult LastCursorHit;
 	bool bGridVisible = false;
+	
+	bool bIsMovingFurniture = false;
+	FVector MoveDragOffset = FVector::ZeroVector;
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
@@ -213,16 +192,12 @@ private:
 	TObjectPtr<UDynamicMeshComponent> SelectedWallComponent = nullptr;
 
 	bool bIsDraggingGizmo = false;
+	FString CurrentDraggingAxis;
 	float DragStartAngleDeg = 0.0f;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
-
+	FVector DragStartFurnitureLocation = FVector::ZeroVector;
+	
 	// ===== View Mode State =====
 	UPROPERTY()
 	TObjectPtr<AViewModeManager> CachedViewModeManager = nullptr;
-
-	UPROPERTY()
-	TObjectPtr<UUserWidget> ViewModeWidgetInstance = nullptr;
-
-	UPROPERTY()
-	TObjectPtr<UHarnessCaptureMinimapWidget> MinimapWidgetInstance = nullptr;
 };

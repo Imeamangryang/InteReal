@@ -25,8 +25,6 @@ public:
 	AFurniture();
 
 protected:
-	virtual void BeginPlay() override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UStaticMeshComponent* MeshComponent;
 
@@ -35,6 +33,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
+	UMaterialInterface* ValidOutlineMat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
+	UMaterialInterface* InvalidOutlineMat;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")

@@ -20,6 +20,7 @@ void AGridSpaceManager::Initialize(int L, int B, float Cell)
 
 	GridOrigin = FVector2D::ZeroVector;
 	GridCells.SetNum(Length * Breadth);
+	TileStates.Init(EGridTileState::Walkable, Length * Breadth);
 }
 
 void AGridSpaceManager::SetOrigin(FVector2D Origin)
@@ -44,19 +45,15 @@ float AGridSpaceManager::GetCellSize()
 
 FVector2D AGridSpaceManager::ToGridPosition(FVector WorldPosition)
 {
-	float RawX = (WorldPosition.X - GridOrigin.X) / CellSize + (float)Length * 0.5f;
-	float RawY = (WorldPosition.Y - GridOrigin.Y) / CellSize + (float)Breadth * 0.5f;
-	
-	int GridX = FMath::FloorToInt(RawX);
-	int GridY = FMath::FloorToInt(RawY);
-	
+	int GridX = FMath::FloorToInt((WorldPosition.X - GridOrigin.X) / CellSize + Length * 0.5f);
+	int GridY = FMath::FloorToInt((WorldPosition.Y - GridOrigin.Y) / CellSize + Breadth * 0.5f);
 	return FVector2D(GridX, GridY);
 }
 
 FVector AGridSpaceManager::ToWorldPosition(FVector2D GridPosition)
 {
-	float WorldX = (GridPosition.X - (float)Length * 0.5f + 0.5f) * CellSize + GridOrigin.X;
-	float WorldY = (GridPosition.Y - (float)Breadth * 0.5f + 0.5f) * CellSize + GridOrigin.Y;
+	float WorldX = (GridPosition.X - Length * 0.5f + 0.5f) * CellSize + GridOrigin.X;
+	float WorldY = (GridPosition.Y - Breadth * 0.5f + 0.5f) * CellSize + GridOrigin.Y;
 	return FVector(WorldX, WorldY, 0.0f);
 }
 
@@ -92,4 +89,21 @@ void AGridSpaceManager::SetFurniture(FVector2D GridPosition, AActor* Furniture)
 	}
 
 	GridCells[index] = Furniture;
+}
+
+EGridTileState AGridSpaceManager::GetTileState(FVector2D GridPosition)
+{
+	int index = GetIndex(GridPosition);
+	if (index < 0 || index >= TileStates.Num())
+	{
+		return EGridTileState::None;
+	}
+	return TileStates[index];
+}
+
+void AGridSpaceManager::SetTileState(FVector2D GridPosition, EGridTileState State)
+{
+	int index = GetIndex(GridPosition);
+	if (index < 0 || index >= TileStates.Num()) return;
+	TileStates[index] = State;
 }

@@ -4,16 +4,18 @@
 #include "Public/HarnessJsonParser.h"
 #include "Public/HarnessNetworkComponent.h"
 #include "Public/HarnessSaveManagerComponent.h"
+#include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "EngineUtils.h"
 
 
-UHarnessPipelineManager::UHarnessPipelineManager()
+void UHarnessPipelineManager::Initialize(FSubsystemCollectionBase& Collection)
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	Super::Initialize(Collection);
 }
 
-void UHarnessPipelineManager::BeginPlay()
+void UHarnessPipelineManager::Deinitialize()
 {
-	Super::BeginPlay();
+	Super::Deinitialize();
 }
 
 void UHarnessPipelineManager::InitializePipeline(UHarnessNetworkComponent* InNetwork, UHarnessSaveManagerComponent* InSaveManager, UHarnessGeneratorComponent* InGenerator)
@@ -24,6 +26,9 @@ void UHarnessPipelineManager::InitializePipeline(UHarnessNetworkComponent* InNet
 
 	if (NetworkComp)
 	{
+		NetworkComp->OnPlanBaseDownloaded.RemoveAll(this);
+		NetworkComp->OnPlanDeltaDownloaded.RemoveAll(this);
+		
 		NetworkComp->OnPlanBaseDownloaded.AddDynamic(this, &UHarnessPipelineManager::OnBaseDownloaded);
 		NetworkComp->OnPlanDeltaDownloaded.AddDynamic(this, &UHarnessPipelineManager::OnDeltaDownloaded);
 	}
@@ -57,6 +62,14 @@ void UHarnessPipelineManager::SaveCurrentProject()
 	UE_LOG(LogTemp, Log, TEXT("[Harness] 프로젝트 '%s' 저장 요청 완료"), *CurrentPlanId);
 }
 
+void UHarnessPipelineManager::BroadcastWorldStateChanged()
+{
+	if (OnWorldStateChanged.IsBound())
+	{
+		OnWorldStateChanged.Broadcast();
+	}
+}
+
 void UHarnessPipelineManager::OnBaseDownloaded(const FString& BaseJson)
 {
 	if (!GeneratorComp || !NetworkComp) return;
@@ -66,6 +79,16 @@ void UHarnessPipelineManager::OnBaseDownloaded(const FString& BaseJson)
 	if (FHarnessJsonParser::ParseFloorDataFromJsonString(BaseJson, FloorData, OutError))
 	{
 		GeneratorComp->BuildHarness(FloorData);
+		
+		OnFloorPlanDataReady.Broadcast(FloorData);
+
+		// 도면이 바뀔 때마다 그리드를 새 도면 기준으로 재초기화
+		for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+		{
+			(*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
+			break;
+		}
+
 		NetworkComp->DownloadFloorPlanDelta(CurrentPlanId);
 	}
 }

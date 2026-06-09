@@ -48,8 +48,8 @@ void AViewModePlayerController::BeginPlay()
 		P->SetActorHiddenInGame(true);
 	}
 
-	// 처음에는 TopDown이므로 매니저를 쳐다봄
-	SetViewMode(EHarnessViewMode::TopDown);
+	// 처음에는 ISO 뷰이므로 매니저를 쳐다봄
+	SetViewMode(EHarnessViewMode::Isometric);
 }
 
 void AViewModePlayerController::SetupInputComponent()
@@ -214,32 +214,6 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 	UpdateMinimapIconVisibility(NewMode);
 }
 
-void AViewModePlayerController::SetupMinimapHUD(UHarnessMinimapCaptureComponent* InCaptureComp, UTextureRenderTarget2D* InRT, TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass)
-{
-	if (!InWidgetClass) return;
-
-	if (MinimapWidgetInstance)
-	{
-		MinimapWidgetInstance->RemoveFromParent();
-		MinimapWidgetInstance = nullptr;
-	}
-
-	MinimapWidgetInstance = CreateWidget<UHarnessCaptureMinimapWidget>(this, InWidgetClass);
-	if (MinimapWidgetInstance)
-	{
-		MinimapWidgetInstance->InjectMinimapData(InCaptureComp, InRT);
-
-		// 💡 [최종 수정] 미니맵을 버튼들(10)보다 아래인 ZOrder 5로 설정하여 차단 방지
-		MinimapWidgetInstance->AddToViewport();
-
-		// 아직 캡처 전이므로 미니맵 위젯 전체를 숨김 처리
-		MinimapWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-
-		EHarnessViewMode CurrentMode = EHarnessViewMode::TopDown;
-		if (CachedViewModeManager) CurrentMode = CachedViewModeManager->GetCurrentViewMode();
-		UpdateMinimapIconVisibility(CurrentMode);
-	}
-}
 
 // 캡처가 끝난 후 위젯을 다시 활성화
 void AViewModePlayerController::ShowMinimap()

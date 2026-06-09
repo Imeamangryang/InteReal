@@ -95,7 +95,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "ViewMode|Interaction")
 	float ZoomSpeed = 150.0f;
 
-	EHarnessViewMode CurrentMode = EHarnessViewMode::TopDown;
+	EHarnessViewMode CurrentMode = EHarnessViewMode::Isometric;
 
 	UPROPERTY(VisibleAnywhere, Category = "ViewMode")
 	bool bIsCanvasRotated = false;

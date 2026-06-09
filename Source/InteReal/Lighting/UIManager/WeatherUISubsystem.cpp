@@ -42,6 +42,8 @@ void UWeatherUISubsystem::SetSolar(FName ID)      { CurrentSolarID = ID;      Br
 void UWeatherUISubsystem::SetTime(float Time)     { CurrentTime = Time;       BroadcastEnvironment(); }
 void UWeatherUISubsystem::SetOrientation(float Offset) { CurrentOrientation = Offset; BroadcastEnvironment(); }
 
+void UWeatherUISubsystem::ForceUpdate() { BroadcastEnvironment(); }
+
 void UWeatherUISubsystem::BroadcastEnvironment() {
     auto* D = CityDetailTable->FindRow<FCityDetailData>(CurrentCityDetailID, TEXT(""));
     auto* W = WeatherTable->FindRow<FWeatherData>(CurrentWeatherID, TEXT(""));

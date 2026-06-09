@@ -1,12 +1,13 @@
 #include "InteRealPlayerController.h"
+#include "InteRealHUD.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
-//#include "InteReal/EditMode/Gizmo/FurnitureGizmoComponent.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Overlay.h"
 #include "Public/HarnessCaptureMinimapWidget.h"
@@ -45,46 +46,6 @@ void AInteRealPlayerController::BeginPlay()
 		}
 	}
 
-	// ===== Edit UI =====
-	if (PlacementTabWidget)
-	{
-		PlacementTabInstance = CreateWidget<UUserWidget>(this, PlacementTabWidget);
-		if (PlacementTabInstance)
-		{
-			PlacementTabInstance->AddToViewport();
-		}
-	}
-
-	if (TooltipWidgetClass)
-	{
-		TooltipInstance = CreateWidget<UPlacementTooltipWidget>(this, TooltipWidgetClass);
-		if (TooltipInstance)
-		{
-			TooltipInstance->AddToViewport();
-			TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-
-	if (RotationGuideWidgetClass)
-	{
-		RotationGuideInstance = CreateWidget<URotationGuideWidget>(this, RotationGuideWidgetClass);
-		if (RotationGuideInstance)
-		{
-			RotationGuideInstance->AddToViewport();
-			RotationGuideInstance->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-
-	// ===== View UI =====
-	if (ViewModeWidgetClass)
-	{
-		ViewModeWidgetInstance = CreateWidget<UUserWidget>(this, ViewModeWidgetClass);
-		if (ViewModeWidgetInstance)
-		{
-			ViewModeWidgetInstance->AddToViewport();
-		}
-	}
-
 	// DefaultPawn 초기 설정
 	if (APawn* P = GetPawn())
 	{
@@ -96,7 +57,7 @@ void AInteRealPlayerController::BeginPlay()
 	// View mode 기본 상태 동기화
 	if (CachedViewModeManager)
 	{
-		SetViewMode(EHarnessViewMode::TopDown);
+		SetViewMode(EHarnessViewMode::Isometric);
 	}
 }
 
@@ -106,47 +67,135 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 
 	if (CurrentControlMode != EInteRealControlMode::Edit)
 	{
+		if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+		{
+			InteRealHUD->UpdatePlacementTooltip(
+				false,
+				false,
+				EPlacementInvalidReason::None,
+				FVector2D::ZeroVector
+			);
+		}
+
 		return;
 	}
 
 	UpdateCursorHit();
-	UpdateTooltip();
+
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+	{
+		const bool bHasPreview = PlacementManager && PlacementManager->HasActivePreview();
+		const EPlacementInvalidReason InvalidReason =
+			PlacementManager ? PlacementManager->InvalidReason : EPlacementInvalidReason::None;
+
+		float MouseX = 0.f;
+		float MouseY = 0.f;
+		UWidgetLayoutLibrary::GetMousePositionScaledByDPI(this, MouseX, MouseY);
+
+		// 새 가구 배치 중 OR 기존 가구 이동 중일 때 툴팁 표시
+		InteRealHUD->UpdatePlacementTooltip(
+			true,
+			bHasPreview || bIsMovingFurniture,
+			InvalidReason,
+			FVector2D(MouseX, MouseY)
+		);
+
+		const bool bShowGuide = bHasPreview || bIsMovingFurniture;
+		AFurniture* GuideFurniture = bIsMovingFurniture ? SelectedFurniture.Get() : (PlacementManager ? PlacementManager->GetPreviewFurniture() : nullptr);
+		if (bShowGuide && GuideFurniture)
+		{
+			FVector2D GuideScreenPos;
+			bool bFound = false;
+			{
+				const FBox BBox = GuideFurniture->GetComponentsBoundingBox(true);
+				const FVector Corners[8] = {
+					{BBox.Min.X, BBox.Min.Y, BBox.Min.Z}, {BBox.Max.X, BBox.Min.Y, BBox.Min.Z},
+					{BBox.Min.X, BBox.Max.Y, BBox.Min.Z}, {BBox.Max.X, BBox.Max.Y, BBox.Min.Z},
+					{BBox.Min.X, BBox.Min.Y, BBox.Max.Z}, {BBox.Max.X, BBox.Min.Y, BBox.Max.Z},
+					{BBox.Min.X, BBox.Max.Y, BBox.Max.Z}, {BBox.Max.X, BBox.Max.Y, BBox.Max.Z},
+				};
+				float BestScore = -FLT_MAX;
+				for (const FVector& Corner : Corners)
+				{
+					FVector2D SP;
+					if (ProjectWorldLocationToScreen(Corner, SP))
+					{
+						const float Score = SP.X - SP.Y;
+						if (Score > BestScore) { BestScore = Score; GuideScreenPos = SP; bFound = true; }
+					}
+				}
+			}
+			InteRealHUD->UpdateUserGuide(bFound, InvalidReason, GuideScreenPos);
+		}
+		else
+		{
+			InteRealHUD->UpdateUserGuide(false, InvalidReason, FVector2D::ZeroVector);
+		}
+	}
 
 	if (bIsDraggingGizmo && SelectedFurniture)
 	{
 		FVector WorldOrigin, WorldDir;
 		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
-
-		const FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
-		const FVector Hit = FMath::LinePlaneIntersection(
-			WorldOrigin,
-			WorldOrigin + WorldDir * 100000.f,
-			Plane
-		);
-
 		const FVector Center = SelectedFurniture->GetActorLocation();
 
-		float CurrentAngle = FMath::RadiansToDegrees(
-			FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X)
-		);
-
-		float DeltaAngle = (CurrentAngle - DragStartAngleDeg) * GizmoRotationSensitivity;
-
-		FRotator NewRot = DragStartFurnitureRot;
-		NewRot.Yaw = FRotator::NormalizeAxis(NewRot.Yaw + DeltaAngle);
-
-		if (IsInputKeyDown(EKeys::LeftControl))
+		// 회전 
+		if (CurrentDraggingAxis.StartsWith(TEXT("Rotate")) || CurrentDraggingAxis == TEXT("RotationRing"))
 		{
-			NewRot.Yaw = FMath::GridSnap(NewRot.Yaw, 15.0f);
+			FVector PlaneNormal = FVector::UpVector;
+			if (CurrentDraggingAxis == TEXT("RotatePitch")) PlaneNormal = FVector::RightVector;
+			else if (CurrentDraggingAxis == TEXT("RotateRoll")) PlaneNormal = FVector::ForwardVector;
+
+			const FVector Hit = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f,
+				FPlane(Center, PlaneNormal));
+
+			float CurrentAngle;
+			if (CurrentDraggingAxis == TEXT("RotatePitch"))
+				CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.X - Center.X));
+			else if (CurrentDraggingAxis == TEXT("RotateRoll"))
+				CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.Y - Center.Y));
+			else
+				CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
+
+			float DeltaAngle = FRotator::NormalizeAxis(CurrentAngle - DragStartAngleDeg) * GizmoRotationSensitivity;
+			if (IsInputKeyDown(EKeys::LeftControl))
+				DeltaAngle = FMath::GridSnap(DeltaAngle, 15.0f);
+
+			FRotator NewRot = DragStartFurnitureRot;
+			if      (CurrentDraggingAxis == TEXT("RotatePitch")) NewRot.Pitch = FRotator::NormalizeAxis(NewRot.Pitch + DeltaAngle);
+			else if (CurrentDraggingAxis == TEXT("RotateRoll"))  NewRot.Roll  = FRotator::NormalizeAxis(NewRot.Roll  + DeltaAngle);
+			else                                                  NewRot.Yaw   = FRotator::NormalizeAxis(NewRot.Yaw   + DeltaAngle);
+
+			SelectedFurniture->SetActorRotation(NewRot);
+			return;
 		}
 
-		SelectedFurniture->SetActorRotation(NewRot);
+		//  X / Y 이동 (그리드 스냅 + 벽 충돌)
+		if ((CurrentDraggingAxis == TEXT("MoveX") || CurrentDraggingAxis == TEXT("MoveY")) && PlacementManager)
+		{
+			FPlane GroundPlane(DragStartFurnitureLocation, FVector::UpVector);
+			FVector CursorOnGround = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, GroundPlane);
+			PlacementManager->UpdateGizmoMoveLocation(CursorOnGround, SelectedFurniture, CurrentDraggingAxis);
+			return;
+		}
 
-		//if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
-		//{
-		//	float BoundsMax = SelectedFurniture->GetComponentsBoundingBox().GetExtent().GetMax();
-		//	GizmoComp->UpdateRadialRotationRing(BoundsMax, DeltaAngle);
-		//}
+		// Z 이동 (수직) 
+		if (CurrentDraggingAxis == TEXT("MoveZ"))
+		{
+			// 카메라 방향에 수직인 평면에 투영해 Z값만 추출
+			FVector CamFwd = FVector(WorldDir.X, WorldDir.Y, 0.f).GetSafeNormal();
+			FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f,
+				FPlane(DragStartFurnitureLocation, CamFwd));
+			FVector NewLoc = DragStartFurnitureLocation;
+			NewLoc.Z = CursorOnPlane.Z;
+			SelectedFurniture->SetActorLocation(NewLoc);
+			return;
+		}
+	}
+
+	if (bIsMovingFurniture && SelectedFurniture && PlacementManager)
+	{
+		PlacementManager->UpdateGizmoMoveFree(CurrentCursorWorldLoc + MoveDragOffset, SelectedFurniture);
 		return;
 	}
 
@@ -178,6 +227,11 @@ void AInteRealPlayerController::SetupInputComponent()
 	if (IA_Rotate)
 	{
 		EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotatePreview);
+	}
+
+	if (IA_Rotate15)
+	{
+		EIC->BindAction(IA_Rotate15, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotate15);
 	}
 
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AInteRealPlayerController::ToggleGrid);
@@ -272,7 +326,22 @@ void AInteRealPlayerController::ApplyCurrentControlMode()
 {
 	UpdateMappingContexts();
 	UpdateInputModeForCurrentControlMode();
-	UpdateModeUIVisibility();
+
+	// View 모드 전환 시 선택/프리뷰 상태 정리
+	if (CurrentControlMode != EInteRealControlMode::Edit)
+	{
+		DeselectFurniture();
+		DeselectWall();
+		if (PlacementManager && PlacementManager->HasActivePreview())
+		{
+			PlacementManager->CancelPreview();
+		}
+	}
+
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+	{
+		InteRealHUD->UpdateModeUIVisibility(CurrentControlMode);
+	}
 }
 
 void AInteRealPlayerController::UpdateMappingContexts()
@@ -312,12 +381,16 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 	if (CurrentControlMode == EInteRealControlMode::Edit)
 	{
 		FInputModeGameAndUI InputMode;
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		// 💡 [픽셀 스트리밍 대응] LockOnCapture로 변경하여 브라우저 클릭 시 포커스 동기화
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 		InputMode.SetHideCursorDuringCapture(false);
 
-		if (PlacementTabInstance)
+		if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 		{
-			InputMode.SetWidgetToFocus(PlacementTabInstance->TakeWidget());
+			if (UUserWidget* PlacementTab = InteRealHUD->GetPlacementTabInstance())
+			{
+				InputMode.SetWidgetToFocus(PlacementTab->TakeWidget());
+			}
 		}
 
 		SetInputMode(InputMode);
@@ -326,7 +399,8 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 	else
 	{
 		FInputModeGameAndUI InputMode;
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		// 💡 [픽셀 스트리밍 대응] View 모드에서도 클릭 가능하도록 동일하게 설정
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 		InputMode.SetHideCursorDuringCapture(false);
 
 		SetInputMode(InputMode);
@@ -334,43 +408,9 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 	}
 }
 
-void AInteRealPlayerController::UpdateModeUIVisibility()
+AInteRealHUD* AInteRealPlayerController::GetInteRealHUD() const
 {
-	const bool bIsEdit = (CurrentControlMode == EInteRealControlMode::Edit);
-	const ESlateVisibility EditVisibility = bIsEdit ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden;
-	const ESlateVisibility ViewVisibility = bIsEdit ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
-
-	if (PlacementTabInstance)
-	{
-		PlacementTabInstance->SetVisibility(EditVisibility);
-	}
-
-	if (TooltipInstance)
-	{
-		TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
-	}
-
-	if (RotationGuideInstance)
-	{
-		RotationGuideInstance->SetVisibility(ESlateVisibility::Hidden);
-	}
-
-	if (ViewModeWidgetInstance)
-	{
-		ViewModeWidgetInstance->SetVisibility(ViewVisibility);
-	}
-
-	if (MinimapWidgetInstance)
-	{
-		if (bIsEdit)
-		{
-			MinimapWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-		}
-		else
-		{
-			MinimapWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		}
-	}
+	return Cast<AInteRealHUD>(GetHUD());
 }
 
 void AInteRealPlayerController::FindPlacementManager()
@@ -386,6 +426,30 @@ void AInteRealPlayerController::FindPlacementManager()
 
 void AInteRealPlayerController::UpdateCursorHit()
 {
+	if (bIsMovingFurniture && SelectedFurniture)
+	{
+		// 드래그 중인 가구를 트레이스에서 제외 → 가구 콜리전을 건드리지 않고 바닥 좌표만 획득
+		FVector WorldOrigin, WorldDir;
+		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(SelectedFurniture);
+
+		bIsHitting = GetWorld()->LineTraceSingleByChannel(
+			LastCursorHit,
+			WorldOrigin,
+			WorldOrigin + WorldDir * 100000.f,
+			ECC_Visibility,
+			Params
+		);
+
+		if (bIsHitting)
+		{
+			CurrentCursorWorldLoc = LastCursorHit.Location;
+		}
+		return;
+	}
+
 	bIsHitting = GetHitResultUnderCursorByChannel(
 		UEngineTypes::ConvertToTraceType(ECC_Visibility),
 		true,
@@ -429,26 +493,52 @@ void AInteRealPlayerController::OnPlace()
 	}
 
 	UPrimitiveComponent* HitComp = LastCursorHit.GetComponent();
-	if (HitComp && HitComp->GetFName() == FName(TEXT("RingMeshComp")) && SelectedFurniture)
+	if (HitComp && SelectedFurniture)
 	{
-		bIsDraggingGizmo = true;
-		DragStartFurnitureRot = SelectedFurniture->GetActorRotation();
+		for (const FName& Tag : HitComp->ComponentTags)
+		{
+			const FString TagStr = Tag.ToString();
 
-		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+			// ── 회전 ─────────────────────────────────────────────
+			if (TagStr.StartsWith(TEXT("Rotate")) || TagStr == TEXT("RotationRing"))
+			{
+				CurrentDraggingAxis  = TagStr;
+				bIsDraggingGizmo     = true;
+				DragStartFurnitureRot = SelectedFurniture->GetActorRotation();
 
-		const FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
-		const FVector Hit = FMath::LinePlaneIntersection(
-			WorldOrigin,
-			WorldOrigin + WorldDir * 100000.f,
-			Plane
-		);
+				FVector WorldOrigin, WorldDir;
+				DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 
-		const FVector Center = SelectedFurniture->GetActorLocation();
-		DragStartAngleDeg = FMath::RadiansToDegrees(
-			FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X)
-		);
-		return;
+				// 축별 투영 평면 선택
+				FVector PlaneNormal = FVector::UpVector;
+				if (TagStr == TEXT("RotatePitch")) PlaneNormal = FVector::RightVector;
+				else if (TagStr == TEXT("RotateRoll")) PlaneNormal = FVector::ForwardVector;
+
+				const FPlane Plane(SelectedFurniture->GetActorLocation(), PlaneNormal);
+				const FVector Hit    = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
+				const FVector Center = SelectedFurniture->GetActorLocation();
+
+				if (TagStr == TEXT("RotatePitch"))
+					DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.X - Center.X));
+				else if (TagStr == TEXT("RotateRoll"))
+					DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.Y - Center.Y));
+				else
+					DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
+				return;
+			}
+
+			// ── 이동 ─────────────────────────────────────────────
+			if (TagStr.StartsWith(TEXT("Move")))
+			{
+				CurrentDraggingAxis        = TagStr;
+				bIsDraggingGizmo           = true;
+				DragStartFurnitureLocation = SelectedFurniture->GetActorLocation();
+
+				if (PlacementManager && TagStr != TEXT("MoveZ"))
+					PlacementManager->BeginGizmoMove(SelectedFurniture);
+				return;
+			}
+		}
 	}
 
 	if (AFurniture* HitFurniture = Cast<AFurniture>(LastCursorHit.GetActor()))
@@ -457,13 +547,15 @@ void AInteRealPlayerController::OnPlace()
 		{
 			if (SelectedFurniture == HitFurniture)
 			{
-				const FFurnitureDataRow* Row = PlacementManager->FindFurnitureRowByID(HitFurniture->FurnitureID);
-				if (Row)
+				// 선택된 가구를 다시 클릭 → 이동 드래그 시작
+				bIsMovingFurniture = true;
+				DragStartFurnitureLocation = SelectedFurniture->GetActorLocation();
+				MoveDragOffset = DragStartFurnitureLocation - CurrentCursorWorldLoc;
+				MoveDragOffset.Z = 0.0f;
+
+				if (PlacementManager)
 				{
-					PlacementManager->RemoveFurniture(HitFurniture);
-					SelectedFurniture = nullptr;
-					bIsDraggingGizmo = false;
-					StartFurniturePlacement(*Row);
+					PlacementManager->BeginGizmoMove(SelectedFurniture);
 				}
 				return;
 			}
@@ -491,16 +583,24 @@ void AInteRealPlayerController::OnPlaceReleased()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 
-	if (bIsDraggingGizmo && SelectedFurniture)
-	{
-		//if (UFurnitureGizmoComponent* GizmoComp = SelectedFurniture->FindComponentByClass<UFurnitureGizmoComponent>())
-		//{
-		//	FBox Bounds = SelectedFurniture->GetComponentsBoundingBox();
-		//	GizmoComp->SetupFromLocalBounds(Bounds.TransformBy(SelectedFurniture->GetActorTransform().Inverse()));
-		//}
-	}
-
 	bIsDraggingGizmo = false;
+
+	// 화살표 이동 확정 (그리드 스냅)
+	if ((CurrentDraggingAxis == TEXT("MoveX") || CurrentDraggingAxis == TEXT("MoveY")) && SelectedFurniture && PlacementManager)
+		PlacementManager->FinalizeGizmoMove(SelectedFurniture);
+
+	CurrentDraggingAxis = TEXT("");
+
+	// 가구 바디 드래그 확정 — 실제로 움직인 경우에만 스냅, 그냥 클릭이면 원위치 복원
+	if (bIsMovingFurniture && SelectedFurniture && PlacementManager)
+	{
+		bIsMovingFurniture = false;
+		const float MoveDist = FVector::Dist2D(SelectedFurniture->GetActorLocation(), DragStartFurnitureLocation);
+		if (MoveDist > 2.0f)
+			PlacementManager->FinalizeGizmoMove(SelectedFurniture);
+		else
+			PlacementManager->AbortGizmoMove(SelectedFurniture);
+	}
 }
 
 void AInteRealPlayerController::OnRemove()
@@ -516,13 +616,17 @@ void AInteRealPlayerController::OnRemove()
 
 	if (SelectedFurniture)
 	{
-		DeselectFurniture();
-		return;
-	}
-
-	if (AFurniture* HitFurniture = Cast<AFurniture>(LastCursorHit.GetActor()))
-	{
-		PlacementManager->RemoveFurniture(HitFurniture);
+		// 커서가 선택된 가구 위에 있으면 삭제, 아니면 선택 해제
+		if (bIsHitting && Cast<AFurniture>(LastCursorHit.GetActor()) == SelectedFurniture)
+		{
+			AFurniture* ToRemove = SelectedFurniture;
+			DeselectFurniture();
+			PlacementManager->RemoveFurniture(ToRemove);
+		}
+		else
+		{
+			DeselectFurniture();
+		}
 	}
 }
 
@@ -540,6 +644,24 @@ void AInteRealPlayerController::OnRotatePreview()
 	{
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 90.0f);
+		SelectedFurniture->SetActorRotation(Rot);
+	}
+}
+
+void AInteRealPlayerController::OnRotate15()
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+
+	if (PlacementManager && PlacementManager->HasActivePreview())
+	{
+		PlacementManager->RotatePreview(15.0f);
+		return;
+	}
+
+	if (SelectedFurniture)
+	{
+		FRotator Rot = SelectedFurniture->GetActorRotation();
+		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 15.0f);
 		SelectedFurniture->SetActorRotation(Rot);
 	}
 }
@@ -567,34 +689,7 @@ void AInteRealPlayerController::DeselectFurniture()
 		SelectedFurniture = nullptr;
 	}
 	bIsDraggingGizmo = false;
-}
-
-void AInteRealPlayerController::UpdateTooltip()
-{
-	if (CurrentControlMode != EInteRealControlMode::Edit)
-	{
-		if (TooltipInstance)
-		{
-			TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
-		}
-		return;
-	}
-
-	if (!TooltipInstance || !PlacementManager) return;
-
-	if (!PlacementManager->HasActivePreview() ||
-		PlacementManager->InvalidReason == EPlacementInvalidReason::None)
-	{
-		TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
-		return;
-	}
-
-	TooltipInstance->ShowReason(PlacementManager->InvalidReason);
-
-	float MouseX, MouseY;
-	GetMousePosition(MouseX, MouseY);
-	TooltipInstance->SetPositionInViewport(FVector2D(MouseX + 16.f, MouseY + 16.f), false);
-	TooltipInstance->SetVisibility(ESlateVisibility::HitTestInvisible);
+	bIsMovingFurniture = false;
 }
 
 void AInteRealPlayerController::ReceiveWebCommand(const FString& JsonString)
@@ -737,7 +832,10 @@ void AInteRealPlayerController::SetViewMode(EHarnessViewMode NewMode)
 		SetViewTarget(CachedViewModeManager);
 	}
 
-	UpdateMinimapIconVisibility(NewMode);
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+	{
+		InteRealHUD->UpdateMinimapIconVisibility(NewMode);
+	}
 }
 
 void AInteRealPlayerController::SetupMinimapHUD(
@@ -745,50 +843,29 @@ void AInteRealPlayerController::SetupMinimapHUD(
 	UTextureRenderTarget2D* InRT,
 	TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass)
 {
-	if (!InWidgetClass) return;
-
-	if (MinimapWidgetInstance)
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 	{
-		MinimapWidgetInstance->RemoveFromParent();
-		MinimapWidgetInstance = nullptr;
-	}
-
-	MinimapWidgetInstance = CreateWidget<UHarnessCaptureMinimapWidget>(this, InWidgetClass);
-	if (MinimapWidgetInstance)
-	{
-		MinimapWidgetInstance->InjectMinimapData(InCaptureComp, InRT);
-		// 💡 [최종 수정] 미니맵을 버튼들(10)보다 아래인 ZOrder 5로 설정하여 차단 방지
-		MinimapWidgetInstance->AddToViewport();
-		MinimapWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-
-		EHarnessViewMode CurrentMode = EHarnessViewMode::TopDown;
+		EHarnessViewMode CurrentMode = EHarnessViewMode::Isometric;
 		if (CachedViewModeManager)
 		{
 			CurrentMode = CachedViewModeManager->GetCurrentViewMode();
 		}
-		UpdateMinimapIconVisibility(CurrentMode);
-		UpdateModeUIVisibility();
+
+		InteRealHUD->SetupMinimapHUD(
+			InCaptureComp,
+			InRT,
+			InWidgetClass,
+			CurrentMode,
+			CurrentControlMode
+		);
 	}
 }
 
 void AInteRealPlayerController::ShowMinimap()
 {
-	if (MinimapWidgetInstance && CurrentControlMode == EInteRealControlMode::View)
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 	{
-		MinimapWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	}
-}
-
-void AInteRealPlayerController::UpdateMinimapIconVisibility(EHarnessViewMode NewMode)
-{
-	if (MinimapWidgetInstance && MinimapWidgetInstance->PlayerIcon)
-	{
-		const ESlateVisibility NewVisibility =
-			(NewMode == EHarnessViewMode::FirstPerson)
-			? ESlateVisibility::SelfHitTestInvisible
-			: ESlateVisibility::Hidden;
-
-		MinimapWidgetInstance->PlayerIcon->SetVisibility(NewVisibility);
+		InteRealHUD->ShowMinimap(CurrentControlMode);
 	}
 }
 
