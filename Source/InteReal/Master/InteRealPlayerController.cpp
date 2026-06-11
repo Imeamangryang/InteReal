@@ -16,6 +16,7 @@
 #include "InteReal/SubSystems/InteRealUISubSystem.h"
 #include "Engine/GameInstance.h"
 #include "Components/DynamicMeshComponent.h"
+#include "Components/MeshComponent.h"
 #include "Materials/MaterialInterface.h"
 
 AInteRealPlayerController::AInteRealPlayerController()
@@ -345,32 +346,54 @@ void AInteRealPlayerController::HandleFurnitureSpawn(FFurnitureDataRow Furniture
 
 void AInteRealPlayerController::HandleWallMaterialChanged(UMaterialInterface* NewMaterial)
 {
-	ApplyMaterialToSelectedWall(NewMaterial);
+	ApplyMaterialToSelectedSurface(NewMaterial);
 }
 
-void AInteRealPlayerController::SelectWall(UDynamicMeshComponent* WallComponent)
+void AInteRealPlayerController::SelectSurface(UMeshComponent* SurfaceComponent)
 {
-	if (SelectedWallComponent == WallComponent)
+	if (SelectedSurfaceComponent == SurfaceComponent)
 	{
 		return;
 	}
 
 	DeselectFurniture();
-	SelectedWallComponent = WallComponent;
+	DeselectSurface();
+
+	SelectedSurfaceComponent = SurfaceComponent;
+
+	if (SelectedSurfaceComponent)
+	{
+		SelectedSurfaceComponent->SetRenderCustomDepth(true);
+		SelectedSurfaceComponent->SetCustomDepthStencilValue(1);
+	}
 }
 
-void AInteRealPlayerController::DeselectWall()
+void AInteRealPlayerController::DeselectSurface()
 {
-	SelectedWallComponent = nullptr;
+	if (SelectedSurfaceComponent)
+	{
+		SelectedSurfaceComponent->SetRenderCustomDepth(false);
+		SelectedSurfaceComponent = nullptr;
+	}
 }
 
 void AInteRealPlayerController::ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial)
 {
+	ApplyMaterialToSelectedSurface(NewMaterial);
+}
+
+void AInteRealPlayerController::ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial)
+{
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
-	if (!SelectedWallComponent) return;
+	if (!SelectedSurfaceComponent) return;
 	if (!NewMaterial) return;
 
-	SelectedWallComponent->SetMaterial(0, NewMaterial);
+	if (PlacementManager)
+	{
+		PlacementManager->RecordUndoSnapshot();
+	}
+
+	SelectedSurfaceComponent->SetMaterial(0, NewMaterial);
 }
 
 void AInteRealPlayerController::ApplyCurrentControlMode()
@@ -382,7 +405,7 @@ void AInteRealPlayerController::ApplyCurrentControlMode()
 	if (CurrentControlMode != EInteRealControlMode::Edit)
 	{
 		DeselectFurniture();
-		DeselectWall();
+		DeselectSurface();
 		if (PlacementManager && PlacementManager->HasActivePreview())
 		{
 			PlacementManager->CancelPreview();
@@ -551,7 +574,7 @@ void AInteRealPlayerController::OnPlaceKey()
 	if (!bIsHitting)
 	{
 		DeselectFurniture();
-		DeselectWall();
+		DeselectSurface();
 		return;
 	}
 
@@ -565,6 +588,11 @@ void AInteRealPlayerController::OnPlaceKey()
 			// ── 회전 ─────────────────────────────────────────────
 			if (TagStr.StartsWith(TEXT("Rotate")) || TagStr == TEXT("RotationRing"))
 			{
+				if (PlacementManager)
+				{
+					PlacementManager->RecordUndoSnapshot();
+				}
+				
 				CurrentDraggingAxis  = TagStr;
 				bIsDraggingGizmo     = true;
 				DragStartFurnitureRot = SelectedFurniture->GetActorRotation();
@@ -628,18 +656,22 @@ void AInteRealPlayerController::OnPlaceKey()
 		}
 	}
 	
-	if (UDynamicMeshComponent* HitWallComp = Cast<UDynamicMeshComponent>(HitComp))
+	if (UMeshComponent* HitMeshComp = Cast<UMeshComponent>(HitComp))
 	{
-		if (HitWallComp->ComponentHasTag(TEXT("EditableWall")))
+		const bool bEditableSurface =
+			HitMeshComp->ComponentHasTag(TEXT("EditableWall")) ||
+			HitMeshComp->ComponentHasTag(TEXT("EditableFloor")) ||
+			HitMeshComp->ComponentHasTag(TEXT("Floor"));
+
+		if (bEditableSurface)
 		{
-			DeselectFurniture();
-			SelectWall(HitWallComp);
+			SelectSurface(HitMeshComp);
 			return;
 		}
 	}
 
 	DeselectFurniture();
-	DeselectWall();
+	DeselectSurface();
 }
 
 void AInteRealPlayerController::OnPlaceReleasedKey()
@@ -705,6 +737,11 @@ void AInteRealPlayerController::OnRotatePreviewKey()
 
 	if (SelectedFurniture)
 	{
+		if (PlacementManager)
+		{
+			PlacementManager->RecordUndoSnapshot();
+		}
+		
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 90.0f);
 		SelectedFurniture->SetActorRotation(Rot);
@@ -723,6 +760,11 @@ void AInteRealPlayerController::OnRotate15Key()
 
 	if (SelectedFurniture)
 	{
+		if (PlacementManager)
+		{
+			PlacementManager->RecordUndoSnapshot();
+		}
+		
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 15.0f);
 		SelectedFurniture->SetActorRotation(Rot);
@@ -734,7 +776,7 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	if (SelectedFurniture == Furniture) return;
 
-	DeselectWall();
+	DeselectSurface();
 	DeselectFurniture();
 	SelectedFurniture = Furniture;
 
@@ -1056,27 +1098,109 @@ void AInteRealPlayerController::OnZoomKey(const FInputActionValue& Value)
 
 void AInteRealPlayerController::OnUndoKey()
 {
-	UE_LOG(LogTemp, Log, TEXT("Undo requested"));
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!PlacementManager) return;
+
+	DeselectFurniture();
+	DeselectSurface();
+
+	if (PlacementManager->HasActivePreview())
+	{
+		PlacementManager->CancelPreview();
+	}
+
+	PlacementManager->Undo();
 }
 
 void AInteRealPlayerController::OnRedoKey()
 {
-	UE_LOG(LogTemp, Log, TEXT("Redo requested"));
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!PlacementManager) return;
+
+	DeselectFurniture();
+	DeselectSurface();
+
+	if (PlacementManager->HasActivePreview())
+	{
+		PlacementManager->CancelPreview();
+	}
+
+	PlacementManager->Redo();
 }
 
 void AInteRealPlayerController::OnCopyKey()
 {
-	UE_LOG(LogTemp, Log, TEXT("Copy requested"));
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!PlacementManager) return;
+	if (!SelectedFurniture) return;
+
+	const FFurnitureDataRow* Row = PlacementManager->FindFurnitureRowByID(SelectedFurniture->FurnitureID);
+	if (!Row)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Copy failed: furniture row not found. ID=%d"), SelectedFurniture->FurnitureID);
+		return;
+	}
+
+	CopiedFurnitureRow = *Row;
+	CopiedFurnitureRotation = SelectedFurniture->GetActorRotation();
+	bHasCopiedFurniture = true;
+
+	UE_LOG(LogTemp, Log, TEXT("Furniture copied. ID=%d"), SelectedFurniture->FurnitureID);
 }
 
 void AInteRealPlayerController::OnPasteKey()
 {
-	UE_LOG(LogTemp, Log, TEXT("Paste requested"));
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!PlacementManager) return;
+	if (!bHasCopiedFurniture) return;
+	if (!bIsHitting) return;
+
+	if (PlacementManager->HasActivePreview())
+	{
+		PlacementManager->CancelPreview();
+	}
+
+	DeselectFurniture();
+	DeselectSurface();
+
+	PlacementManager->CreatePreviewFurnitureFromRow(
+		CurrentCursorWorldLoc,
+		CopiedFurnitureRotation,
+		CopiedFurnitureRow
+	);
+
+	PlacementManager->ConfirmFurniture();
 }
 
 void AInteRealPlayerController::OnDuplicateKey()
 {
-	UE_LOG(LogTemp, Log, TEXT("Duplicate requested"));
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!PlacementManager) return;
+	if (!SelectedFurniture) return;
+
+	OnCopyKey();
+
+	if (!bHasCopiedFurniture)
+	{
+		return;
+	}
+
+	FVector PasteLocation = bIsHitting
+		? CurrentCursorWorldLoc
+		: SelectedFurniture->GetActorLocation() + FVector(100.0f, 100.0f, 0.0f);
+
+	if (PlacementManager->HasActivePreview())
+	{
+		PlacementManager->CancelPreview();
+	}
+
+	PlacementManager->CreatePreviewFurnitureFromRow(
+		PasteLocation,
+		CopiedFurnitureRotation,
+		CopiedFurnitureRow
+	);
+
+	PlacementManager->ConfirmFurniture();
 }
 
 void AInteRealPlayerController::OnSaveKey()

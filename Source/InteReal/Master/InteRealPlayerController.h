@@ -19,6 +19,7 @@ class UInputAction;
 class UUserWidget;
 class UTextureRenderTarget2D;
 class UDynamicMeshComponent;
+class UMeshComponent;
 class UMaterialInterface;
 
 UENUM(BlueprintType)
@@ -73,6 +74,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Wall")
 	void ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial);
+	
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Surface")
+	void ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial);
 
 protected:
 	void UpdateCursorHit();
@@ -94,9 +98,9 @@ protected:
 	
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
-
-	void SelectWall(UDynamicMeshComponent* WallComponent);
-	void DeselectWall();
+	
+	void SelectSurface(UMeshComponent* SurfaceComponent);
+	void DeselectSurface();
 
 	UFUNCTION(BlueprintPure, Category = "EditMode|Input")
 	FVector GetCurrentCursorWorldLocation() const { return CurrentCursorWorldLoc; }
@@ -230,7 +234,11 @@ private:
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
 
 	UPROPERTY()
-	TObjectPtr<UDynamicMeshComponent> SelectedWallComponent = nullptr;
+	TObjectPtr<UMeshComponent> SelectedSurfaceComponent = nullptr;
+	
+	bool bHasCopiedFurniture = false;
+	FFurnitureDataRow CopiedFurnitureRow;
+	FRotator CopiedFurnitureRotation = FRotator::ZeroRotator;
 
 	bool bIsDraggingGizmo = false;
 	FString CurrentDraggingAxis;

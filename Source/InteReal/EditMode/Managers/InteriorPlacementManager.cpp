@@ -12,6 +12,8 @@
 #include "DynamicMesh/DynamicMesh3.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "EngineUtils.h"
+#include "Components/MeshComponent.h"
+#include "Materials/MaterialInterface.h"
 
 AInteriorPlacementManager::AInteriorPlacementManager()
 {
@@ -621,6 +623,18 @@ bool AInteriorPlacementManager::IsPreviewLotEmpty()
 
 void AInteriorPlacementManager::ConfirmFurniture()
 {
+	if (!PreviewFurniture || !Grid)
+	{
+		return;
+	}
+
+	if (PreviewFurniture->GetPlacementState() == EPlacementState::Invalid)
+	{
+		return;
+	}
+
+	RecordUndoSnapshot();
+	
 	if (!PreviewFurniture || !IsPreviewLotEmpty() || InvalidReason != EPlacementInvalidReason::None)
 	{
 		return;
@@ -803,6 +817,8 @@ void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
 	{
 		return;
 	}
+	
+	RecordUndoSnapshot();
 
 	int L = (int)Target->PlacedDimensions.X;
 	int B = (int)Target->PlacedDimensions.Y;
@@ -857,6 +873,71 @@ const FFurnitureDataRow* AInteriorPlacementManager::FindFurnitureRowByID(int32 T
 	return nullptr;
 }
 
+void AInteriorPlacementManager::PushUndoSnapshot(const FString& Snapshot)
+{
+	if (bRestoringHistory)
+	{
+		return;
+	}
+
+	if (Snapshot.IsEmpty())
+	{
+		return;
+	}
+
+	if (UndoStack.Num() > 0 && UndoStack.Last() == Snapshot)
+	{
+		return;
+	}
+
+	UndoStack.Add(Snapshot);
+	RedoStack.Empty();
+
+	if (UndoStack.Num() > MaxHistoryCount)
+	{
+		UndoStack.RemoveAt(0);
+	}
+}
+
+void AInteriorPlacementManager::RecordUndoSnapshot()
+{
+	PushUndoSnapshot(ExportEditStateJson());
+}
+
+void AInteriorPlacementManager::Undo()
+{
+	if (UndoStack.Num() <= 0)
+	{
+		return;
+	}
+
+	const FString CurrentSnapshot = ExportEditStateJson();
+	RedoStack.Add(CurrentSnapshot);
+
+	const FString PreviousSnapshot = UndoStack.Pop();
+
+	bRestoringHistory = true;
+	ImportEditStateJson(PreviousSnapshot);
+	bRestoringHistory = false;
+}
+
+void AInteriorPlacementManager::Redo()
+{
+	if (RedoStack.Num() <= 0)
+	{
+		return;
+	}
+
+	const FString CurrentSnapshot = ExportEditStateJson();
+	UndoStack.Add(CurrentSnapshot);
+
+	const FString NextSnapshot = RedoStack.Pop();
+
+	bRestoringHistory = true;
+	ImportEditStateJson(NextSnapshot);
+	bRestoringHistory = false;
+}
+
 FString AInteriorPlacementManager::ExportPlacedFurnituresJson()
 {
 	TSharedPtr<FJsonObject> Root = MakeShareable(new FJsonObject());
@@ -889,6 +970,9 @@ void AInteriorPlacementManager::BeginGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
 
+	PendingGizmoUndoSnapshot = ExportPlacedFurnituresJson();
+	bHasPendingGizmoUndoSnapshot = true;
+	
 	GizmoDragOriginalAnchor = Target->PlacedGridAnchor;
 	GizmoDragStartLocation = Target->GetActorLocation();
 
@@ -1087,6 +1171,9 @@ void AInteriorPlacementManager::UpdateGizmoMoveFree(FVector TargetWorldLocation,
 void AInteriorPlacementManager::AbortGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
+	
+	bHasPendingGizmoUndoSnapshot = false;
+	PendingGizmoUndoSnapshot.Empty();
 
 	// 드래그 시작 시 저장한 정확한 월드 위치로 복원 (스냅 없음)
 	Target->SetActorLocation(GizmoDragStartLocation);
@@ -1110,6 +1197,14 @@ void AInteriorPlacementManager::AbortGizmoMove(AFurniture* Target)
 void AInteriorPlacementManager::FinalizeGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
+	
+	if (bHasPendingGizmoUndoSnapshot && InvalidReason == EPlacementInvalidReason::None)
+	{
+		PushUndoSnapshot(PendingGizmoUndoSnapshot);
+	}
+
+	bHasPendingGizmoUndoSnapshot = false;
+	PendingGizmoUndoSnapshot.Empty();
 
 	int L = (int)Target->PlacedDimensions.X;
 	int B = (int)Target->PlacedDimensions.Y;
@@ -1146,6 +1241,11 @@ void AInteriorPlacementManager::FinalizeGizmoMove(AFurniture* Target)
 
 void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonString)
 {
+	if (!bRestoringHistory)
+	{
+		RecordUndoSnapshot();
+	}
+	
 	for (AFurniture* Placed : PlacedFurnitures)
 	{
 		if (IsValid(Placed))
@@ -1238,3 +1338,161 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 	}
 }
 
+bool AInteriorPlacementManager::IsEditableSurfaceComponent(const UMeshComponent* MeshComp) const
+{
+	if (!MeshComp)
+	{
+		return false;
+	}
+
+	return MeshComp->ComponentHasTag(TEXT("EditableWall")) ||
+		   MeshComp->ComponentHasTag(TEXT("EditableFloor")) ||
+		   MeshComp->ComponentHasTag(TEXT("Floor"));
+}
+
+void AInteriorPlacementManager::ExportSurfaceMaterials(TArray<TSharedPtr<FJsonValue>>& OutArray) const
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		if (!IsValid(Actor))
+		{
+			continue;
+		}
+
+		TArray<UMeshComponent*> MeshComponents;
+		Actor->GetComponents<UMeshComponent>(MeshComponents);
+
+		for (UMeshComponent* MeshComp : MeshComponents)
+		{
+			if (!IsValid(MeshComp) || !IsEditableSurfaceComponent(MeshComp))
+			{
+				continue;
+			}
+
+			const int32 MaterialCount = MeshComp->GetNumMaterials();
+			for (int32 SlotIndex = 0; SlotIndex < MaterialCount; ++SlotIndex)
+			{
+				UMaterialInterface* Material = MeshComp->GetMaterial(SlotIndex);
+
+				TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
+				Obj->SetStringField(TEXT("componentPath"), MeshComp->GetPathName());
+				Obj->SetNumberField(TEXT("materialSlot"), SlotIndex);
+				Obj->SetStringField(TEXT("materialPath"), Material ? Material->GetPathName() : FString());
+
+				OutArray.Add(MakeShareable(new FJsonValueObject(Obj)));
+			}
+		}
+	}
+}
+
+void AInteriorPlacementManager::ImportSurfaceMaterials(const TArray<TSharedPtr<FJsonValue>>& SurfaceArray)
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	TMap<FString, UMeshComponent*> ComponentMap;
+
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		if (!IsValid(Actor))
+		{
+			continue;
+		}
+
+		TArray<UMeshComponent*> MeshComponents;
+		Actor->GetComponents<UMeshComponent>(MeshComponents);
+
+		for (UMeshComponent* MeshComp : MeshComponents)
+		{
+			if (IsValid(MeshComp) && IsEditableSurfaceComponent(MeshComp))
+			{
+				ComponentMap.Add(MeshComp->GetPathName(), MeshComp);
+			}
+		}
+	}
+
+	for (const TSharedPtr<FJsonValue>& Value : SurfaceArray)
+	{
+		TSharedPtr<FJsonObject> Obj = Value->AsObject();
+		if (!Obj.IsValid())
+		{
+			continue;
+		}
+
+		FString ComponentPath;
+		FString MaterialPath;
+		int32 MaterialSlot = 0;
+
+		if (!Obj->TryGetStringField(TEXT("componentPath"), ComponentPath))
+		{
+			continue;
+		}
+
+		Obj->TryGetNumberField(TEXT("materialSlot"), MaterialSlot);
+		Obj->TryGetStringField(TEXT("materialPath"), MaterialPath);
+
+		UMeshComponent** FoundComp = ComponentMap.Find(ComponentPath);
+		if (!FoundComp || !IsValid(*FoundComp))
+		{
+			continue;
+		}
+
+		UMaterialInterface* LoadedMaterial = nullptr;
+		if (!MaterialPath.IsEmpty())
+		{
+			LoadedMaterial = Cast<UMaterialInterface>(
+				StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MaterialPath)
+			);
+		}
+
+		(*FoundComp)->SetMaterial(MaterialSlot, LoadedMaterial);
+	}
+}
+
+FString AInteriorPlacementManager::ExportEditStateJson()
+{
+	TSharedPtr<FJsonObject> Root = MakeShareable(new FJsonObject());
+
+	Root->SetStringField(TEXT("furnitureJson"), ExportPlacedFurnituresJson());
+
+	TArray<TSharedPtr<FJsonValue>> SurfaceArray;
+	ExportSurfaceMaterials(SurfaceArray);
+	Root->SetArrayField(TEXT("surfaces"), SurfaceArray);
+
+	FString Out;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Out);
+	FJsonSerializer::Serialize(Root.ToSharedRef(), Writer);
+	return Out;
+}
+
+void AInteriorPlacementManager::ImportEditStateJson(const FString& JsonString)
+{
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		return;
+	}
+
+	FString FurnitureJson;
+	if (Root->TryGetStringField(TEXT("furnitureJson"), FurnitureJson))
+	{
+		ImportPlacedFurnituresJson(FurnitureJson);
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* SurfaceArray = nullptr;
+	if (Root->TryGetArrayField(TEXT("surfaces"), SurfaceArray))
+	{
+		ImportSurfaceMaterials(*SurfaceArray);
+	}
+}

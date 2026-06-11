@@ -21,6 +21,8 @@ enum class EPlacementInvalidReason : uint8
 	OutOfBounds UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
 };
 
+class UMeshComponent;
+
 UCLASS()
 class INTEREAL_API AInteriorPlacementManager : public AActor
 {
@@ -134,6 +136,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interior | WebCommunication")
 	void ImportPlacedFurnituresJson(const FString& JsonString);
+	
+	UFUNCTION(BlueprintCallable, Category = "Interior | History")
+	FString ExportEditStateJson();
+
+	UFUNCTION(BlueprintCallable, Category = "Interior | History")
+	void ImportEditStateJson(const FString& JsonString);
+	
+	UFUNCTION(BlueprintCallable, Category = "Interior | History")
+	void RecordUndoSnapshot();
+
+	UFUNCTION(BlueprintCallable, Category = "Interior | History")
+	void Undo();
+
+	UFUNCTION(BlueprintCallable, Category = "Interior | History")
+	void Redo();
+
+	UFUNCTION(BlueprintPure, Category = "Interior | History")
+	bool CanUndo() const { return UndoStack.Num() > 0; }
+
+	UFUNCTION(BlueprintPure, Category = "Interior | History")
+	bool CanRedo() const { return RedoStack.Num() > 0; }
 
 	const FFurnitureDataRow* FindFurnitureRowByID(int32 TargetID) const;
 
@@ -158,12 +181,27 @@ public:
 private:
 	FVector2D GizmoDragOriginalAnchor;
 	FVector GizmoDragStartLocation;
+	
+	static constexpr int32 MaxHistoryCount = 100;
+
+	TArray<FString> UndoStack;
+	TArray<FString> RedoStack;
+
+	bool bRestoringHistory = false;
+
+	bool bHasPendingGizmoUndoSnapshot = false;
+	FString PendingGizmoUndoSnapshot;
+
+	void PushUndoSnapshot(const FString& Snapshot);
 
 	// 도면 외곽 폴리곤 (WallOuter 정점, 월드 좌표)
 	TArray<FVector2D> FloorPolygon;
 
 	void RefreshPlacementCellViz(AFurniture* Target, bool bInvalid);
 	void ClearPlacementCellViz();
+	bool IsEditableSurfaceComponent(const UMeshComponent* MeshComp) const;
+	void ExportSurfaceMaterials(TArray<TSharedPtr<FJsonValue>>& OutArray) const;
+	void ImportSurfaceMaterials(const TArray<TSharedPtr<FJsonValue>>& SurfaceArray);
 	void BuildFloorPolygon(const FHarnessFloorData& FloorData);
 	void BuildWallSegments(const FHarnessFloorData& FloorData);
 	void MarkOutOfBoundsTiles();

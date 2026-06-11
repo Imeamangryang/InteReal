@@ -223,7 +223,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             WallComp->SetMobility(EComponentMobility::Movable);
             WallComp->RegisterComponent();
             WallComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-            WallComp->ComponentTags.Add(TEXT("EditableWall"));
+            WallComp->ComponentTags.AddUnique(FName(TEXT("EditableWall")));
             
             // 애니메이션을 위해 최초 높이(Z 스케일)를 0.01로 눌러둠
             WallComp->SetRelativeScale3D(FVector(1.0f, 1.0f, 0.01f));
@@ -536,6 +536,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         DyMeshComp->RegisterComponent();
         DyMeshComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
+        DyMeshComp->ComponentTags.AddUnique(FName(TEXT("EditableFloor")));
         DyMeshComp->ComponentTags.Add(FName("Floor"));
 
         if (!DyMeshComp->GetDynamicMesh()) {
