@@ -43,13 +43,13 @@ public:
 	// ===== Common / Mode =====
 	UFUNCTION(BlueprintCallable, Category = "InteReal|Mode")
 	void SetControlMode(EInteRealControlMode NewMode);
-	
+
 	UFUNCTION()
 	void HandleModeChanged(bool bIsEditMode);
-	
+
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
-	
+
 	UFUNCTION()
 	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
 
@@ -73,20 +73,28 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Wall")
 	void ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial);
-	
+
 protected:
 	void UpdateCursorHit();
 	void ToggleGrid();
 
-	void OnPlace();
-	void OnPlaceReleased();
-	void OnRemove();
-	void OnRotatePreview();
-	void OnRotate15();
-
+	void OnPlaceKey();
+	void OnPlaceReleasedKey();
+	void OnRemoveKey();
+	void OnRotatePreviewKey();
+	void OnRotate15Key();
+	void OnToggleModeKey();
+	void OnFocusSelectionKey();
+	void OnUndoKey();
+	void OnRedoKey();
+	void OnCopyKey();
+	void OnPasteKey();
+	void OnDuplicateKey();
+	void OnSaveKey();
+	
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
-	
+
 	void SelectWall(UDynamicMeshComponent* WallComponent);
 	void DeselectWall();
 
@@ -120,14 +128,37 @@ protected:
 	void OnIsometricKey();
 	void OnFirstPersonKey();
 
-	void EnhancedMove(const FInputActionValue& Value);
-	void EnhancedLook(const FInputActionValue& Value);
-	void EnhancedZoom(const FInputActionValue& Value);
+	void OnMoveKey(const FInputActionValue& Value);
+	void OnMoveVerticalKey(const FInputActionValue& Value);
+	void OnLookKey(const FInputActionValue& Value);
+	void OnZoomKey(const FInputActionValue& Value);
 
 public:
 	// ===== Mode =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Mode")
 	EInteRealControlMode CurrentControlMode = EInteRealControlMode::View;
+
+	// ===== Common Input =====
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputMappingContext> IMC_Common = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_ToggleMode = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_Move = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_MoveVertical = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_Look = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_Zoom = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
+	TObjectPtr<UInputAction> IA_FocusSelection = nullptr;
 
 	// ===== Edit Mode References =====
 	UPROPERTY(EditAnywhere, Category = "EditMode")
@@ -136,6 +167,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "EditMode|Input")
 	FVector CurrentCursorWorldLoc = FVector::ZeroVector;
 
+	// ===== Edit Mode Input =====
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputMappingContext> IMC_EditMode = nullptr;
 
@@ -150,13 +182,31 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Rotate15 = nullptr;
+	
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Undo = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Redo = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Copy = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Paste = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Duplicate = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Save = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
 	float GizmoRotationSensitivity = 1.5f;
 
 	// ===== View Mode Input =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
-	TObjectPtr<UInputMappingContext> ViewModeMappingContext = nullptr;
+	TObjectPtr<UInputMappingContext> IMC_ViewMode = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
 	TObjectPtr<UInputAction> IA_SwitchToTopDown = nullptr;
@@ -167,27 +217,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
 	TObjectPtr<UInputAction> IA_SwitchToFirstPerson = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
-	TObjectPtr<UInputAction> IA_Move = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
-	TObjectPtr<UInputAction> IA_Look = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
-	TObjectPtr<UInputAction> IA_Zoom = nullptr;
-
 private:
 	// ===== Edit Mode State =====
 	bool bIsHitting = false;
 	FHitResult LastCursorHit;
 	bool bGridVisible = false;
-	
+
 	bool bIsMovingFurniture = false;
 	FVector MoveDragOffset = FVector::ZeroVector;
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
-	
+
 	UPROPERTY()
 	TObjectPtr<UDynamicMeshComponent> SelectedWallComponent = nullptr;
 
@@ -196,7 +237,7 @@ private:
 	float DragStartAngleDeg = 0.0f;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
 	FVector DragStartFurnitureLocation = FVector::ZeroVector;
-	
+
 	// ===== View Mode State =====
 	UPROPERTY()
 	TObjectPtr<AViewModeManager> CachedViewModeManager = nullptr;

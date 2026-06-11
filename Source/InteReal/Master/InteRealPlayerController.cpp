@@ -212,26 +212,57 @@ void AInteRealPlayerController::SetupInputComponent()
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
 	if (!EIC) return;
 
+	// ===== Common bindings =====
+	if (IA_ToggleMode)
+	{
+		EIC->BindAction(IA_ToggleMode, ETriggerEvent::Started, this, &AInteRealPlayerController::OnToggleModeKey);
+	}
+
+	if (IA_FocusSelection)
+	{
+		EIC->BindAction(IA_FocusSelection, ETriggerEvent::Started, this, &AInteRealPlayerController::OnFocusSelectionKey);
+	}
+
+	if (IA_Move)
+	{
+		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AInteRealPlayerController::OnMoveKey);
+	}
+
+	if (IA_MoveVertical)
+	{
+		EIC->BindAction(IA_MoveVertical, ETriggerEvent::Triggered, this, &AInteRealPlayerController::OnMoveVerticalKey);
+	}
+
+	if (IA_Look)
+	{
+		EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AInteRealPlayerController::OnLookKey);
+	}
+
+	if (IA_Zoom)
+	{
+		EIC->BindAction(IA_Zoom, ETriggerEvent::Triggered, this, &AInteRealPlayerController::OnZoomKey);
+	}
+
 	// ===== Edit bindings =====
 	if (IA_Place)
 	{
-		EIC->BindAction(IA_Place, ETriggerEvent::Started, this, &AInteRealPlayerController::OnPlace);
-		EIC->BindAction(IA_Place, ETriggerEvent::Completed, this, &AInteRealPlayerController::OnPlaceReleased);
+		EIC->BindAction(IA_Place, ETriggerEvent::Started, this, &AInteRealPlayerController::OnPlaceKey);
+		EIC->BindAction(IA_Place, ETriggerEvent::Completed, this, &AInteRealPlayerController::OnPlaceReleasedKey);
 	}
 
 	if (IA_Remove)
 	{
-		EIC->BindAction(IA_Remove, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRemove);
+		EIC->BindAction(IA_Remove, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRemoveKey);
 	}
 
 	if (IA_Rotate)
 	{
-		EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotatePreview);
+		EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotatePreviewKey);
 	}
 
 	if (IA_Rotate15)
 	{
-		EIC->BindAction(IA_Rotate15, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotate15);
+		EIC->BindAction(IA_Rotate15, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotate15Key);
 	}
 
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AInteRealPlayerController::ToggleGrid);
@@ -241,25 +272,45 @@ void AInteRealPlayerController::SetupInputComponent()
 	{
 		EIC->BindAction(IA_SwitchToTopDown, ETriggerEvent::Started, this, &AInteRealPlayerController::OnTopDownKey);
 	}
+
 	if (IA_SwitchToIsometric)
 	{
 		EIC->BindAction(IA_SwitchToIsometric, ETriggerEvent::Started, this, &AInteRealPlayerController::OnIsometricKey);
 	}
+
 	if (IA_SwitchToFirstPerson)
 	{
 		EIC->BindAction(IA_SwitchToFirstPerson, ETriggerEvent::Started, this, &AInteRealPlayerController::OnFirstPersonKey);
 	}
-	if (IA_Move)
+	
+	if (IA_Undo)
 	{
-		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AInteRealPlayerController::EnhancedMove);
+		EIC->BindAction(IA_Undo, ETriggerEvent::Started, this, &AInteRealPlayerController::OnUndoKey);
 	}
-	if (IA_Look)
+
+	if (IA_Redo)
 	{
-		EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AInteRealPlayerController::EnhancedLook);
+		EIC->BindAction(IA_Redo, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRedoKey);
 	}
-	if (IA_Zoom)
+
+	if (IA_Copy)
 	{
-		EIC->BindAction(IA_Zoom, ETriggerEvent::Triggered, this, &AInteRealPlayerController::EnhancedZoom);
+		EIC->BindAction(IA_Copy, ETriggerEvent::Started, this, &AInteRealPlayerController::OnCopyKey);
+	}
+
+	if (IA_Paste)
+	{
+		EIC->BindAction(IA_Paste, ETriggerEvent::Started, this, &AInteRealPlayerController::OnPasteKey);
+	}
+
+	if (IA_Duplicate)
+	{
+		EIC->BindAction(IA_Duplicate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnDuplicateKey);
+	}
+
+	if (IA_Save)
+	{
+		EIC->BindAction(IA_Save, ETriggerEvent::Started, this, &AInteRealPlayerController::OnSaveKey);
 	}
 }
 
@@ -349,28 +400,40 @@ void AInteRealPlayerController::UpdateMappingContexts()
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
+		if (IMC_Common)
+		{
+			Subsystem->RemoveMappingContext(IMC_Common);
+		}
+		
 		if (IMC_EditMode)
 		{
 			Subsystem->RemoveMappingContext(IMC_EditMode);
 		}
 
-		if (ViewModeMappingContext)
+		if (IMC_ViewMode)
 		{
-			Subsystem->RemoveMappingContext(ViewModeMappingContext);
+			Subsystem->RemoveMappingContext(IMC_ViewMode);
 		}
 
+		// 항상 공통 입력 먼저 등록
+		if (IMC_Common)
+		{
+			Subsystem->AddMappingContext(IMC_Common, 0);
+		}
+
+		// 모드별 입력 추가 등록
 		if (CurrentControlMode == EInteRealControlMode::Edit)
 		{
 			if (IMC_EditMode)
 			{
-				Subsystem->AddMappingContext(IMC_EditMode, 0);
+				Subsystem->AddMappingContext(IMC_EditMode, 1);
 			}
 		}
 		else
 		{
-			if (ViewModeMappingContext)
+			if (IMC_ViewMode)
 			{
-				Subsystem->AddMappingContext(ViewModeMappingContext, 0);
+				Subsystem->AddMappingContext(IMC_ViewMode, 1);
 			}
 		}
 	}
@@ -471,7 +534,7 @@ void AInteRealPlayerController::ToggleGrid()
 	PlacementManager->SetGridVisible(bGridVisible);
 }
 
-void AInteRealPlayerController::OnPlace()
+void AInteRealPlayerController::OnPlaceKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	if (!PlacementManager) return;
@@ -579,7 +642,7 @@ void AInteRealPlayerController::OnPlace()
 	DeselectWall();
 }
 
-void AInteRealPlayerController::OnPlaceReleased()
+void AInteRealPlayerController::OnPlaceReleasedKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 
@@ -603,7 +666,7 @@ void AInteRealPlayerController::OnPlaceReleased()
 	}
 }
 
-void AInteRealPlayerController::OnRemove()
+void AInteRealPlayerController::OnRemoveKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	if (!PlacementManager) return;
@@ -630,7 +693,7 @@ void AInteRealPlayerController::OnRemove()
 	}
 }
 
-void AInteRealPlayerController::OnRotatePreview()
+void AInteRealPlayerController::OnRotatePreviewKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 
@@ -648,7 +711,7 @@ void AInteRealPlayerController::OnRotatePreview()
 	}
 }
 
-void AInteRealPlayerController::OnRotate15()
+void AInteRealPlayerController::OnRotate15Key()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 
@@ -797,7 +860,7 @@ void AInteRealPlayerController::SetViewMode(EHarnessViewMode NewMode)
 	FindViewModeManager();
 	if (!CachedViewModeManager) return;
 
-	SetControlMode(EInteRealControlMode::View);
+	// SetControlMode(EInteRealControlMode::View);
 	CachedViewModeManager->SetViewMode(NewMode);
 
 	APawn* P = GetPawn();
@@ -871,26 +934,38 @@ void AInteRealPlayerController::ShowMinimap()
 
 void AInteRealPlayerController::OnTopDownKey()
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
 	SetViewMode(EHarnessViewMode::TopDown);
 }
 
 void AInteRealPlayerController::OnIsometricKey()
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
 	SetViewMode(EHarnessViewMode::Isometric);
 }
 
 void AInteRealPlayerController::OnFirstPersonKey()
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
 	SetViewMode(EHarnessViewMode::FirstPerson);
 }
 
-void AInteRealPlayerController::EnhancedMove(const FInputActionValue& Value)
+void AInteRealPlayerController::OnToggleModeKey()
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
+	if (CurrentControlMode == EInteRealControlMode::Edit)
+	{
+		SetControlMode(EInteRealControlMode::View);
+	}
+	else
+	{
+		SetControlMode(EInteRealControlMode::Edit);
+	}
+}
 
+void AInteRealPlayerController::OnFocusSelectionKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("FocusSelection requested"));
+}
+
+void AInteRealPlayerController::OnMoveKey(const FInputActionValue& Value)
+{
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (GetViewTarget() == GetPawn())
@@ -914,10 +989,26 @@ void AInteRealPlayerController::EnhancedMove(const FInputActionValue& Value)
 	}
 }
 
-void AInteRealPlayerController::EnhancedLook(const FInputActionValue& Value)
+void AInteRealPlayerController::OnMoveVerticalKey(const FInputActionValue& Value)
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
+	const float AxisValue = Value.Get<float>();
+	if (FMath::IsNearlyZero(AxisValue)) return;
 
+	if (GetViewTarget() == GetPawn())
+	{
+		if (APawn* P = GetPawn())
+		{
+			P->AddMovementInput(FVector::UpVector, AxisValue);
+		}
+	}
+	else if (CachedViewModeManager)
+	{
+		CachedViewModeManager->AddMovementInput(FVector::UpVector, AxisValue);
+	}
+}
+
+void AInteRealPlayerController::OnLookKey(const FInputActionValue& Value)
+{
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 	bool bIsRightClick = IsInputKeyDown(EKeys::RightMouseButton);
 	bool bIsMiddleClick = IsInputKeyDown(EKeys::MiddleMouseButton);
@@ -955,12 +1046,41 @@ void AInteRealPlayerController::EnhancedLook(const FInputActionValue& Value)
 	}
 }
 
-void AInteRealPlayerController::EnhancedZoom(const FInputActionValue& Value)
+void AInteRealPlayerController::OnZoomKey(const FInputActionValue& Value)
 {
-	if (CurrentControlMode != EInteRealControlMode::View) return;
-
 	if (CachedViewModeManager && GetViewTarget() != GetPawn())
 	{
 		CachedViewModeManager->AddZoomInput(Value.Get<float>());
 	}
 }
+
+void AInteRealPlayerController::OnUndoKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Undo requested"));
+}
+
+void AInteRealPlayerController::OnRedoKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Redo requested"));
+}
+
+void AInteRealPlayerController::OnCopyKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Copy requested"));
+}
+
+void AInteRealPlayerController::OnPasteKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Paste requested"));
+}
+
+void AInteRealPlayerController::OnDuplicateKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Duplicate requested"));
+}
+
+void AInteRealPlayerController::OnSaveKey()
+{
+	UE_LOG(LogTemp, Log, TEXT("Save requested"));
+}
+

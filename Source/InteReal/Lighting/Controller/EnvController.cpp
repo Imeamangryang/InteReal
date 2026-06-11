@@ -3,15 +3,39 @@
 #include "InteReal/Lighting/UIManager/WeatherUISubsystem.h"
 #include "InteReal/Struct/LightingDataStruct.h"
 #include "Engine/SkyLight.h"
+#include "EngineUtils.h"
+#include "Components/MeshComponent.h"
 
 AEnvController::AEnvController()
 {
     PrimaryActorTick.bCanEverTick = true;
+    
+    // 1. Niagara 컴포넌트 생성 및 부착
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+    WeatherNiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeatherNiagara"));
+    WeatherNiagara->SetupAttachment(RootComponent);
+    
 }
 
 void AEnvController::BeginPlay()
 {
     Super::BeginPlay();
+    
+    // 초기 타겟 값 설정 (Default 값으로 초기화)
+    TargetSunIntensity = 10000.0f; // 기본 태양 밝기 값 설정
+    TargetSkyIntensity = 1.0f;     // 기본 스카이 밝기 값 설정
+    
+    // 1. 컴포넌트를 부모 액터에서 완벽히 분리 (이건 이미 하셨지만 확실하게)
+    if (WeatherNiagara)
+    {
+        WeatherNiagara->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        
+        // 2. 중요: 이펙트 좌표를 월드 중앙으로 고정
+        WeatherNiagara->SetWorldLocation(FVector(0.0f, 0.0f, 500.0f)); 
+        
+        // 3. 컴포넌트가 부모의 스케일이나 회전에 영향을 받지 않게 설정
+        WeatherNiagara->SetAbsolute(true, true, true);
+    }
     
     // 서브시스템 가져오기
     UWeatherUISubsystem* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
@@ -22,9 +46,17 @@ void AEnvController::BeginPlay()
         Sub->ForceUpdate();
     }
     
-    // 초기값 동기화
-    if (SunLight) TargetSunIntensity = SunLight->Intensity;
-    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) TargetSkyIntensity = SkyLight->GetLightComponent()->Intensity;
+    // 보간을 시작하기 전에 현재 계산된 타겟 값으로 즉시 조명 설정 (밝기 튐 방지)
+    if (SunLight) SunLight->SetIntensity(TargetSunIntensity);
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) 
+        SkyLight->GetLightComponent()->SetIntensity(TargetSkyIntensity);
+    
+    bIsInitialized = true;
+    
+    // === [추가된 부분 시작: 건물 스캔 타이머 등록] ===
+    // 1초마다 건물 영역을 확인하여 나이아가라 파라미터를 갱신합니다.
+    GetWorldTimerManager().SetTimer(BuildingScanTimer, this, &AEnvController::UpdateBuildingMask, 1.0f, true);
+    // === [추가된 부분 끝] ===
     
 }
 
@@ -34,17 +66,15 @@ void AEnvController::Tick(float DeltaTime)
     
     if (!bIsInitialized) return;
     
-    // 부드러운 조도 변화 적용
+    // 타겟 밝기로 부드럽게 보간
     if (SunLight)
     {
-        float CurrentIntensity = FMath::FInterpTo(SunLight->Intensity, TargetSunIntensity, DeltaTime, InterpSpeed);
-        SunLight->SetIntensity(CurrentIntensity);
+        SunLight->SetIntensity(FMath::FInterpTo(SunLight->Intensity, TargetSunIntensity, DeltaTime, InterpSpeed));
     }
 
     if (IsValid(SkyLight) && SkyLight->GetLightComponent())
     {
-        float CurrentSkyIntensity = FMath::FInterpTo(SkyLight->GetLightComponent()->Intensity, TargetSkyIntensity, DeltaTime, InterpSpeed);
-        SkyLight->GetLightComponent()->SetIntensity(CurrentSkyIntensity);
+        SkyLight->GetLightComponent()->SetIntensity(FMath::FInterpTo(SkyLight->GetLightComponent()->Intensity, TargetSkyIntensity, DeltaTime, InterpSpeed));
     }
 }
 
@@ -52,6 +82,15 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
 {
     if (!SunLight) return;
 
+    // 1. 날씨 ID 확인 및 Niagara/번개 제어
+    UWeatherUISubsystem* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+    FName CurrentWeatherID = (Sub) ? Sub->GetCurrentWeatherID() : NAME_None;
+    
+    if (LastWeatherID != CurrentWeatherID) {
+        HandleWeatherChange(CurrentWeatherID);
+        LastWeatherID = CurrentWeatherID;
+    }
+    
     // 계산 로직
     float HourAngle = (Time - 12.0f) * 15.0f;
     float RadLat = FMath::DegreesToRadians(C.Latitude);
@@ -71,21 +110,113 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
     SunLight->SetRelativeRotation(FRotator(-Altitude, Azimuth + Orientation + 180.0f, 0.0f));
     SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(W.Temperature));
     
-    // 목표값 갱신
-    float IntensityMultiplier = (Altitude > 0) ? 1.0f : 0.05f;
+    // 3. 목표 밝기 계산 (날씨 Contrast 적용)
+    float AltitudeMultiplier = (Altitude > 0) ? 1.0f : 0.05f;
+    // Clear가 아니면 밝기를 20% 수준으로 낮춤 (이 값을 수정하여 대비 조절 가능)
+    float WeatherContrast = (CurrentWeatherID == FName("Clear")) ? 1.0f : 0.2f;
     
-    TargetSunIntensity = W.IntensityLux * IntensityMultiplier; 
-    TargetSkyIntensity = W.SkyIntensity * IntensityMultiplier; 
+    TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
+    TargetSkyIntensity = W.SkyIntensity * AltitudeMultiplier;
 
-    if (IsValid(SkyLight) && SkyLight->GetLightComponent())
-    {
-        SkyLight->GetLightComponent()->RecaptureSky();
-    }
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();
 
     if (IsValid(Fog))
     {
         Fog->SetFogDensity(W.FogDensity);
-        FLinearColor FogColor = FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity);
-        Fog->SetFogInscatteringColor(FogColor);
+        Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity));
     }
 }
+
+void AEnvController::HandleWeatherChange(FName WeatherID)
+{
+    // 1. 컴포넌트 유효성 확인
+    if (!WeatherNiagara) 
+    {
+        UE_LOG(LogTemp, Error, TEXT("WeatherNiagara Component is NULL!"));
+        return;
+    }
+
+    // 2. 맵에 키가 있는지 확인
+    if (WeatherEffectsMap.Contains(WeatherID) && WeatherEffectsMap[WeatherID] != nullptr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Attempting to activate effect: %s"), *WeatherID.ToString());
+        
+        WeatherNiagara->SetAsset(WeatherEffectsMap[WeatherID]);
+        
+        WeatherNiagara->SetVariableFloat(FName("SpawnRadius"), AvoidanceRadius);
+        
+        // 3. 확실한 활성화 (Reset을 포함하여 상태를 초기화)
+        WeatherNiagara->ResetSystem(); // 시스템 내부 상태 완전히 초기화
+        WeatherNiagara->Activate(true);
+        WeatherNiagara->SetVisibility(true); // 혹시 숨겨져 있는지 확인
+        // [디버그 로그] 컴포넌트 상태 확인
+        bool bIsActive = WeatherNiagara->IsActive();
+        UE_LOG(LogTemp, Warning, TEXT("Effect activated. IsActive: %s"), bIsActive ? TEXT("True") : TEXT("False"));
+    }
+    else 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No effect found for WeatherID: %s. Deactivating."), *WeatherID.ToString());
+        WeatherNiagara->Deactivate();
+    }
+
+    // 번개 타이머 제어
+    if (WeatherID == FName("Stormy")) {
+        GetWorldTimerManager().SetTimer(LightningTimerHandle, this, &AEnvController::TriggerRandomLightning, FMath::RandRange(2.0f, 5.0f), true);
+    } else {
+        GetWorldTimerManager().ClearTimer(LightningTimerHandle);
+    }
+}
+
+void AEnvController::TriggerRandomLightning()
+{
+    if (LightningSplineActors.Num() == 0) return;
+
+    AActor* Selected = LightningSplineActors[FMath::RandRange(0, LightningSplineActors.Num() - 1)];
+    Selected->SetActorHiddenInGame(false);
+    if(LightningLight) LightningLight->SetIntensity(50000.0f);
+
+    FTimerHandle ResetHandle;
+    GetWorldTimerManager().SetTimer(ResetHandle, [Selected, this]() {
+        Selected->SetActorHiddenInGame(true);
+        if(LightningLight) LightningLight->SetIntensity(0.0f);
+    }, 0.1f, false);
+}
+// === [추가된 부분 시작: 건물 스캔 로직 구현] ===
+void AEnvController::UpdateBuildingMask()
+{
+    if (!WeatherNiagara) return;
+
+    FBox TotalBuildingBounds(ForceInit);
+    bool bFoundBuilding = false;
+
+    // 월드에 있는 모든 액터를 순회하며 "Floor" 태그를 가진 메쉬 검색
+    for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+    {
+        TArray<UActorComponent*> FloorComponents = ActorItr->GetComponentsByTag(UMeshComponent::StaticClass(), FName("Floor"));
+        
+        for (UActorComponent* Comp : FloorComponents)
+        {
+            UMeshComponent* MeshComp = Cast<UMeshComponent>(Comp);
+            if (MeshComp)
+            {
+                TotalBuildingBounds += MeshComp->Bounds.GetBox();
+                bFoundBuilding = true;
+            }
+        }
+    }
+
+    // 건물을 찾았다면 나이아가라 시스템에 Center와 Extent 전달
+    if (bFoundBuilding && TotalBuildingBounds.IsValid)
+    {
+        FVector Center = TotalBuildingBounds.GetCenter();
+        FVector Extent = TotalBuildingBounds.GetExtent();
+
+        // 파티클이 건물 내부 위/아래로 들어오는 것을 완벽히 막기 위해 Z축을 아주 크게 설정
+        Center.Z = 0.0f;
+        Extent.Z = 5000.0f; 
+
+        WeatherNiagara->SetVariableVec3(FName("BuildingCenter"), Center);
+        WeatherNiagara->SetVariableVec3(FName("BuildingExtent"), Extent);
+    }
+}
+// === [추가된 부분 끝] ===

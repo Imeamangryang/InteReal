@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteriorPlacementManager.h"
-#include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/OverlapResult.h"
 #include "CollisionQueryParams.h"
@@ -35,7 +34,8 @@ AInteriorPlacementManager::AInteriorPlacementManager()
 	GridMeshComp->SetVisibility(false);
 	GridMeshComp->SetCastShadow(false);
 	GridMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GridMeshComp->bVisibleInSceneCaptureOnly = false;  
+	GridMeshComp->SetReceivesDecals(false);
+	GridMeshComp->bVisibleInSceneCaptureOnly = false;
 
 	PlacementVizValid = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("PlacementVizValid"));
 	PlacementVizValid->SetupAttachment(RootComponent);
@@ -60,12 +60,12 @@ void AInteriorPlacementManager::BeginPlay()
 	{
 		PlacementVizValid->SetMaterial(0, ValidCellMaterial);
 	}
-		
+
 	if (InvalidCellMaterial)
 	{
 		PlacementVizInvalid->SetMaterial(0, InvalidCellMaterial);
 	}
-	
+
 	// 미니맵 SceneCapture에서 그리드/배치 시각화가 보이지 않도록 이 액터를 숨김
 	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
 	{
@@ -103,7 +103,28 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 	float TotalHeight = MaxY - MinY;
 	float CenterX = (MinX + MaxX) * 0.5f;
 	float CenterY = (MinY + MaxY) * 0.5f;
-	SetActorLocation(FVector(CenterX, CenterY, 1.0f));
+
+	// 바닥 표면 Z를 라인트레이스로 탐지 — HarnessTestActor Z와 무관하게 항상 정확한 높이를 얻음
+	float FloorSurfaceZ = 0.0f;
+	{
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		if (GetWorld()->LineTraceSingleByChannel(
+			Hit,
+			FVector(CenterX, CenterY, 100000.0f),
+			FVector(CenterX, CenterY, -100000.0f),
+			ECC_WorldStatic,
+			Params))
+		{
+			FloorSurfaceZ = Hit.ImpactPoint.Z;
+		}
+		else if (!FloorData.faces.IsEmpty())
+		{
+			FloorSurfaceZ = FloorData.faces[0].z_offset;
+		}
+	}
+	SetActorLocation(FVector(CenterX, CenterY, FloorSurfaceZ + 1.0f));
 
 	int Length = FMath::CeilToInt(TotalWidth / Cell);
 	int Breadth = FMath::CeilToInt(TotalHeight / Cell);
@@ -130,6 +151,63 @@ void AInteriorPlacementManager::RebuildGridMesh()
 
 	FVector ActorLoc = GetActorLocation();
 
+	// 무게중심
+	FVector2D Centroid(0, 0);
+	for (const FVector2D& P : FloorPolygon) Centroid += P;
+	Centroid /= (float)FloorPolygon.Num();
+
+	UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(GridMeshComp);
+	UE::Geometry::FDynamicMesh3& Mesh = *DynMesh->GetMeshPtr();
+
+	constexpr float GridZ = 0.0f;
+
+	int32 CenterIdx = Mesh.AppendVertex(FVector3d(Centroid.X, Centroid.Y, GridZ));
+
+	// 폴리곤 정점
+	TArray<int32> VertIds;
+	for (const FVector2D& P : FloorPolygon)
+	{
+		VertIds.Add(Mesh.AppendVertex(FVector3d(P.X, P.Y, GridZ)));
+	}
+
+	double SignedArea = 0.0;
+	int32 N = FloorPolygon.Num();
+	for (int32 i = 0; i < N; i++)
+	{
+		FVector2D Pi = FloorPolygon[i];
+		FVector2D Pj = FloorPolygon[(i + 1) % N];
+		SignedArea += Pi.X * Pj.Y - Pj.X * Pi.Y;
+	}
+	bool bCCW = SignedArea > 0.0;
+
+	// 팬 삼각분할
+	for (int32 i = 0; i < N; i++)
+	{
+		int32 Va = VertIds[i];
+		int32 Vb = VertIds[(i + 1) % N];
+
+		Mesh.AppendTriangle(bCCW ? CenterIdx : Va, bCCW ? Vb : CenterIdx, bCCW ? Va : Vb);
+	}
+
+	GridMeshComp->SetDynamicMesh(DynMesh);
+
+	GridMeshComp->SetWorldLocation(FVector(0.0f, 0.0f, ActorLoc.Z));
+
+	if (GridMaterial)
+	{
+		GridDynMat = UMaterialInstanceDynamic::Create(GridMaterial, this);
+		GridDynMat->SetScalarParameterValue(TEXT("CellSize"), GridCellSize);
+		GridMeshComp->SetMaterial(0, GridDynMat);
+	}
+}
+
+/*
+void AInteriorPlacementManager::RebuildGridMesh()
+{
+	if (!GridMeshComp || FloorPolygon.Num() < 3) return;
+
+	FVector ActorLoc = GetActorLocation();
+
 	// 무게중심 (이미 BuildFloorPolygon에서 정렬 기준으로 사용한 값)
 	FVector2D Centroid(0, 0);
 	for (const FVector2D& P : FloorPolygon) Centroid += P;
@@ -138,16 +216,18 @@ void AInteriorPlacementManager::RebuildGridMesh()
 	UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(GridMeshComp);
 	UE::Geometry::FDynamicMesh3& Mesh = *DynMesh->GetMeshPtr();
 
+	constexpr float GridZ = 0.0f; // Mesh Decal — 바닥에 투영되므로 Z 오프셋 불필요
+
 	// 무게중심 정점 (액터 로컬 좌표)
 	int32 CenterIdx = Mesh.AppendVertex(
-		FVector3d(Centroid.X - ActorLoc.X, Centroid.Y - ActorLoc.Y, 0.0));
+		FVector3d(Centroid.X - ActorLoc.X, Centroid.Y - ActorLoc.Y, GridZ));
 
 	// 폴리곤 정점
 	TArray<int32> VertIds;
 	for (const FVector2D& P : FloorPolygon)
 	{
 		VertIds.Add(Mesh.AppendVertex(
-			FVector3d(P.X - ActorLoc.X, P.Y - ActorLoc.Y, 0.0)));
+			FVector3d(P.X - ActorLoc.X, P.Y - ActorLoc.Y, GridZ)));
 	}
 
 	double SignedArea = 0.0;
@@ -178,6 +258,7 @@ void AInteriorPlacementManager::RebuildGridMesh()
 		GridMeshComp->SetMaterial(0, DynMat);
 	}
 }
+*/
 
 void AInteriorPlacementManager::BuildFloorPolygon(const FHarnessFloorData& FloorData)
 {
@@ -566,12 +647,6 @@ void AInteriorPlacementManager::ConfirmFurniture()
 	PlacedFurnitures.Add(PreviewFurniture);
 	PreviewFurniture = nullptr;
 	ClearPlacementCellViz();
-
-	// 월드 상태 변경 알림 (Subsystem 사용)
-	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
-	{
-		PipelineManager->BroadcastWorldStateChanged();
-	}
 }
 
 void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPosition,
@@ -746,12 +821,6 @@ void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
 
 	PlacedFurnitures.Remove(Target);
 	Target->Destroy();
-
-	// 월드 상태 변경 알림 (Subsystem 사용)
-	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
-	{
-		PipelineManager->BroadcastWorldStateChanged();
-	}
 }
 
 void AInteriorPlacementManager::CancelPreview()
@@ -846,13 +915,19 @@ void AInteriorPlacementManager::BeginGizmoMove(AFurniture* Target)
 void AInteriorPlacementManager::UpdateGizmoMoveLocation(FVector CursorOnGround, AFurniture* Target, const FString& Axis)
 {
 	if (!Target || !Grid) return;
-	
+
 	FVector NewLoc = GizmoDragStartLocation;
-	if (Axis == TEXT("MoveX")) NewLoc.X = CursorOnGround.X;
-	else if (Axis == TEXT("MoveY")) NewLoc.Y = CursorOnGround.Y;
+	if (Axis == TEXT("MoveX"))
+	{
+		NewLoc.X = CursorOnGround.X;
+	}
+	else if (Axis == TEXT("MoveY"))
+	{
+		NewLoc.Y = CursorOnGround.Y;
+	}
 
 	Target->SetActorLocation(NewLoc);
-	
+
 	int L = (int)Target->PlacedDimensions.X;
 	int B = (int)Target->PlacedDimensions.Y;
 
@@ -862,7 +937,7 @@ void AInteriorPlacementManager::UpdateGizmoMoveLocation(FVector CursorOnGround, 
 
 	FVector2D NewAnchor(SnapX - L / 2, SnapY - B / 2);
 	Target->PlacedGridAnchor = NewAnchor;
-	
+
 	bool bOutOfBounds = (NewAnchor.X < 0 || NewAnchor.Y < 0 ||
 		(NewAnchor.X + L) > Grid->GetLength() ||
 		(NewAnchor.Y + B) > Grid->GetBreadth());
@@ -1067,12 +1142,6 @@ void AInteriorPlacementManager::FinalizeGizmoMove(AFurniture* Target)
 	Target->SetPlacementState(EPlacementState::Placed);
 	InvalidReason = EPlacementInvalidReason::None;
 	ClearPlacementCellViz();
-
-	// 월드 상태 변경 알림 (Subsystem 사용)
-	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
-	{
-		PipelineManager->BroadcastWorldStateChanged();
-	}
 }
 
 void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonString)
@@ -1167,10 +1236,5 @@ void AInteriorPlacementManager::ImportPlacedFurnituresJson(const FString& JsonSt
 
 		PlacedFurnitures.Add(NewFurniture);
 	}
-
-	// 월드 상태 변경 알림 (Subsystem 사용)
-	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
-	{
-		PipelineManager->BroadcastWorldStateChanged();
-	}
 }
+

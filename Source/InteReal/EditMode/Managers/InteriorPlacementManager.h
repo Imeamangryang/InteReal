@@ -90,6 +90,9 @@ private:
 
 	TArray<AFurniture*> PlacedFurnitures;
 
+	UPROPERTY()
+	UMaterialInstanceDynamic* GridDynMat = nullptr;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeFromFloorData(const FHarnessFloorData& FloorData, float Cell = 50.0f);

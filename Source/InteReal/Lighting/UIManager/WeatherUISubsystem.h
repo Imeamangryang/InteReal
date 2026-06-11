@@ -34,6 +34,8 @@ public:
 	// 현재 설정된 값으로 즉시 브로드캐스트
 	UFUNCTION(BlueprintCallable) void ForceUpdate();
 	
+	FName GetCurrentWeatherID() const { return CurrentWeatherID; }
+	
 private:
 	FName CurrentCityDetailID = TEXT("Seoul_Gangnam");
 	FName CurrentWeatherID = TEXT("Clear");
@@ -42,4 +44,6 @@ private:
 	float CurrentOrientation = 0.0f;
     
 	void BroadcastEnvironment();
+	
+	
 };

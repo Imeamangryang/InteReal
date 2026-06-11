@@ -11,23 +11,7 @@ void UWeatherWidget::NativeConstruct() {
     auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     if (!Sub) return;
     
-    /*// 1. 초기 리스트 채우기
-    for(auto& RowName : Sub->CityMainTable->GetRowNames()) {
-        auto* Data = Sub->CityMainTable->FindRow<FCityMainData>(RowName, TEXT(""));
-        if (Data) {
-            CB_CityMain->AddOption(Data->Name_KR);
-        }
-    }*/
-    /*CB_Season->AddOption(TEXT("Spring")); CB_Season->AddOption(TEXT("Summer"));
-    CB_Season->AddOption(TEXT("Autumn")); CB_Season->AddOption(TEXT("Winter"));*/
-    // for(auto& Name : Sub->WeatherTable->GetRowNames()) CB_Weather->AddOption(Name.ToString());
-
-    // 이벤트 연결
-    //CB_CityMain->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnCityMainChanged);
-    /*CB_Season->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnSeasonChanged);*/
-    
-    // 나머지 옵션 변경 시 즉시 업데이트
-    // CB_Weather->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
+    // 옵션 변경 시 즉시 업데이트
     CB_CityDetail->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     CB_Solar->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnAnySelectionChanged);
     Slider_Time->OnValueChanged.AddDynamic(this, &UWeatherWidget::OnSliderChanged); 
@@ -55,7 +39,7 @@ void UWeatherWidget::NativeConstruct() {
     Btn_South->OnClicked.AddDynamic(this, &UWeatherWidget::OnSouthClicked);
     Btn_West->OnClicked.AddDynamic(this, &UWeatherWidget::OnWestClicked);
     
-    // [추가] 도시 버튼 17개 이벤트 연결
+    // 도시 버튼 17개 이벤트 연결
     Btn_Gyeonggi->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeonggiClicked);
     Btn_Gyeongnam->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeongnamClicked);
     Btn_Gyeongbuk->OnClicked.AddDynamic(this, &UWeatherWidget::OnGyeongbukClicked);
@@ -78,6 +62,7 @@ void UWeatherWidget::NativeConstruct() {
     float CurrentTime = 12.0f; // 서브시스템 변수값
     Slider_Time->SetValue(CurrentTime / 24.0f);
     Text_Time->SetText(FText::FromString(FormatTime(CurrentTime)));
+    
 }
 
 // 날씨 통합 로직
