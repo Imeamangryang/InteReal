@@ -24,3 +24,13 @@ void UInteRealUISubSystem::NotifyWallMaterialChanged(UMaterialInterface* NewMate
 {
 	OnWallMaterialChanged.Broadcast(NewMaterial);
 }
+
+void UInteRealUISubSystem::NotifyViewModeChanged(EHarnessViewMode NewMode)
+{
+	OnViewModeChanged.Broadcast(NewMode);
+}
+
+void UInteRealUISubSystem::NotifyIconClicked(FName Command)
+{
+	OnIconClicked.Broadcast(Command);
+}

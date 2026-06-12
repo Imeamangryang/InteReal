@@ -31,7 +31,7 @@ void AEnvController::BeginPlay()
         WeatherNiagara->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
         // 2. 중요: 이펙트 좌표를 월드 중앙으로 고정
-        WeatherNiagara->SetWorldLocation(FVector(0.0f, 0.0f, 500.0f)); 
+        WeatherNiagara->SetWorldLocation(FVector(0.0f, 0.0f, 2000.0f)); 
         
         // 3. 컴포넌트가 부모의 스케일이나 회전에 영향을 받지 않게 설정
         WeatherNiagara->SetAbsolute(true, true, true);
@@ -115,15 +115,34 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
     // Clear가 아니면 밝기를 20% 수준으로 낮춤 (이 값을 수정하여 대비 조절 가능)
     float WeatherContrast = (CurrentWeatherID == FName("Clear")) ? 1.0f : 0.2f;
     
-    TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
+    /*TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
     TargetSkyIntensity = W.SkyIntensity * AltitudeMultiplier;
 
-    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();*/
+    
+    // ================================
+    TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
+    
+    // [밤의 은은함 추가] 최소 밝기 설정 (0.05f 정도가 적당함)
+    float MinNightIntensity = 0.05f; 
+    TargetSkyIntensity = FMath::Max(W.SkyIntensity * AltitudeMultiplier, MinNightIntensity);
 
+    // [밤의 색감 보정] 태양이 졌을 때 차가운 푸른빛 틴트 적용
+    if (Altitude < 0) {
+        // 밤에는 하늘 조명을 약간 푸른 남색 톤으로 고정하거나 섞어줍니다.
+        FLinearColor NightTint = FLinearColor(0.1f, 0.15f, 0.3f);
+        SkyLight->GetLightComponent()->SetLightColor(NightTint);
+    } else {
+        SkyLight->GetLightComponent()->SetLightColor(FLinearColor::White);
+    }
+    // ==================
+    
     if (IsValid(Fog))
     {
         Fog->SetFogDensity(W.FogDensity);
-        Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity));
+        // Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity));
+        FLinearColor FogColor = (Altitude < 0) ? FLinearColor(0.02f, 0.02f, 0.05f) : FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity);
+        Fog->SetFogInscatteringColor(FogColor);
     }
 }
 
@@ -171,15 +190,59 @@ void AEnvController::TriggerRandomLightning()
 {
     if (LightningSplineActors.Num() == 0) return;
 
-    AActor* Selected = LightningSplineActors[FMath::RandRange(0, LightningSplineActors.Num() - 1)];
-    Selected->SetActorHiddenInGame(false);
-    if(LightningLight) LightningLight->SetIntensity(50000.0f);
+    // 1. 랜덤하게 2~3개 인덱스 선택
+    int32 NumToStrike = FMath::RandRange(2, 3);
+    TArray<int32> Indices;
+    while(Indices.Num() < NumToStrike) {
+        int32 RandIdx = FMath::RandRange(0, LightningSplineActors.Num() - 1);
+        if(!Indices.Contains(RandIdx)) Indices.Add(RandIdx);
+    }
 
-    FTimerHandle ResetHandle;
-    GetWorldTimerManager().SetTimer(ResetHandle, [Selected, this]() {
-        Selected->SetActorHiddenInGame(true);
-        if(LightningLight) LightningLight->SetIntensity(0.0f);
-    }, 0.1f, false);
+    // 2. 선택된 액터들 활성화
+    for(int32 Index : Indices)
+    {
+        AActor* Selected = LightningSplineActors[Index];
+        
+        // 메시 보이기
+        Selected->SetActorHiddenInGame(false);
+        
+        // 해당 액터 내부의 PointLight 찾아서 켜기
+        UPointLightComponent* PL = Selected->FindComponentByClass<UPointLightComponent>();
+        if (PL) 
+        {
+            // [수정] 라이트 위치를 지면이 아닌 하늘 높이로 배치
+            FVector LightningSkyPos = Selected->GetActorLocation();
+            LightningSkyPos.Z += 3000.0f; 
+            
+            PL->SetWorldLocation(LightningSkyPos);
+            
+            // [수정] 감쇠 범위를 넓혀서 지면만 때리는 게 아니라 넓게 퍼지게 함
+            PL->SetAttenuationRadius(8000.0f); 
+            PL->SetIntensity(60000.0f); 
+            PL->SetVisibility(true);
+        }
+
+        // 3. 0.1초 뒤에 끄기 (깜빡임 효과)
+        FTimerHandle ResetHandle;
+        GetWorldTimerManager().SetTimer(ResetHandle, [Selected, PL]() {
+            Selected->SetActorHiddenInGame(true);
+            if(PL) PL->SetVisibility(false);
+        }, 0.1f, false);
+    }
+    
+    if(LightningLight) 
+    {
+        // [수정] 전체 라이트도 하늘 높이에 배치하여 위에서 아래로 쏟아지게 함
+        LightningLight->SetWorldLocation(FVector(0, 0, 4000.0f));
+        LightningLight->SetAttenuationRadius(20000.0f); // 맵 전체를 감싸는 범위
+        LightningLight->SetIntensity(150000.0f); 
+        LightningLight->SetVisibility(true);
+    
+        FTimerHandle GlobalResetHandle;
+        GetWorldTimerManager().SetTimer(GlobalResetHandle, [this]() {
+            LightningLight->SetVisibility(false);
+        }, 0.05f, false);
+    }
 }
 // === [추가된 부분 시작: 건물 스캔 로직 구현] ===
 void AEnvController::UpdateBuildingMask()

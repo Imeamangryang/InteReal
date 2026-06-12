@@ -106,4 +106,20 @@ protected:
 	
 	void TriggerUpdate(); // 조명 업데이트 호출 함수
 	FString FormatTime(float Hours); // 시간 포맷(00:00) 생성용 함수
+	
+	// 1. 위젯 내부에 추가할 변수들
+	UPROPERTY(meta = (BindWidget)) UButton* Btn_PlayTime;        // 실행 버튼
+	UPROPERTY(meta = (BindWidget)) UComboBoxString* CB_Speed;   // 배율 (1, 2, 3)
+
+	bool bIsPlaying = false;
+	float PlaySpeed = 1.0f;
+
+	// 2. 새로운 함수 선언
+	UFUNCTION() void OnPlayClicked();
+	UFUNCTION() void OnSpeedChanged(FString Selected, ESelectInfo::Type Type);
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	
+private:
+	// 시뮬레이션 시작 시점의 시간 저장 변수 추가
+	float StartTime = 0.0f;
 };

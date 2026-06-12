@@ -7,7 +7,6 @@
 class UHarnessGeneratorComponent;
 class UHarnessMinimapCaptureComponent;
 class UHarnessCaptureMinimapWidget;
-class UHarnessNetworkComponent;
 class UHarnessSaveManagerComponent;
 class UHarnessPipelineManager;
 
@@ -30,10 +29,6 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
     TObjectPtr<UHarnessGeneratorComponent> HarnessComponent;
 
-    // 네트워크 컴포넌트
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
-    TObjectPtr<UHarnessNetworkComponent> NetworkComponent;
-
     // 세이브 매니저 컴포넌트
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Harness")
     TObjectPtr<UHarnessSaveManagerComponent> SaveManagerComponent;
@@ -54,7 +49,7 @@ public:
     bool bBuildOnBeginPlay = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
-    FString JsonFilePath;
+    int32 DebugPlanId = 1;
 
 private:
     // 생성된 위젯 인스턴스 보관용 포인터

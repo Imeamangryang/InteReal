@@ -7,8 +7,8 @@
 
 class UScrollBox;
 class UButton;
-class UHarnessNetworkComponent;
 class UHarnessPipelineManager;
+struct FUnrealPlanListResponse;
 
 /**
  * 버튼 클릭 이벤트를 중계하기 위한 헬퍼 클래스
@@ -18,7 +18,7 @@ class UProjectItemWrapper : public UObject
 {
 	GENERATED_BODY()
 public:
-	FString PlanId;
+	int32 PlanId;
 
 	UPROPERTY()
 	TObjectPtr<class UHarnessMainHUD> OwnerHUD;
@@ -34,9 +34,9 @@ class INTEREAL_API UHarnessMainHUD : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category="Harness|UI")
-	void SetupHUD(UHarnessNetworkComponent* InNetwork, UHarnessPipelineManager* InPipeline);
+	void SetupHUD(class UInteRealPlanViewModel* InViewModel);
 
-	void OnProjectButtonClicked(FString PlanId);
+	void OnProjectButtonClicked(int32 PlanId);
 
 protected:
 	virtual void NativeConstruct() override;
@@ -49,10 +49,7 @@ protected:
 
 private:
 	UPROPERTY()
-	TObjectPtr<UHarnessNetworkComponent> NetworkComp;
-
-	UPROPERTY()
-	TObjectPtr<UHarnessPipelineManager> PipelineManager;
+	TObjectPtr<class UInteRealPlanViewModel> PlanViewModel;
 
 	// GC 방지를 위해 Wrapper 객체들을 보관합니다.
 	UPROPERTY()
@@ -62,5 +59,5 @@ private:
 	void OnLoadProjectListClicked();
 
 	UFUNCTION()
-	void OnPlanListReceived(const TArray<FFloorPlanInfo>& PlanList);
+	void OnPlanListReceived(bool bSuccess, const FUnrealPlanListResponse& Response);
 };

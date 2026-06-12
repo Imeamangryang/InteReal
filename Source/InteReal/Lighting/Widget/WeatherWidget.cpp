@@ -63,6 +63,15 @@ void UWeatherWidget::NativeConstruct() {
     Slider_Time->SetValue(CurrentTime / 24.0f);
     Text_Time->SetText(FText::FromString(FormatTime(CurrentTime)));
     
+    // 새 버튼/콤보박스 연결
+    Btn_PlayTime->OnClicked.AddDynamic(this, &UWeatherWidget::OnPlayClicked);
+    CB_Speed->OnSelectionChanged.AddDynamic(this, &UWeatherWidget::OnSpeedChanged);
+    
+    CB_Speed->AddOption(TEXT("1"));
+    CB_Speed->AddOption(TEXT("2"));
+    CB_Speed->AddOption(TEXT("3"));
+    CB_Speed->SetSelectedOption(TEXT("1"));
+    
 }
 
 // 날씨 통합 로직
@@ -184,35 +193,6 @@ void UWeatherWidget::UpdateSolarBySeason(FString SeasonName)
     }
 }
 
-/*// 광역시 선택 시 상세지역 갱신
-void UWeatherWidget::OnCityMainChanged(FString SelectedKR, ESelectInfo::Type Type) {
-    CB_CityDetail->ClearOptions();
-    auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
-    if (!Sub) return;
-
-    // 1. 선택된 한글 이름에 해당하는 Parent_CityID 찾기
-    int32 FoundCityID = -1;
-    for (auto& RowName : Sub->CityMainTable->GetRowNames()) {
-        auto* Data = Sub->CityMainTable->FindRow<FCityMainData>(RowName, TEXT(""));
-        if (Data && Data->Name_KR == SelectedKR) {
-            FoundCityID = Data->CityID;
-            break;
-        }
-    }
-
-    // 2. 해당 CityID를 가진 상세 지역들의 Name_KR 추가
-    if (FoundCityID != -1) {
-        for (auto& RowName : Sub->CityDetailTable->GetRowNames()) {
-            auto* Data = Sub->CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
-            if (Data && Data->Parent_CityID == FoundCityID) {
-                CB_CityDetail->AddOption(Data->Name_KR);
-            }
-        }
-    }
-    
-    TriggerUpdate();
-}*/
-
 void UWeatherWidget::OnAnySelectionChanged(FString Selected, ESelectInfo::Type Type) { TriggerUpdate(); }
 
 // 시간 문자열 생성 (00:00 포맷)
@@ -284,4 +264,55 @@ void UWeatherWidget::TriggerUpdate() {
     }
     // 절기 처리
     Sub->SetSolar(Sub->GetSolarRowName(CB_Solar->GetSelectedOption()));
+}
+
+// 24시 도달 시 멈추는 대신 StartTime으로 초기화하는 루프 로직
+void UWeatherWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime) {
+    Super::NativeTick(MyGeometry, InDeltaTime);
+
+    if (bIsPlaying) {
+        auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+        if (!Sub) return;
+
+        float CurrentTime = Sub->GetCurrentTime();
+        float NewTime = CurrentTime + (InDeltaTime * PlaySpeed);
+
+        // [수정됨] 24시간이 흐른 후 멈추는 로직
+        // 현재 시간이 시작 시간(StartTime)보다 작아지면 하루가 지났음을 의미함
+        // (예: 17시에서 시작 -> 24시 -> 00시 -> 다시 17시가 되는 지점)
+        if (NewTime >= 24.0f) {
+            NewTime = FMath::Fmod(NewTime, 24.0f); // 24시 넘기면 0시부터 시작
+        }
+        
+        // 시작 시간(StartTime)을 다시 지나치는 순간 멈춤
+        // (PlaySpeed가 빠를 경우를 대비해 살짝 보정)
+        if (NewTime >= StartTime && CurrentTime < StartTime && CurrentTime != StartTime) {
+            bIsPlaying = false;
+            Btn_PlayTime->SetBackgroundColor(FLinearColor::White);
+            NewTime = StartTime; // 마지막 시간을 시작 시간으로 고정
+        }
+
+        // 시간 업데이트 (서브시스템 및 UI 동기화)
+        Sub->SetTime(NewTime);
+        Slider_Time->SetValue(NewTime / 24.0f);
+        Text_Time->SetText(FText::FromString(FormatTime(NewTime)));
+    }
+}
+// 시작 시간을 기록하는 로직 추가
+void UWeatherWidget::OnPlayClicked() {
+    bIsPlaying = !bIsPlaying;
+    
+    if (bIsPlaying) {
+        // 재생 시작 시 현재 서브시스템의 시간을 저장
+        auto* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
+        if (Sub) StartTime = Sub->GetCurrentTime(); 
+        
+        Btn_PlayTime->SetBackgroundColor(FLinearColor::Green);
+    } else {
+        Btn_PlayTime->SetBackgroundColor(FLinearColor::White);
+    }
+}
+
+void UWeatherWidget::OnSpeedChanged(FString Selected, ESelectInfo::Type Type) {
+    PlaySpeed = FCString::Atof(*Selected);
 }

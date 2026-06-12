@@ -21,6 +21,7 @@ class UTextureRenderTarget2D;
 class UDynamicMeshComponent;
 class UMeshComponent;
 class UMaterialInterface;
+class UMaterialInstanceDynamic;
 
 UENUM(BlueprintType)
 enum class EInteRealControlMode : uint8
@@ -47,6 +48,9 @@ public:
 
 	UFUNCTION()
 	void HandleModeChanged(bool bIsEditMode);
+	
+	UFUNCTION()
+	void HandleIconClicked(FName command);
 
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
@@ -78,6 +82,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Surface")
 	void ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
+	TSubclassOf<AActor> GizmoActorClass;
+	
 protected:
 	void UpdateCursorHit();
 	void ToggleGrid();
@@ -98,6 +105,10 @@ protected:
 	
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
+
+	void InitGizmoAxisMaterials();
+	void UpdateGizmoHover();
+	void SetGizmoAxisOpacity(const FString& Axis, float Opacity);
 	
 	void SelectSurface(UMeshComponent* SurfaceComponent);
 	void DeselectSurface();
@@ -207,6 +218,15 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
 	float GizmoRotationSensitivity = 1.5f;
+	
+	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
+	FName GizmoOpacityParamName = TEXT("Opacity");
+	
+	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
+	float GizmoDefaultOpacity = 0.3f;
+	
+	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
+	float GizmoHighlightOpacity = 1.0f;
 
 	// ===== View Mode Input =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
@@ -236,6 +256,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<UMeshComponent> SelectedSurfaceComponent = nullptr;
 	
+	UPROPERTY()
+	AActor* SpawnedGizmo = nullptr;
+	
 	bool bHasCopiedFurniture = false;
 	FFurnitureDataRow CopiedFurnitureRow;
 	FRotator CopiedFurnitureRotation = FRotator::ZeroRotator;
@@ -245,6 +268,10 @@ private:
 	float DragStartAngleDeg = 0.0f;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
 	FVector DragStartFurnitureLocation = FVector::ZeroVector;
+	
+	// Gizmo
+	TMap<FString, TArray<TObjectPtr<UMaterialInstanceDynamic>>> GizmoAxisMaterials;
+	FString HoveredGizmoAxis;
 
 	// ===== View Mode State =====
 	UPROPERTY()

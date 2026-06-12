@@ -1,4 +1,4 @@
-﻿#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
+#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/DynamicMeshComponent.h"
@@ -13,13 +13,13 @@
 
 UHarnessGeneratorComponent::UHarnessGeneratorComponent()
 {
-    // 애니메이션 처리를 위해 Tick을 사용하지만, 자원 절약을 위해 기본 상태는 비활성화(false)로 둡니다.
+    // �니메이처리륄해 Tick�용��� �원 �약�해 기본 �태비활�화(false)롡니
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bStartWithTickEnabled = false; 
 }
 
 // ==============================================================================
-// 기존에 생성된 모든 동적 메쉬, 조명, 프롭들을 메모리에서 완전히 파괴(제거)합니다.
+// 기존�성모든 �적 메쉬, 조명, �롭�을 메모리에�전�괴(�거)�니
 // ==============================================================================
 void UHarnessGeneratorComponent::ClearHarness()
 {
@@ -36,18 +36,18 @@ void UHarnessGeneratorComponent::ClearHarness()
 }
 
 // ==============================================================================
-// 도면 2D JSON 데이터를 파싱하여 언리얼 3D 좌표계(Z-Up)에 맞게 캐싱합니다.
+// �면 2D JSON �이�� �싱�여 �리3D 좌표�Z-Up)맞게 캐싱�니
 // ==============================================================================
 void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& FloorData)
 {
     for (const FTopologyVertex& V : FloorData.vertices)
     {
-        // 💡 도면이 상하 반전되는 것을 막기 위해 X, Y축을 교차 매핑합니다.
+        // �� �면�하 반전�는 것을 막기 �해 X, Y축을 교차 매핑�니
         VertexCache.Add(V.id, FVector2D(V.y, V.x));
     }
     for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
     {
-        // Half-Edge 구조에서 중복 선분(Twin Edge)을 제외하고 고유한 벽면 데이터만 남깁니다.
+        // Half-Edge 구조�서 중복 �분(Twin Edge)�외�고 고유벽면 �이�만 �깁�다.
         if (!EdgeCache.Contains(Edge.twin_id))
         {
             EdgeCache.Add(Edge.id, Edge);
@@ -56,29 +56,29 @@ void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& Fl
 }
 
 // ==============================================================================
-// 도면 생성 메인 진입점 (최적화: ExecuteBuildHarness와 통합됨)
+// �면 �성 메인 진입(최적 ExecuteBuildHarness� �합
 // ==============================================================================
 void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData)
 {
-    // 필수 데이터 테이블이나 소유자가 없으면 안전하게 실행을 중단합니다.
-    if (!GetOwner() || !StyleDataTable) return;
+    // �수 �이�� �으멈전�게 �행중단�니
+    if (!GetOwner()) return;
 
     CachedFloorData = FloorData;
 
-    // 새 도면을 그리기 전에 기존 도면을 즉각 파괴합니다.
+    // �면그리긄에 기존 �면즉각 �괴�니
     ClearHarness();
     BuildTopologyCaches(FloorData);
 
-    AssembleStructuralWalls(FloorData);      // 벽체 및 문/창문 구멍 뚫기(Boolean)
-    FabricateDynamicPlanes(FloorData);       // 바닥, 천장 평면(Triangulation) 및 섀도우 블로커 생성
-    InstallOpeningComponents(FloorData);     // 뚫린 구멍에 문/창문 3D 에셋 배치
+    AssembleStructuralWalls(FloorData);      // 벽체 ��창문 구멍 �기(Boolean)
+    FabricateDynamicPlanes(FloorData);       // 바닥, 천장 �면(Triangulation) 밀�우 블로컝성
+    InstallOpeningComponents(FloorData);     // �린 구멍�창문 3D �셋 배치
     
     if (bEnableInteriorLights)
     {
-        InstallInteriorLights(FloorData);    // 방 중앙에 조명 배치
+        InstallInteriorLights(FloorData);    // �중앙조명 배치
     }
 
-    // 모든 메쉬 생성이 끝났다면, Z축 스케일 기반의 솟아오름 애니메이션을 가동합니다.
+    // 모든 메쉬 �성�났�면, Z춤�기반�아�름 �니메이�을 가�합�다.
     if (AnimatedWalls.Num() > 0)
     {
         bIsSpawning = true;
@@ -88,7 +88,7 @@ void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData
 }
 
 // ==============================================================================
-// 매 프레임 벽이 스르륵 솟아오르는(Scale-Up) 애니메이션을 처리합니다.
+// 맄레벽이 �르륟아�르Scale-Up) �니메이�을 처리�니
 // ==============================================================================
 void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -96,7 +96,7 @@ void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickT
 
     if (bIsSpawning)
     {
-        // 보간(InterpTo)을 통해 처음엔 빠르게, 끝엔 부드럽게 1.0(원래 크기)에 도달하도록 계산
+        // 보간(InterpTo)�해 처음빠르� �엔 부�럽�1.0(�래 �기)�달�도�계산
         WallAnimationProgress = FMath::FInterpTo(WallAnimationProgress, 1.0f, DeltaTime, 1.5f);
 
         for (UDynamicMeshComponent* Wall : AnimatedWalls)
@@ -107,7 +107,7 @@ void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickT
             }
         }
 
-        // 애니메이션이 거의 끝나면(오차범위 0.005 이내) 최종 확정 처리
+        // �니메이�이 거의 �나멤차범위 0.005 �내) 최종 �정 처리
         if (FMath::IsNearlyEqual(WallAnimationProgress, 1.0f, 0.005f))
         {
             for (UDynamicMeshComponent* Wall : AnimatedWalls)
@@ -115,19 +115,19 @@ void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickT
                 if (IsValid(Wall))
                 {
                     Wall->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f)); 
-                    // 💡 [중요] 최적화를 위해 애니메이션이 끝난 이 시점에 물리 충돌(Collision)을 켭니다.
+                    // �� [중요] 최적�� �해 �니메이�이 �난 �점물리 충돌(Collision)켋�
                     Wall->SetCollisionProfileName(TEXT("BlockAll"));      
                 }
             }
             
             bIsSpawning = false;
-            SetComponentTickEnabled(false); // Tick 종료 (성능 최적화)
+            SetComponentTickEnabled(false); // Tick 종료 (�능 최적
         }
     }
 }
 
 // ==============================================================================
-// 각 방의 무게중심을 계산하여 실내 조명(Point Light)을 배치합니다.
+// �방의 무게중심계산�여 �내 조명(Point Light)배치�니
 // ==============================================================================
 void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& FloorData)
 {
@@ -152,7 +152,7 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
         if (ValidPts == 0) continue;
         Centroid /= ValidPts;
 
-        // 천장에서 30cm 아래쪽 허공에 조명을 배치하여 자연스러운 간접 조명 유도
+        // 천장�서 30cm �래쪈공조명배치�여 �연�러간접 조명 �도
         FVector LightPos(Centroid.X, Centroid.Y, Face.z_offset + FixedWallHeight - 30.0f);
 
         UPointLightComponent* PointLight = NewObject<UPointLightComponent>(GetOwner());
@@ -163,7 +163,7 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
         PointLight->SetIntensity(2500.0f);
         PointLight->SetAttenuationRadius(1000.0f);
         PointLight->SetCastShadows(true);
-        PointLight->LightColor = FColor(255, 245, 230); // 따뜻한 색온도 적용
+        PointLight->LightColor = FColor(255, 245, 230); // �뜻�온�용
         PointLight->ComponentTags.Add(TEXT("InteriorLight"));
 
         SpawnedComponents.Add(PointLight);
@@ -171,28 +171,16 @@ void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& 
 }
 
 // ==============================================================================
-// 3D 벽체 생성 및 문/창문 구멍(Boolean) 뚫기 연산
+// 3D 벽체 �성 ��창문 구멍(Boolean) �기 �산
 // ==============================================================================
 void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData& FloorData)
 {
-    auto GetFaceLabel = [&](const FString& vStart, const FString& vEnd) -> FString {
-        for (const FTopologyFace& Face : FloorData.faces) {
-            int32 NumPts = Face.contour_vertex_ids.Num();
-            for (int32 i = 0; i < NumPts; ++i) {
-                if (Face.contour_vertex_ids[i] == vStart && Face.contour_vertex_ids[(i + 1) % NumPts] == vEnd) {
-                    return Face.label;
-                }
-            }
-        }
-        return TEXT(""); 
-    };
-
-    const float FixedWallHeight = 300.0f; // 벽 높이 3m 강제 고정
+    const float FixedWallHeight = 300.0f; // 벒이 3m 강제 고정
     
-    // 💡 Lumen 빛 샘 현상 방지를 위해 벽을 상하좌우로 1cm씩 오버랩 시킴
+    // �� Lumen 비상 방�륄해 벽을 �하좌우�1cm�버�킴
     const float VerticalOverlap = 1.0f;   
     const float HorizontalOverlap = 1.0f;  
-    const float FixedWallThickness = 20.0f; // 모든 벽 두께 20cm 고정
+    const float FixedWallThickness = 20.0f; // 모든 벐께 20cm 고정
     
     for (const auto& Pair : EdgeCache)
     {
@@ -209,24 +197,18 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         FVector2D Dir = (pEnd - pStart).GetSafeNormal();
         FVector2D Normal(Dir.Y, -Dir.X); 
 
-        FString ActualWallType = Edge.type;
-        if (ActualWallType.Equals(TEXT("WallLintel"))) {
-            ActualWallType = TEXT("WallInner"); 
-        }
-
         float HalfThickness = FixedWallThickness / 2.0f;
         float OffsetDist = HalfThickness / 2.0f;
 
-        // 벽을 절반(방 안쪽/바깥쪽)씩 따로 생성하여 서로 다른 재질을 적용할 수 있도록 함
-        auto BuildWallHalf = [&](FVector2D CenterPos, FString FaceLabel) {
+        // 벽을 �반(밈쪽/바깥쪰로 �성�여 �로 �른 �질�용�도�
+        auto BuildWallHalf = [&](FVector2D CenterPos) {
             UDynamicMeshComponent* WallComp = NewObject<UDynamicMeshComponent>(GetOwner());
             WallComp->SetMobility(EComponentMobility::Movable);
             WallComp->RegisterComponent();
             WallComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-            WallComp->ComponentTags.AddUnique(FName(TEXT("EditableWall")));
+            WallComp->ComponentTags.Add(TEXT("EditableWall"));
             
-            // 애니메이션을 위해 최초 높이(Z 스케일)를 0.01로 눌러둠
-            WallComp->SetRelativeScale3D(FVector(1.0f, 1.0f, 0.01f));
+            // �니메이�을 �해 최초 �이(Z ���0.01롌러            WallComp->SetRelativeScale3D(FVector(1.0f, 1.0f, 0.01f));
             WallComp->SetRelativeLocationAndRotation(FVector(CenterPos.X, CenterPos.Y, 0.0f), FRotator(0.0f, Angle, 0.0f));
 
             UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(WallComp);
@@ -246,20 +228,20 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
                 DynMesh, PrimOptions, BaseTransform, WallBox, 0, 0, 0
             );
 
-            // Boolean(차집합) 연산을 이용해 벽에 문과 창문 사이즈만큼의 구멍을 뚫음
+            // Boolean(차집 �산�용벽에 문과 창문 �이즈만�의 구멍�음
             for (const FTopologyOpening& Opening : FloorData.openings)
             {
                 if (Opening.target_edge_id == Edge.id || Opening.target_edge_id == Edge.twin_id)
                 {
                     UDynamicMesh* HoleMesh = NewObject<UDynamicMesh>();
                     
-                    // 벽을 확실히 관통하도록 두께에 50cm 여유를 추가
+                    // 벽을 �실관�하�록 �께50cm �유�추�
                     float HoleThickness = HalfThickness + 50.0f; 
                     float HoleWidth = Opening.width_cm + 2.0f; 
                     float HoleHeight = Opening.height_cm;
                     float HoleZOffset = Opening.z_offset_cm;
 
-                    // 바닥 오버랩(마진) 때문에 문 밑에 턱이 남지 않도록 구멍 크기도 밑으로 확장
+                    // 바닥 �버마진) �문�밑에 �이 �� �도�구멍 �기밑으롕장
                     if (HoleZOffset <= 0.1f) {
                         HoleZOffset -= (VerticalOverlap + 1.0f);
                         HoleHeight += (VerticalOverlap + 1.0f);
@@ -284,43 +266,24 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
                 }
             }
 
-            // DataTable에서 방 이름에 해당하는 재질 매핑
-            UMaterialInterface* TargetMat = DefaultFallbackMaterial;
-            if (StyleDataTable) {
-                if (!FaceLabel.IsEmpty()) {
-                    if (FHarnessStyleRow* RoomRow = StyleDataTable->FindRow<FHarnessStyleRow>(FName(*(FaceLabel + TEXT("_Wall"))), TEXT("MatLookup"))) {
-                        if (RoomRow->Material) TargetMat = RoomRow->Material;
-                    }
-                }
-                if (TargetMat == DefaultFallbackMaterial) {
-                    if (FHarnessStyleRow* BaseRow = StyleDataTable->FindRow<FHarnessStyleRow>(FName(*ActualWallType), TEXT("MatLookup"))) {
-                        if (BaseRow->Material) TargetMat = BaseRow->Material;
-                    }
-                }
-            }
-            if (TargetMat) WallComp->SetMaterial(0, TargetMat);
+            // 기본 머티리얼 �용
+            if (DefaultFallbackMaterial) WallComp->SetMaterial(0, DefaultFallbackMaterial);
             
             WallComp->SetComplexAsSimpleCollisionEnabled(true, true);
-            WallComp->SetCollisionProfileName(TEXT("NoCollision")); // 생성 시점엔 충돌 해제
-            WallComp->bCastShadowAsTwoSided = true; // 양면 그림자 활성화
-            WallComp->NotifyMeshUpdated();
+            WallComp->SetCollisionProfileName(TEXT("NoCollision")); // �성 �점충돌 �제
+            WallComp->bCastShadowAsTwoSided = true; // �면 그림�성            WallComp->NotifyMeshUpdated();
             
             SpawnedComponents.Add(WallComp);
             AnimatedWalls.Add(WallComp); 
         };
 
-        FString ForwardLabel = GetFaceLabel(Edge.vertex_start, Edge.vertex_end);
-        FVector2D ForwardCenter = Center2D + (Normal * OffsetDist);
-        BuildWallHalf(ForwardCenter, ForwardLabel);
-
-        FString TwinLabel = GetFaceLabel(Edge.vertex_end, Edge.vertex_start);
-        FVector2D TwinCenter = Center2D - (Normal * OffsetDist);
-        BuildWallHalf(TwinCenter, TwinLabel);
+        BuildWallHalf(Center2D + (Normal * OffsetDist));
+        BuildWallHalf(Center2D - (Normal * OffsetDist));
     }
 }
 
 // ==============================================================================
-// 다각형 바닥 및 천장 면 생성 (Ear Clipping 삼각분할 적용)
+// �각바닥 �천장 멝성 (Ear Clipping �각분할 �용)
 // ==============================================================================
 void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData& FloorData)
 {
@@ -339,7 +302,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             }
         }
 
-        // 💡 중복(Degenerate) 정점 및 180도 일직선(Collinear) 노드 제거 (삼각분할 오류 방지)
+        // �� 중복(Degenerate) �점 �180�직Collinear) �드 �거 (�각분할 �류 방�)
         TArray<FVector2D> CleanPoints;
         for (const FVector2D& Pt : RawPoints) {
             if (CleanPoints.Num() == 0 || FVector2D::Distance(CleanPoints.Last(), Pt) > 1.0f) {
@@ -371,7 +334,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         if (TriangulationPoints.Num() < 3) TriangulationPoints = CleanPoints;
         if (TriangulationPoints.Num() < 3) continue;
 
-        // 면적(Signed Area)을 통해 렌더링 그리기 방향(Winding Order) 판단 (역방향 시 Reverse)
+        // 면적(Signed Area)�해 �더�그리�방향(Winding Order) �단 (��Reverse)
         double SignedArea = 0.0;
         int32 NumPts = TriangulationPoints.Num();
         for (int32 i = 0; i < NumPts; ++i)
@@ -386,7 +349,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             Algo::Reverse(TriangulationPoints);
         }
 
-        // 바닥을 1cm 확장하여 벽 속으로 맞물리게 함 (빛 샘 원천 차단)
+        // 바닥1cm �장�여 벍으�맞물리게 (빐천 차단)
         const float FloorExpansion = 1.0f; 
         TArray<FVector2D> ExpandedPoints;
         for (int32 i = 0; i < NumPts; ++i)
@@ -423,7 +386,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             InPoly.Vertices.Add(V);
         }
 
-        // 다각형을 삼각형(Triangle) 배열로 분할
+        // �각�을 �각Triangle) 배열�분할
         TArray<FClipSMTriangle> OutTris;
         FGeomTools::TriangulatePoly(OutTris, InPoly);
 
@@ -456,7 +419,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         
         TArray<int32> TopVIds;
         TArray<int32> BottomVIds;
-        double SlabThickness = 20.0; // 바닥 콘크리트 슬래브 두께 20cm 고정
+        double SlabThickness = 20.0; // 바닥 콘크리트 �래븐께 20cm 고정
 
         for (const FVector2D& V : TriangulationPoints)
         {
@@ -471,7 +434,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             const FVector3d P2 = DynMesh.GetVertex(V2);
             const FVector3d FaceNormal = FVector3d::CrossProduct(P1 - P0, P2 - P0);
 
-            // 외적(Cross Product)을 통해 법선이 의도한 바깥쪽 방향(ExpectedNormal)을 바라보게 정렬합니다.
+            // �적(Cross Product)�해 법선�도바깥�방향(ExpectedNormal)바라보게 �렬�니
             if (FVector3d::DotProduct(FaceNormal, ExpectedNormal) < 0.0)
             {
                 DynMesh.AppendTriangle(V0, V1, V2);
@@ -488,7 +451,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             int32 B = TriangleIndices[i+1];
             int32 C = TriangleIndices[i+2];
 
-            // 💡 상/하판 정상 렌더링 (Winding Order 역전)
+            // �� �판 �상 �더�(Winding Order ��)
             DynMesh.AppendTriangle(TopVIds[C], TopVIds[B], TopVIds[A]);
             DynMesh.AppendTriangle(BottomVIds[A], BottomVIds[B], BottomVIds[C]);
         }
@@ -520,7 +483,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             FVector3d V1 = DynMesh.GetVertex(Tri.B);
             FVector3d V2 = DynMesh.GetVertex(Tri.C);
 
-            // 타일링 크기 보정 (100.0f = 1m 단위 맵핑)
+            // ��링 �기 보정 (100.0f = 1m �위 맵핑)
             int32 UV0 = UVOverlay->AppendElement(FVector2f(V0.X / 100.0f, V0.Y / 100.0f));
             int32 UV1 = UVOverlay->AppendElement(FVector2f(V1.X / 100.0f, V1.Y / 100.0f));
             int32 UV2 = UVOverlay->AppendElement(FVector2f(V2.X / 100.0f, V2.Y / 100.0f));
@@ -546,17 +509,11 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         DyMeshComp->GetDynamicMesh()->SetMesh(MoveTemp(DynMesh));
         DyMeshComp->SetComplexAsSimpleCollisionEnabled(true, true);
         DyMeshComp->SetCollisionProfileName(TEXT("BlockAll"));
-        // 💡 바닥 메쉬는 자체적으로 솔리드 구조이며 양면 그림자 처리가 되어 있으므로 섀도우 전용 블로커(FloorShadowBlocker)가 필요 없습니다.
+        // �� 바닥 메쉬�체�으롔리구조�며 �면 그림처리가 �어 �으므례�우 �용 블로�FloorShadowBlocker)가 �요 �습�다.
         DyMeshComp->bCastShadowAsTwoSided = true; 
         DyMeshComp->NotifyMeshUpdated();
         
-        UMaterialInterface* TargetMaterial = DefaultFallbackMaterial;
-        if (StyleDataTable) {
-            if (FHarnessStyleRow* MatRow = StyleDataTable->FindRow<FHarnessStyleRow>(FName(*Face.label), TEXT("PlaneMatLookup"))) {
-                if (MatRow->Material) TargetMaterial = MatRow->Material;
-            }
-        }
-        if (TargetMaterial) DyMeshComp->SetMaterial(0, TargetMaterial);
+        if (DefaultFallbackMaterial) DyMeshComp->SetMaterial(0, DefaultFallbackMaterial);
 
         SpawnedComponents.Add(DyMeshComp);
         
@@ -584,7 +541,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             int32 B = TriangleIndices[i+1];
             int32 C = TriangleIndices[i+2];
 
-            // 탑뷰에서 내부가 들여다보이도록 천장은 아래를 바라보는(하판) 메쉬 하나만 남깁니다.
+            // �뷰�서 ��가 �여�보�도�천장� �래�바라보는(�판) 메쉬 �나맨깁�다.
             CeilingMesh.AppendTriangle(CeilBottomVIds[A], CeilBottomVIds[B], CeilBottomVIds[C]);
         }
         
@@ -620,17 +577,11 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         CeilComp->bCastShadowAsTwoSided = true; 
         CeilComp->NotifyMeshUpdated();
 
-        UMaterialInterface* CeilMaterial = DefaultFallbackMaterial;
-        if (StyleDataTable) {
-            if (FHarnessStyleRow* CeilRow = StyleDataTable->FindRow<FHarnessStyleRow>(FName(*(Face.label + TEXT("_Ceiling"))), TEXT("CeilMatLookup"))) {
-                if (CeilRow->Material) CeilMaterial = CeilRow->Material;
-            }
-        }
-        if (CeilMaterial) CeilComp->SetMaterial(0, CeilMaterial);
+        if (DefaultFallbackMaterial) CeilComp->SetMaterial(0, DefaultFallbackMaterial);
 
         SpawnedComponents.Add(CeilComp);
 
-        // 💡 천장은 위에서 보이지 않는 단면 메쉬이므로, 태양광이 지붕을 뚫고 실내로 들어오는 것을 막기 위해 투명한 차폐(Solid) 블록을 생성합니다.
+        // �� 천장� �에보이지 �는 �면 메쉬��� �양광이 지붕을 �고 �내롤어�는 것을 막기 �해 �명차폐(Solid) 블록�성�니
         UE::Geometry::FDynamicMesh3 CeilingShadowMesh;
         CeilingShadowMesh.EnableAttributes();
 
@@ -671,7 +622,7 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             CeilingShadowBlocker->GetDynamicMesh()->SetMesh(MoveTemp(CeilingShadowMesh));
             CeilingShadowBlocker->ComponentTags.Add(FName("CeilingShadowBlocker"));
             
-            // 인게임에 보이지는 않고 보이지 않는 그림자만 드리우도록 설정
+            // �게�에 보이지�고 보이지 �는 그림�만 �리�도롤정
             CeilingShadowBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
             CeilingShadowBlocker->SetVisibility(false, true);
             CeilingShadowBlocker->SetHiddenInGame(true, true);
@@ -686,56 +637,16 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
 }
 
 // ==============================================================================
-// 타공된 개구부 위치에 문(Door) 또는 창문(Window) 메쉬 프롭을 배치합니다.
+// �공된 개구부 �치�Door) �는 창문(Window) 메쉬 �롭배치�니
 // ==============================================================================
 void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorData& FloorData)
 {
-    TMap<FString, FTopologyHalfEdge> RawEdgeMap;
-    for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
-    {
-        RawEdgeMap.Add(Edge.id, Edge);
-    }
-
-    for (const FTopologyOpening& Opening : FloorData.openings)
-    {
-        if (!RawEdgeMap.Contains(Opening.target_edge_id)) continue;
-        FTopologyHalfEdge Edge = RawEdgeMap[Opening.target_edge_id];
-
-        if (!VertexCache.Contains(Edge.vertex_start) || !VertexCache.Contains(Edge.vertex_end)) continue;
-        
-        FVector2D pStart = VertexCache[Edge.vertex_start];
-        FVector2D pEnd = VertexCache[Edge.vertex_end];
-
-        FVector2D Center2D = (pStart + pEnd) / 2.0f;
-        float Angle = FMath::RadiansToDegrees(FMath::Atan2(pEnd.Y - pStart.Y, pEnd.X - pStart.X));
-
-        FHarnessStyleRow* OpRow = StyleDataTable ? StyleDataTable->FindRow<FHarnessStyleRow>(FName(*Opening.type), TEXT("OpeningLookup")) : nullptr;
-        if (!OpRow || !OpRow->Mesh) continue;
-
-        UStaticMeshComponent* OpComp = NewObject<UStaticMeshComponent>(GetOwner());
-        if (!OpComp) continue;
-
-        OpComp->SetMobility(EComponentMobility::Movable);
-        OpComp->SetStaticMesh(OpRow->Mesh);
-        OpComp->RegisterComponent();
-        OpComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-
-        float PivotCorrectedZ = Opening.z_offset_cm + (Opening.height_cm / 2.0f);
-        OpComp->SetRelativeLocationAndRotation(FVector(Center2D.X, Center2D.Y, PivotCorrectedZ), FRotator(0.0f, Angle, 0.0f));
-        
-        // 20cm 고정 벽 두께에 맞춰 Y 스케일을 0.2로 강제 할당
-        OpComp->SetRelativeScale3D(FVector(Opening.width_cm / 100.0f, 20.0f / 100.0f, Opening.height_cm / 100.0f));
-        
-        UMaterialInterface* OpMat = OpRow->Material ? OpRow->Material : DefaultFallbackMaterial;
-        if (OpMat) OpComp->SetMaterial(0, OpMat);
-
-        OpComp->SetCollisionProfileName(TEXT("BlockAll"));
-        SpawnedComponents.Add(OpComp);
-    }
+    // �� [�정] StyleDataTable�거�었��� �재메쉬 배치�건너�거기본 메쉬륬용�야 �니
+    // �용�� ��이블이 �요 �다곈으므� �각구멍(Boolean)맨기�메쉬 배치건너�니
 }
 
 // ==============================================================================
-// 뷰 카메라 자동 프레이밍 등을 위해 도면 전체의 크기(Bounds)를 반환합니다.
+// �카메�동 �레�밍 �을 �해 �면 �체�기(Bounds)�반환�니
 // ==============================================================================
 void UHarnessGeneratorComponent::GetFloorBounds(FVector2D& OutMin, FVector2D& OutMax) const
 {

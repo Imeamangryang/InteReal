@@ -36,6 +36,7 @@ public:
 	
 	FName GetCurrentWeatherID() const { return CurrentWeatherID; }
 	
+	float GetCurrentTime() const { return CurrentTime; }
 private:
 	FName CurrentCityDetailID = TEXT("Seoul_Gangnam");
 	FName CurrentWeatherID = TEXT("Clear");

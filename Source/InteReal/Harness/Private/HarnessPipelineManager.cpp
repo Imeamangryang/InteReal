@@ -1,99 +1,71 @@
 #include "Public/HarnessPipelineManager.h"
-
 #include "Public/HarnessGeneratorComponent.h"
 #include "Public/HarnessJsonParser.h"
-#include "Public/HarnessNetworkComponent.h"
 #include "Public/HarnessSaveManagerComponent.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/Network/InteRealNetworkSubsystem.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 
-
-void UHarnessPipelineManager::Initialize(FSubsystemCollectionBase& Collection)
+void UHarnessPipelineManager::InitializePipeline(UHarnessSaveManagerComponent* InSaveManager, UHarnessGeneratorComponent* InGenerator)
 {
-	Super::Initialize(Collection);
-}
-
-void UHarnessPipelineManager::Deinitialize()
-{
-	Super::Deinitialize();
-}
-
-void UHarnessPipelineManager::InitializePipeline(UHarnessNetworkComponent* InNetwork, UHarnessSaveManagerComponent* InSaveManager, UHarnessGeneratorComponent* InGenerator)
-{
-	NetworkComp = InNetwork;
 	SaveManagerComp = InSaveManager;
 	GeneratorComp = InGenerator;
+}
 
-	if (NetworkComp)
-	{
-		NetworkComp->OnPlanBaseDownloaded.RemoveAll(this);
-		NetworkComp->OnPlanDeltaDownloaded.RemoveAll(this);
-		
-		NetworkComp->OnPlanBaseDownloaded.AddDynamic(this, &UHarnessPipelineManager::OnBaseDownloaded);
-		NetworkComp->OnPlanDeltaDownloaded.AddDynamic(this, &UHarnessPipelineManager::OnDeltaDownloaded);
+void UHarnessPipelineManager::ClearWorld()
+{
+	if (GeneratorComp) GeneratorComp->ClearHarness();
+	if (SaveManagerComp) {
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("InteriorFurniture"), FoundActors);
+		for (AActor* A : FoundActors) A->Destroy();
 	}
 }
 
-void UHarnessPipelineManager::LoadProject(const FString& PlanId)
+void UHarnessPipelineManager::LoadProject(int32 PlanId)
 {
-	if (!NetworkComp || !GeneratorComp || !SaveManagerComp) return;
-
 	CurrentPlanId = PlanId;
-	
-	GeneratorComp->ClearHarness(); 
-
-	NetworkComp->DownloadFloorPlanBase(CurrentPlanId);
+	ClearWorld();
 }
 
 void UHarnessPipelineManager::SaveCurrentProject()
 {
-	if (!SaveManagerComp || !NetworkComp || CurrentPlanId.IsEmpty())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Harness] 저장 실패: SaveManager가 없거나 현재 도면 ID가 유효하지 않습니다."));
-		return;
-	}
+	if (CurrentPlanId == 0 || !SaveManagerComp) return;
 
-	// 1. 현재 씬의 가구 상태를 JSON 문자열로 추출
-	FString InteriorJson = SaveManagerComp->SaveInteriorState();
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	if (!GI) return;
 
-	// 2. 네트워크 컴포넌트를 통해 서버(또는 Mock)로 업로드
-	NetworkComp->UploadFloorPlanDelta(CurrentPlanId, InteriorJson);
+	UInteRealNetworkSubsystem* Network = GI->GetSubsystem<UInteRealNetworkSubsystem>();
+	if (!Network) return;
 
-	UE_LOG(LogTemp, Log, TEXT("[Harness] 프로젝트 '%s' 저장 요청 완료"), *CurrentPlanId);
+	FString DeltaJson = SaveManagerComp->SaveInteriorState();
+	
+	FOnDeltaSaved Delegate;
+	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate);
+	
+	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d"), CurrentPlanId);
 }
 
-void UHarnessPipelineManager::BroadcastWorldStateChanged()
+void UHarnessPipelineManager::AssembleBase(const FString& BaseJson)
 {
-	if (OnWorldStateChanged.IsBound())
-	{
-		OnWorldStateChanged.Broadcast();
-	}
-}
-
-void UHarnessPipelineManager::OnBaseDownloaded(const FString& BaseJson)
-{
-	if (!GeneratorComp || !NetworkComp) return;
+	if (!GeneratorComp) return;
 
 	FHarnessFloorData FloorData;
-	FString OutError;
-	if (FHarnessJsonParser::ParseFloorDataFromJsonString(BaseJson, FloorData, OutError))
+	FString Error;
+	if (FHarnessJsonParser::ParseFloorDataFromJsonString(BaseJson, FloorData, Error))
 	{
 		GeneratorComp->BuildHarness(FloorData);
-		
 		OnFloorPlanDataReady.Broadcast(FloorData);
-
-		// 도면이 바뀔 때마다 그리드를 새 도면 기준으로 재초기화
+		
 		for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
 		{
 			(*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
-			break;
 		}
-
-		NetworkComp->DownloadFloorPlanDelta(CurrentPlanId);
 	}
 }
 
-void UHarnessPipelineManager::OnDeltaDownloaded(const FString& DeltaJson)
+void UHarnessPipelineManager::ApplyDelta(const FString& DeltaJson)
 {
 	if (!SaveManagerComp) return;
 

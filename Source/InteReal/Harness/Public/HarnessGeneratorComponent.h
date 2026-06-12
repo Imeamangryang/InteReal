@@ -20,10 +20,6 @@ public:
     // 💡 [추가] 스르륵 사라지고 나타나는 애니메이션 처리를 위한 Tick 오버라이드
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // DataAsset 대신 DataTable을 직접 참조합니다.
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
-    TObjectPtr<UDataTable> StyleDataTable = nullptr;
-
     // 예외 처리를 위한 기본 방어용 머티리얼
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
     TObjectPtr<UMaterialInterface> DefaultFallbackMaterial = nullptr;
