@@ -44,12 +44,28 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	int32 FurnitureID = 0;
 
+	// 이 가구를 배치할 수 있는 표면 비트마스크
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	uint8 AllowedPlacementTypes = static_cast<uint8>(EPlacementSurfaceType::Floor);
+
+	// 실제로 배치가 확정된 표면
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	EPlacementSurfaceType PlacedSurfaceType = EPlacementSurfaceType::Floor;
+
 	FVector2D PlacedGridAnchor = FVector2D::ZeroVector;
 	FVector2D PlacedDimensions = FVector2D::ZeroVector;
 
 	EPlacementState GetPlacementState() const { return PlacementState; }
 
-	// 기즈모 포함 전체 바운드가 아닌 콜리전 박스만 반환 — 배치 겹침 판정용
+	bool SupportsPlacementType(EPlacementSurfaceType Type) const
+	{
+		return (AllowedPlacementTypes & static_cast<uint8>(Type)) != 0;
+	}
+
+	EPlacementSurfaceType GetPlacedSurfaceType() const { return PlacedSurfaceType; }
+	void SetPlacedSurfaceType(EPlacementSurfaceType Type) { PlacedSurfaceType = Type; }
+
+	// 기즈모 포함 전체 바운드 아니고 콜리전 박스만 반환 (배치 겹침 판정용)
 	FBox GetCollisionBounds() const
 	{
 		if (CollisionBoxComponent)

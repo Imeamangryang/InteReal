@@ -277,15 +277,13 @@ void UWeatherWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime) 
         float CurrentTime = Sub->GetCurrentTime();
         float NewTime = CurrentTime + (InDeltaTime * PlaySpeed);
 
-        // [수정됨] 24시간이 흐른 후 멈추는 로직
+        // 24시간이 흐른 후 멈추는 로직
         // 현재 시간이 시작 시간(StartTime)보다 작아지면 하루가 지났음을 의미함
-        // (예: 17시에서 시작 -> 24시 -> 00시 -> 다시 17시가 되는 지점)
         if (NewTime >= 24.0f) {
             NewTime = FMath::Fmod(NewTime, 24.0f); // 24시 넘기면 0시부터 시작
         }
         
         // 시작 시간(StartTime)을 다시 지나치는 순간 멈춤
-        // (PlaySpeed가 빠를 경우를 대비해 살짝 보정)
         if (NewTime >= StartTime && CurrentTime < StartTime && CurrentTime != StartTime) {
             bIsPlaying = false;
             Btn_PlayTime->SetBackgroundColor(FLinearColor::White);

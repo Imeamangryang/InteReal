@@ -55,8 +55,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "WeatherFX") 
 	float AvoidanceRadius = 500.0f;
 	
-	// === [추가된 부분 시작] ===
 	void UpdateBuildingMask();
 	FTimerHandle BuildingScanTimer;
-	// === [추가된 부분 끝] ===
+	
 };

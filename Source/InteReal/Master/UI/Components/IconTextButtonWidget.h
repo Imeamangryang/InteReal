@@ -65,6 +65,18 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Icon Text Button|Event")
 	FOnIconTextButtonClicked OnIconTextButtonClicked;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<UButton> RootButton;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<UVerticalBox> ContentBox;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<UImage> IconImage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<UTextBlock> LabelTextBlock;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Icon Text Button")
@@ -90,18 +102,8 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
-private:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> RootButton;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UVerticalBox> ContentBox;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> IconImage;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> LabelTextBlock;
 
 private:
 	void ApplyAppearance();

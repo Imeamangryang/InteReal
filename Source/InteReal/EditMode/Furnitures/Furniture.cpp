@@ -35,6 +35,7 @@ AFurniture::AFurniture()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	RootComponent = MeshComponent;
 	MeshComponent->bReceivesDecals = false;
+	MeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 
 	CollisionBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBoxComponent->SetupAttachment(MeshComponent);
@@ -101,6 +102,7 @@ void AFurniture::SetSelected(bool bSelected)
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 {
 	FurnitureID = InFurnitureRow.ID;
+	AllowedPlacementTypes = InFurnitureRow.AllowedPlacementTypes;
 
 	if (InFurnitureRow.FurnitureMesh)
 	{
@@ -110,7 +112,7 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 		FVector Extent = MeshBounds.BoxExtent;
 		Extent.Z = 2.0f;
 		CollisionBoxComponent->SetBoxExtent(Extent);
-		CollisionBoxComponent->SetRelativeLocation(FVector(MeshBounds.Origin.X, MeshBounds.Origin.Y, 0.0f));
+		CollisionBoxComponent->SetRelativeLocation(FVector(MeshBounds.Origin.X, MeshBounds.Origin.Y, MeshBounds.Origin.Z));
 		
 		/*CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
 		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);*/

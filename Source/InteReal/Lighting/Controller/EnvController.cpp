@@ -10,7 +10,7 @@ AEnvController::AEnvController()
 {
     PrimaryActorTick.bCanEverTick = true;
     
-    // 1. Niagara 컴포넌트 생성 및 부착
+    // Niagara 컴포넌트 생성 및 부착
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
     WeatherNiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeatherNiagara"));
     WeatherNiagara->SetupAttachment(RootComponent);
@@ -21,19 +21,35 @@ void AEnvController::BeginPlay()
 {
     Super::BeginPlay();
     
-    // 초기 타겟 값 설정 (Default 값으로 초기화)
+    // 배치된 스태틱 메쉬 액터들에 라이트 컴포넌트 추가
+    for (AActor* Actor : LightningSplineActors)
+    {
+        if (Actor)
+        {
+            UPointLightComponent* NewLight = NewObject<UPointLightComponent>(Actor);
+            NewLight->RegisterComponent();
+            NewLight->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+            NewLight->SetVisibility(false);
+            NewLight->SetAttenuationRadius(12000.0f);
+            NewLight->SetSourceRadius(1000.0f);
+            NewLight->SetIntensity(100000.0f);
+            NewLight->SetLightColor(FLinearColor(0.8f, 0.9f, 1.0f));
+        }
+    }
+    
+    // 초기 타겟 값 설정
     TargetSunIntensity = 10000.0f; // 기본 태양 밝기 값 설정
     TargetSkyIntensity = 1.0f;     // 기본 스카이 밝기 값 설정
     
-    // 1. 컴포넌트를 부모 액터에서 완벽히 분리 (이건 이미 하셨지만 확실하게)
+    // 1. 컴포넌트를 부모 액터에서 완벽히 분리
     if (WeatherNiagara)
     {
         WeatherNiagara->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
-        // 2. 중요: 이펙트 좌표를 월드 중앙으로 고정
+        // 이펙트 좌표를 월드 중앙으로 고정
         WeatherNiagara->SetWorldLocation(FVector(0.0f, 0.0f, 2000.0f)); 
         
-        // 3. 컴포넌트가 부모의 스케일이나 회전에 영향을 받지 않게 설정
+        // 컴포넌트가 부모의 스케일이나 회전에 영향을 받지 않게 설정
         WeatherNiagara->SetAbsolute(true, true, true);
     }
     
@@ -46,17 +62,15 @@ void AEnvController::BeginPlay()
         Sub->ForceUpdate();
     }
     
-    // 보간을 시작하기 전에 현재 계산된 타겟 값으로 즉시 조명 설정 (밝기 튐 방지)
+    // 보간을 시작하기 전에 현재 계산된 타겟 값으로 즉시 조명 설정
     if (SunLight) SunLight->SetIntensity(TargetSunIntensity);
     if (IsValid(SkyLight) && SkyLight->GetLightComponent()) 
         SkyLight->GetLightComponent()->SetIntensity(TargetSkyIntensity);
     
     bIsInitialized = true;
     
-    // === [추가된 부분 시작: 건물 스캔 타이머 등록] ===
     // 1초마다 건물 영역을 확인하여 나이아가라 파라미터를 갱신합니다.
     GetWorldTimerManager().SetTimer(BuildingScanTimer, this, &AEnvController::UpdateBuildingMask, 1.0f, true);
-    // === [추가된 부분 끝] ===
     
 }
 
@@ -82,7 +96,7 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
 {
     if (!SunLight) return;
 
-    // 1. 날씨 ID 확인 및 Niagara/번개 제어
+    // 날씨 ID 확인 및 Niagara/번개 제어
     UWeatherUISubsystem* Sub = GetGameInstance()->GetSubsystem<UWeatherUISubsystem>();
     FName CurrentWeatherID = (Sub) ? Sub->GetCurrentWeatherID() : NAME_None;
     
@@ -110,37 +124,34 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
     SunLight->SetRelativeRotation(FRotator(-Altitude, Azimuth + Orientation + 180.0f, 0.0f));
     SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(W.Temperature));
     
-    // 3. 목표 밝기 계산 (날씨 Contrast 적용)
+    // 목표 밝기 계산 
     float AltitudeMultiplier = (Altitude > 0) ? 1.0f : 0.05f;
-    // Clear가 아니면 밝기를 20% 수준으로 낮춤 (이 값을 수정하여 대비 조절 가능)
+    // Clear가 아니면 밝기를 20% 수준으로 낮
     float WeatherContrast = (CurrentWeatherID == FName("Clear")) ? 1.0f : 0.2f;
     
-    /*TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
-    TargetSkyIntensity = W.SkyIntensity * AltitudeMultiplier;
-
-    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();*/
-    
-    // ================================
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();
+        
     TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
     
-    // [밤의 은은함 추가] 최소 밝기 설정 (0.05f 정도가 적당함)
+    // 최소 밝기 설정 
     float MinNightIntensity = 0.05f; 
     TargetSkyIntensity = FMath::Max(W.SkyIntensity * AltitudeMultiplier, MinNightIntensity);
 
-    // [밤의 색감 보정] 태양이 졌을 때 차가운 푸른빛 틴트 적용
-    if (Altitude < 0) {
-        // 밤에는 하늘 조명을 약간 푸른 남색 톤으로 고정하거나 섞어줍니다.
+    // 태양이 졌을 때 차가운 푸른빛 틴트 적용
+    if (Altitude < 0) 
+    {
+        // 밤에는 하늘 조명을 약간 푸른 남색 톤으로 고정
         FLinearColor NightTint = FLinearColor(0.1f, 0.15f, 0.3f);
         SkyLight->GetLightComponent()->SetLightColor(NightTint);
-    } else {
+    } 
+    else 
+    {
         SkyLight->GetLightComponent()->SetLightColor(FLinearColor::White);
     }
-    // ==================
     
     if (IsValid(Fog))
     {
         Fog->SetFogDensity(W.FogDensity);
-        // Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity));
         FLinearColor FogColor = (Altitude < 0) ? FLinearColor(0.02f, 0.02f, 0.05f) : FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity);
         Fog->SetFogInscatteringColor(FogColor);
     }
@@ -148,14 +159,14 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
 
 void AEnvController::HandleWeatherChange(FName WeatherID)
 {
-    // 1. 컴포넌트 유효성 확인
+    // 컴포넌트 유효성 확인
     if (!WeatherNiagara) 
     {
         UE_LOG(LogTemp, Error, TEXT("WeatherNiagara Component is NULL!"));
         return;
     }
 
-    // 2. 맵에 키가 있는지 확인
+    // 맵에 키가 있는지 확인
     if (WeatherEffectsMap.Contains(WeatherID) && WeatherEffectsMap[WeatherID] != nullptr)
     {
         UE_LOG(LogTemp, Warning, TEXT("Attempting to activate effect: %s"), *WeatherID.ToString());
@@ -164,7 +175,7 @@ void AEnvController::HandleWeatherChange(FName WeatherID)
         
         WeatherNiagara->SetVariableFloat(FName("SpawnRadius"), AvoidanceRadius);
         
-        // 3. 확실한 활성화 (Reset을 포함하여 상태를 초기화)
+        // 확실한 활성화 
         WeatherNiagara->ResetSystem(); // 시스템 내부 상태 완전히 초기화
         WeatherNiagara->Activate(true);
         WeatherNiagara->SetVisibility(true); // 혹시 숨겨져 있는지 확인
@@ -185,20 +196,20 @@ void AEnvController::HandleWeatherChange(FName WeatherID)
         GetWorldTimerManager().ClearTimer(LightningTimerHandle);
     }
 }
-
 void AEnvController::TriggerRandomLightning()
 {
     if (LightningSplineActors.Num() == 0) return;
 
-    // 1. 랜덤하게 2~3개 인덱스 선택
-    int32 NumToStrike = FMath::RandRange(2, 3);
+    // 랜덤하게 2~4개 인덱스 선택
+    int32 NumToStrike = FMath::RandRange(2, 4);
     TArray<int32> Indices;
-    while(Indices.Num() < NumToStrike) {
+    while(Indices.Num() < NumToStrike)
+    {
         int32 RandIdx = FMath::RandRange(0, LightningSplineActors.Num() - 1);
         if(!Indices.Contains(RandIdx)) Indices.Add(RandIdx);
     }
 
-    // 2. 선택된 액터들 활성화
+    // 선택된 액터들 활성화
     for(int32 Index : Indices)
     {
         AActor* Selected = LightningSplineActors[Index];
@@ -210,32 +221,34 @@ void AEnvController::TriggerRandomLightning()
         UPointLightComponent* PL = Selected->FindComponentByClass<UPointLightComponent>();
         if (PL) 
         {
-            // [수정] 라이트 위치를 지면이 아닌 하늘 높이로 배치
+            // 라이트 위치를 지면이 아닌 하늘 높이로 배치
             FVector LightningSkyPos = Selected->GetActorLocation();
             LightningSkyPos.Z += 3000.0f; 
             
             PL->SetWorldLocation(LightningSkyPos);
             
-            // [수정] 감쇠 범위를 넓혀서 지면만 때리는 게 아니라 넓게 퍼지게 함
-            PL->SetAttenuationRadius(8000.0f); 
-            PL->SetIntensity(60000.0f); 
+            // [광원 강화 설정]
+            PL->SetAttenuationRadius(12000.0f); // 영향 범위 확대
+            PL->SetSourceRadius(1000.0f);       // 광원을 구체처럼 만들어 빛이 부드럽게 퍼짐
+            PL->SetIntensity(100000.0f);        // 광량 대폭 상향
+            PL->SetLightColor(FLinearColor(0.8f, 0.9f, 1.0f)); // 푸른빛이 섞인 흰색
             PL->SetVisibility(true);
         }
 
-        // 3. 0.1초 뒤에 끄기 (깜빡임 효과)
+        // 3. 0.1초 뒤에 끄기
         FTimerHandle ResetHandle;
         GetWorldTimerManager().SetTimer(ResetHandle, [Selected, PL]() {
             Selected->SetActorHiddenInGame(true);
             if(PL) PL->SetVisibility(false);
         }, 0.1f, false);
     }
-    
-    if(LightningLight) 
+    // 전체 하늘 번쩍임
+    if (LightningLight) 
     {
-        // [수정] 전체 라이트도 하늘 높이에 배치하여 위에서 아래로 쏟아지게 함
-        LightningLight->SetWorldLocation(FVector(0, 0, 4000.0f));
-        LightningLight->SetAttenuationRadius(20000.0f); // 맵 전체를 감싸는 범위
-        LightningLight->SetIntensity(150000.0f); 
+        LightningLight->SetWorldLocation(FVector(0, 0, 5000.0f));
+        LightningLight->SetAttenuationRadius(30000.0f); // 맵 전체를 덮는 범위
+        LightningLight->SetSourceRadius(5000.0f);       // 전체 하늘이 번쩍이도록 설정
+        LightningLight->SetIntensity(250000.0f);        // 아주 강한 밝기
         LightningLight->SetVisibility(true);
     
         FTimerHandle GlobalResetHandle;
@@ -244,7 +257,7 @@ void AEnvController::TriggerRandomLightning()
         }, 0.05f, false);
     }
 }
-// === [추가된 부분 시작: 건물 스캔 로직 구현] ===
+// [건물 스캔 로직 구현]
 void AEnvController::UpdateBuildingMask()
 {
     if (!WeatherNiagara) return;
@@ -282,4 +295,3 @@ void AEnvController::UpdateBuildingMask()
         WeatherNiagara->SetVariableVec3(FName("BuildingExtent"), Extent);
     }
 }
-// === [추가된 부분 끝] ===

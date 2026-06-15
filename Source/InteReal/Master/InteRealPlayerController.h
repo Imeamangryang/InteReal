@@ -94,6 +94,8 @@ protected:
 	void OnRemoveKey();
 	void OnRotatePreviewKey();
 	void OnRotate15Key();
+	void OnContinuousPressed();
+	void OnContinuousReleased();
 	void OnToggleModeKey();
 	void OnFocusSelectionKey();
 	void OnUndoKey();
@@ -178,6 +180,9 @@ public:
 	// ===== Edit Mode References =====
 	UPROPERTY(EditAnywhere, Category = "EditMode")
 	TObjectPtr<AInteriorPlacementManager> PlacementManager = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Input")
+	TEnumAsByte<ECollisionChannel> WallTraceChannel = ECC_GameTraceChannel1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "EditMode|Input")
 	FVector CurrentCursorWorldLoc = FVector::ZeroVector;
@@ -197,7 +202,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Rotate15 = nullptr;
-	
+
+	// 연속 배치 모디파이어 (Shift) — 누르고 있는 동안 배치 시 프리뷰가 즉시 재생성됨
+	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
+	TObjectPtr<UInputAction> IA_Shift = nullptr;
+
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Undo = nullptr;
 
@@ -246,6 +255,7 @@ private:
 	bool bIsHitting = false;
 	FHitResult LastCursorHit;
 	bool bGridVisible = false;
+	bool bContinuousModifierHeld = false;
 
 	bool bIsMovingFurniture = false;
 	FVector MoveDragOffset = FVector::ZeroVector;

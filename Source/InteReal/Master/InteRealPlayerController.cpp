@@ -19,6 +19,7 @@
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Engine/Engine.h"
 
 AInteRealPlayerController::AInteRealPlayerController()
 {
@@ -94,7 +95,7 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 		float MouseY = 0.f;
 		UWidgetLayoutLibrary::GetMousePositionScaledByDPI(this, MouseX, MouseY);
 
-		// 가�배��OR 기존 가굴동 중일 �팁 �시
+		// 가�배��OR 기존 가굴동 중일 �팁 �시
 		InteRealHUD->UpdatePlacementTooltip(
 			true,
 			bHasPreview || bIsMovingFurniture,
@@ -209,7 +210,7 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 	if (!PlacementManager || !bIsHitting) return;
 	if (!PlacementManager->HasActivePreview()) return;
 
-	PlacementManager->UpdatePreviewLocation(CurrentCursorWorldLoc);
+	PlacementManager->UpdatePreviewLocation(LastCursorHit);
 }
 
 void AInteRealPlayerController::SetupInputComponent()
@@ -270,6 +271,13 @@ void AInteRealPlayerController::SetupInputComponent()
 	if (IA_Rotate15)
 	{
 		EIC->BindAction(IA_Rotate15, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotate15Key);
+	}
+
+	if (IA_Shift)
+	{
+		EIC->BindAction(IA_Shift, ETriggerEvent::Started, this, &AInteRealPlayerController::OnContinuousPressed);
+		EIC->BindAction(IA_Shift, ETriggerEvent::Completed, this, &AInteRealPlayerController::OnContinuousReleased);
+		EIC->BindAction(IA_Shift, ETriggerEvent::Canceled, this, &AInteRealPlayerController::OnContinuousReleased);
 	}
 
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &AInteRealPlayerController::ToggleGrid);
@@ -485,7 +493,7 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 	if (CurrentControlMode == EInteRealControlMode::Edit)
 	{
 		FInputModeGameAndUI InputMode;
-		// �� [�� �트리밍 �LockOnCapture��경하브라�� �릭 �커�기		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
+		// �� [�� �트리밍 �LockOnCapture��경하브라�� �릭 �커�기		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 		InputMode.SetHideCursorDuringCapture(false);
 
 		if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
@@ -502,7 +510,7 @@ void AInteRealPlayerController::UpdateInputModeForCurrentControlMode()
 	else
 	{
 		FInputModeGameAndUI InputMode;
-		// �� [�� �트리밍 �View 모드�서�릭 가�하�록 �일�게 �정
+		// �� [�� �트리밍 �View 모드�서�릭 가�하�록 �일�게 �정
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 		InputMode.SetHideCursorDuringCapture(false);
 
@@ -531,12 +539,39 @@ void AInteRealPlayerController::UpdateCursorHit()
 {
 	if (bIsMovingFurniture && SelectedFurniture)
 	{
-		// �래�중가구� �레�스�서 �외 가�콜리�건드리� �고 바닥 좌표맍득
 		FVector WorldOrigin, WorldDir;
 		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 
-		FCollisionQueryParams Params;
+		FCollisionQueryParams Params(NAME_None, true);
+		
+		APawn* P = GetPawn();
+		Params.AddIgnoredActor(P);
 		Params.AddIgnoredActor(SelectedFurniture);
+		
+		if (SpawnedGizmo)
+		{
+			DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+
+			TArray<FHitResult> Hits;
+			GetWorld()->LineTraceMultiByChannel(
+				Hits,
+				WorldOrigin,
+				WorldOrigin + WorldDir * 100000.f,
+				ECC_Visibility,
+				Params
+			);
+
+			for (const FHitResult& Hit : Hits)
+			{
+				if (Hit.GetActor() == SpawnedGizmo)
+				{
+					LastCursorHit = Hit;
+					bIsHitting = true;
+					CurrentCursorWorldLoc = Hit.Location;
+					break;
+				}
+			}
+		}
 
 		bIsHitting = GetWorld()->LineTraceSingleByChannel(
 			LastCursorHit,
@@ -545,7 +580,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 			ECC_Visibility,
 			Params
 		);
-
+		
 		if (bIsHitting)
 		{
 			CurrentCursorWorldLoc = LastCursorHit.Location;
@@ -553,43 +588,56 @@ void AInteRealPlayerController::UpdateCursorHit()
 		return;
 	}
 
-	bIsHitting = GetHitResultUnderCursorByChannel(
-		UEngineTypes::ConvertToTraceType(ECC_Visibility),
-		true,
-		LastCursorHit
-	);
+	// 바닥/가구 등 기본 트레이스
+	FHitResult FloorHit;
+	FHitResult WallHit;
+	bool bHitFloor = false;
+	bool bHitWall = false;
+
+	{
+		FVector WorldOrigin, WorldDir;
+		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+		const FVector TraceEnd = WorldOrigin + WorldDir * 100000.f;
+		
+		FCollisionQueryParams Params(NAME_None, true);
+		if (APawn* P = GetPawn())
+		{
+			Params.AddIgnoredActor(P);
+		}
+
+		// 배치 미리보기 중에는 이미 배치된 가구들이 커서 트레이스를 가로막지 않도록 무시 처리
+		if (PlacementManager && PlacementManager->HasActivePreview())
+		{
+			for (AFurniture* Placed : PlacementManager->GetPlacedFurnitures())
+			{
+				if (IsValid(Placed))
+				{
+					Params.AddIgnoredActor(Placed);
+				}
+			}
+		}
+
+		bHitFloor = GetWorld()->LineTraceSingleByChannel(FloorHit, WorldOrigin, TraceEnd, ECC_Visibility, Params);
+
+		// 벽 전용 트레이스 — 바닥에 가려지지 않아 벽 전체 높이에서 잡힘
+		bHitWall = GetWorld()->LineTraceSingleByChannel(WallHit, WorldOrigin, TraceEnd, WallTraceChannel, Params);
+	}
+
+	// 화면상 같은 픽셀에서 둘 다 잡히면 카메라에 더 가까운(거리가 짧은) 쪽을 채택
+	if (bHitWall && (!bHitFloor || WallHit.Distance < FloorHit.Distance))
+	{
+		LastCursorHit = WallHit;
+		bIsHitting = true;
+	}
+	else
+	{
+		LastCursorHit = FloorHit;
+		bIsHitting = bHitFloor;
+	}
 
 	if (bIsHitting)
 	{
 		CurrentCursorWorldLoc = LastCursorHit.Location;
-	}
-
-	// 기즈몰선 �위 �정
-	if (SpawnedGizmo)
-	{
-		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
-
-		TArray<FHitResult> Hits;
-		FCollisionQueryParams Params(NAME_None, true);
-		GetWorld()->LineTraceMultiByChannel(
-			Hits,
-			WorldOrigin,
-			WorldOrigin + WorldDir * 100000.f,
-			ECC_Visibility,
-			Params
-		);
-
-		for (const FHitResult& Hit : Hits)
-		{
-			if (Hit.GetActor() == SpawnedGizmo)
-			{
-				LastCursorHit = Hit;
-				bIsHitting = true;
-				CurrentCursorWorldLoc = Hit.Location;
-				break;
-			}
-		}
 	}
 }
 
@@ -611,7 +659,8 @@ void AInteRealPlayerController::OnPlaceKey()
 	{
 		if (bIsHitting)
 		{
-			PlacementManager->ConfirmFurniture();
+			// 연속 배치 모디파이어(Shift)를 누르고 있으면 배치 후 같은 가구로 새 프리뷰를 즉시 다시 생성
+			PlacementManager->ConfirmFurniture(bContinuousModifierHeld);
 		}
 		return;
 	}
@@ -624,13 +673,13 @@ void AInteRealPlayerController::OnPlaceKey()
 	}
 
 	UPrimitiveComponent* HitComp = LastCursorHit.GetComponent();
+
 	if (HitComp && SelectedFurniture)
 	{
 		for (const FName& Tag : HitComp->ComponentTags)
 		{
 			const FString TagStr = Tag.ToString();
-
-			// �� �전 ���������������������������������������������
+			
 			if (TagStr.StartsWith(TEXT("Rotate")) || TagStr == TEXT("RotationRing"))
 			{
 				if (PlacementManager)
@@ -663,7 +712,7 @@ void AInteRealPlayerController::OnPlaceKey()
 				return;
 			}
 
-			// �� �동 ���������������������������������������������
+			// �� �동 ���������������������������������������������
 			if (TagStr.StartsWith(TEXT("Move")))
 			{
 				CurrentDraggingAxis        = TagStr;
@@ -820,6 +869,16 @@ void AInteRealPlayerController::OnRotate15Key()
 	}
 }
 
+void AInteRealPlayerController::OnContinuousPressed()
+{
+	bContinuousModifierHeld = true;
+}
+
+void AInteRealPlayerController::OnContinuousReleased()
+{
+	bContinuousModifierHeld = false;
+}
+
 void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
@@ -839,7 +898,7 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 			FActorSpawnParameters Params;
 			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-			// 바운박스 중심기즈�배치 (가�pivot X)
+			// 바운박스 중심기즈�배치 (가�pivot X)
 			FVector GizmoSpawnLocation = SelectedFurniture->GetActorLocation();
 			GizmoSpawnLocation.Z = SelectedFurniture->GetComponentsBoundingBox(true).GetCenter().Z;
 

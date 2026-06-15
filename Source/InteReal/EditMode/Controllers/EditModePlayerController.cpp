@@ -166,7 +166,7 @@ void AEditModePlayerController::Tick(float DeltaTime)
 	// 프리뷰 가구 이동
 	if (!PlacementManager || !bIsHitting) return;
 	if (!PlacementManager->HasActivePreview()) return;
-	PlacementManager->UpdatePreviewLocation(CurrentCursorWorldLoc);
+	PlacementManager->UpdatePreviewLocation(LastCursorHit);
 }
 
 void AEditModePlayerController::UpdateCursorHit()

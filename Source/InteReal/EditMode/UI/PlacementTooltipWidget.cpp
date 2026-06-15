@@ -12,6 +12,9 @@ void UPlacementTooltipWidget::ShowReason(EPlacementInvalidReason Reason)
 	case EPlacementInvalidReason::OutOfBounds:
 		Txt_Message->SetText(FText::FromString(TEXT("배치 가능 영역을 벗어났습니다.")));
 		break;
+	case EPlacementInvalidReason::UnsupportedSurface:
+		Txt_Message->SetText(FText::FromString(TEXT("이 위치에는 배치할 수 없는 가구입니다.")));
+		break;
 	default:
 		break;
 	}

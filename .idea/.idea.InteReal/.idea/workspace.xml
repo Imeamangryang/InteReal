@@ -13,52 +13,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Lighting_Data_Weather.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Lighting_Data_Weather.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_InteriorPlacementManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_InteriorPlacementManager.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_RotationRing.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_RotationRing.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/Inputs/IMC_EditMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Inputs/IMC_EditMode.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Grid.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Grid.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_PlacementCell_Invalid_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_PlacementCell_Invalid_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_PlacementCell_Valid_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_PlacementCell_Valid_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_RotationRing_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_RotationRing_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/UI/WBP_Tooltip.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/UI/WBP_Tooltip.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Harness/WBP_HarnessMainHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Harness/WBP_HarnessMainHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/SHIN/TestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/SHIN/TestMap.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Master/Maps/MasterMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Maps/MasterMap.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SHJ/NS_Snow.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SHJ/NS_Snow.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/SHJ/WBP_WeatherWidget.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/SHJ/WBP_WeatherWidget.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/InteReal.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/InteReal.uproject" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessGeneratorComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessGeneratorComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMainHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMainHUD.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessNetworkComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessDataTypes.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessDataTypes.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessGeneratorComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessGeneratorComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessMainHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessMainHUD.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessNetworkComponent.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/InteReal.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/InteReal.Build.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealPlayerController.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/TestData/test11.json" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestData/test11.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/Components/WBP_IconTextWidget.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Components/WBP_IconTextWidget.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/FFurnitureDataRow.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/FFurnitureDataRow.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,6 +76,7 @@
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/FFurnitureDataRow.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.h" root0="FORCE_HIGHLIGHTING" />
@@ -114,6 +99,9 @@
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/Network/InteRealDataTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Struct/LightingDataStruct.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.h" root0="FORCE_HIGHLIGHTING" />
@@ -155,29 +143,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;C/C++ 프로젝트.InteReal.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.AIAssistantPromptsLibrary&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "C/C++ 프로젝트.InteReal.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "advanced.settings",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="ReadonlyStatusHandler">
     <option name="SHOW_DIALOG" value="false" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="0" />
   </component>
   <component name="RunManager" selected="C/C++ 프로젝트.InteReal">
     <configuration name="InteReal" type="CppProject" factoryName="C++ Project">
@@ -311,6 +302,7 @@
       <workItem from="1781061055416" duration="10808000" />
       <workItem from="1781135683563" duration="20201000" />
       <workItem from="1781222835681" duration="19251000" />
+      <workItem from="1781478215352" duration="13737000" />
     </task>
     <servers />
   </component>
@@ -318,6 +310,17 @@
     <option name="version" value="3" />
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>

@@ -9,6 +9,7 @@ AViewModeCharacter::AViewModeCharacter()
 
 	// 1. 물리 설정: 캡슐 크기를 사람 정도로 설정
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 
 	// 2. 이동 설정: 공중을 날지 않고 바닥을 걷도록 설정
 	GetCharacterMovement()->DefaultLandMovementMode = MOVE_Walking;

@@ -14,6 +14,8 @@
 #include "EngineUtils.h"
 #include "Components/MeshComponent.h"
 #include "Materials/MaterialInterface.h"
+#include "Engine/Engine.h"
+#include "Engine/StaticMesh.h"
 
 AInteriorPlacementManager::AInteriorPlacementManager()
 {
@@ -106,7 +108,7 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 	float CenterX = (MinX + MaxX) * 0.5f;
 	float CenterY = (MinY + MaxY) * 0.5f;
 
-	// 바닥 표면 Z를 라인트레이스로 탐지 — HarnessTestActor Z와 무관하게 항상 정확한 높이를 얻음
+	// 바닥 표면 Z는 라인트레이스로 직접 탐지 (HarnessTestActor Z랑 무관하게 항상 정확한 높이)
 	float FloorSurfaceZ = 0.0f;
 	{
 		FHitResult Hit;
@@ -145,6 +147,32 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 	BuildWallSegments(FloorData);
 	MarkOutOfBoundsTiles();
 	RebuildGridMesh();
+	ApplyWallTraceCollision();
+}
+
+void AInteriorPlacementManager::ApplyWallTraceCollision()
+{
+	// 벽 가구 배치 감지용 트레이스(ECC_GameTraceChannel1)가 바닥/천장에 가려지지 않도록
+	// 하니스가 생성한 벽/바닥/천장 메시의 콜리전 응답을 조정한다.
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		TArray<UPrimitiveComponent*> Components;
+		It->GetComponents<UPrimitiveComponent>(Components);
+
+		for (UPrimitiveComponent* Comp : Components)
+		{
+			// EditableWall 태그가 없는 모든 컴포넌트(잔여 브러시 등 포함)는
+			// 벽 트레이스 채널을 무시하게 하여, 의도치 않은 충돌이 벽 판정을 가로채지 못하게 한다.
+			if (Comp->ComponentHasTag(TEXT("EditableWall")))
+			{
+				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+			}
+			else
+			{
+				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+			}
+		}
+	}
 }
 
 void AInteriorPlacementManager::RebuildGridMesh()
@@ -218,7 +246,7 @@ void AInteriorPlacementManager::RebuildGridMesh()
 	UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(GridMeshComp);
 	UE::Geometry::FDynamicMesh3& Mesh = *DynMesh->GetMeshPtr();
 
-	constexpr float GridZ = 0.0f; // Mesh Decal — 바닥에 투영되므로 Z 오프셋 불필요
+	constexpr float GridZ = 0.0f; // Mesh Decal은 바닥에 투영되니까 Z 오프셋 불필요
 
 	// 무게중심 정점 (액터 로컬 좌표)
 	int32 CenterIdx = Mesh.AppendVertex(
@@ -342,7 +370,9 @@ void AInteriorPlacementManager::BuildWallSegments(const FHarnessFloorData& Floor
 	TSet<FString> ProcessedTwinIds;
 	for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
 	{
-		if (Edge.type != TEXT("WallInner")) continue;
+		// 벽 가구(액자, 콘센트 등)는 내벽/외벽 모두 부착 가능
+		// ImpactNormal이 항상 실내 방향이라 외벽이라도 "실내 쪽 벽면"에 붙음
+		if (Edge.type != TEXT("WallInner") && Edge.type != TEXT("WallOuter")) continue;
 		if (ProcessedTwinIds.Contains(Edge.id)) continue;
 		if (OpeningEdgeIds.Contains(Edge.id)) continue;
 
@@ -355,6 +385,21 @@ void AInteriorPlacementManager::BuildWallSegments(const FHarnessFloorData& Floor
 
 		InnerWallSegments.Add(TPair<FVector2D, FVector2D>(*StartPos, *EndPos));
 	}
+}
+
+// 점을 세그먼트에 투영, OutT(0~1)와 투영점 반환
+static FVector2D ProjectPointOnSegment(FVector2D Point, FVector2D SegStart, FVector2D SegEnd, float& OutT)
+{
+	const FVector2D SegDir = SegEnd - SegStart;
+	const float SegLenSq = SegDir.SizeSquared();
+	if (SegLenSq < 1e-6f)
+	{
+		OutT = 0.0f;
+		return SegStart;
+	}
+
+	OutT = FMath::Clamp(FVector2D::DotProduct(Point - SegStart, SegDir) / SegLenSq, 0.0f, 1.0f);
+	return SegStart + SegDir * OutT;
 }
 
 // Liang-Barsky 세그먼트-AABB 교차 판정
@@ -621,7 +666,7 @@ bool AInteriorPlacementManager::IsPreviewLotEmpty()
 	return true;
 }
 
-void AInteriorPlacementManager::ConfirmFurniture()
+void AInteriorPlacementManager::ConfirmFurniture(bool bContinuePlacement)
 {
 	if (!PreviewFurniture || !Grid)
 	{
@@ -634,33 +679,78 @@ void AInteriorPlacementManager::ConfirmFurniture()
 	}
 
 	RecordUndoSnapshot();
-	
-	if (!PreviewFurniture || !IsPreviewLotEmpty() || InvalidReason != EPlacementInvalidReason::None)
+
+	const bool bIsWallPlacement = (CurrentPreviewSurfaceType == EPlacementSurfaceType::Wall);
+
+	// Wall 배치는 그리드 셀을 점유하지 않으므로 IsPreviewLotEmpty(바닥 그리드 기준) 검사 대상이 아님
+	if (!PreviewFurniture || InvalidReason != EPlacementInvalidReason::None)
 	{
 		return;
 	}
 
-	int L = (int)CurrentDimensions.X;
-	int B = (int)CurrentDimensions.Y;
-
-	for (int i = 0; i < L; i++)
+	if (!bIsWallPlacement && !IsPreviewLotEmpty())
 	{
-		for (int j = 0; j < B; j++)
+		return;
+	}
+
+	if (bIsWallPlacement)
+	{
+		PreviewFurniture->SetPlacedSurfaceType(EPlacementSurfaceType::Wall);
+	}
+	else
+	{
+		int L = (int)CurrentDimensions.X;
+		int B = (int)CurrentDimensions.Y;
+
+		// Shift+클릭 라인 채우기: 이전 배치~현재 프리뷰 사이를 가구 크기만큼 채움
+		if (bContinuePlacement && LineFillAnchor != PreviewGridAnchor)
 		{
-			Grid->SetFurniture(FVector2D(PreviewGridAnchor.X + i, PreviewGridAnchor.Y + j), PreviewFurniture);
+			FVector2D Delta = PreviewGridAnchor - LineFillAnchor;
+			bool bAlongX = FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y);
+
+			int32 Step = bAlongX ? FMath::Max(L, 1) : FMath::Max(B, 1);
+			int32 AxisDelta = bAlongX ? (int32)Delta.X : (int32)Delta.Y;
+			int32 Dir = AxisDelta > 0 ? 1 : -1;
+			int32 Count = FMath::Abs(AxisDelta) / Step;
+
+			for (int32 i = 1; i <= Count; i++)
+			{
+				FVector2D Anchor = LineFillAnchor;
+				if (bAlongX) Anchor.X += Dir * Step * i;
+				else Anchor.Y += Dir * Step * i;
+
+				if (Anchor == PreviewGridAnchor) continue;
+
+				PlaceFurnitureCopyAtGridAnchor(Anchor, CurrentDimensions, PreviewRotation, CurrentFurnitureRow);
+			}
 		}
+
+		for (int i = 0; i < L; i++)
+		{
+			for (int j = 0; j < B; j++)
+			{
+				Grid->SetFurniture(FVector2D(PreviewGridAnchor.X + i, PreviewGridAnchor.Y + j), PreviewFurniture);
+			}
+		}
+
+		PreviewFurniture->PlacedGridAnchor = PreviewGridAnchor;
+		PreviewFurniture->PlacedDimensions = CurrentDimensions;
+		PreviewFurniture->SetPlacedSurfaceType(EPlacementSurfaceType::Floor);
 	}
 
 	PreviewFurniture->Tags.Add(TEXT("InteriorFurniture"));
 	PreviewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), PreviewFurniture->FurnitureID)));
 
-	PreviewFurniture->PlacedGridAnchor = PreviewGridAnchor;
-	PreviewFurniture->PlacedDimensions = CurrentDimensions;
-
 	PreviewFurniture->SetPlacementState(EPlacementState::Placed);
 	PlacedFurnitures.Add(PreviewFurniture);
 	PreviewFurniture = nullptr;
 	ClearPlacementCellViz();
+
+	// Shift+클릭 연속 배치: 같은 가구로 새 프리뷰 바로 다시 생성
+	if (bContinuePlacement)
+	{
+		CreatePreviewFurnitureFromRow(LastRayPosition, PreviewRotation, CurrentFurnitureRow);
+	}
 }
 
 void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPosition,
@@ -680,6 +770,7 @@ void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPositio
 
 	CurrentDimensions = FVector2D(InFurnitureRow.Dimensions.X, InFurnitureRow.Dimensions.Y);
 	PreviewRotation = Rotation;
+	CurrentFurnitureRow = InFurnitureRow;
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -690,7 +781,124 @@ void AInteriorPlacementManager::CreatePreviewFurnitureFromRow(FVector RayPositio
 	}
 
 	PreviewFurniture->ApplyFurnitureRow(InFurnitureRow);
-	UpdatePreviewLocation(RayPosition);
+
+	FHitResult InitialHit;
+	InitialHit.Location = RayPosition;
+	InitialHit.ImpactPoint = RayPosition;
+	InitialHit.ImpactNormal = (RayPosition.IsZero()) ? FVector::UpVector : FVector(-1.f, 0.f, 0.f);
+	UpdatePreviewLocation(InitialHit);
+	
+	LineFillAnchor = PreviewGridAnchor;
+}
+
+void AInteriorPlacementManager::AutoFillFurnitureDimensions()
+{
+	if (!FurnitureDataTable) return;
+
+	TArray<FFurnitureDataRow*> Rows;
+	FurnitureDataTable->GetAllRows<FFurnitureDataRow>(TEXT("AutoFillFurnitureDimensions"), Rows);
+
+	for (FFurnitureDataRow* Row : Rows)
+	{
+		if (!Row || !Row->FurnitureMesh) continue;
+
+		const FBoxSphereBounds MeshBounds = Row->FurnitureMesh->GetBounds();
+		const int32 DimX = FMath::Max(1, FMath::CeilToInt((MeshBounds.BoxExtent.X * 2.0f) / GridCellSize));
+		const int32 DimY = FMath::Max(1, FMath::CeilToInt((MeshBounds.BoxExtent.Y * 2.0f) / GridCellSize));
+
+		Row->Dimensions = FIntPoint(DimX, DimY);
+	}
+
+	FurnitureDataTable->MarkPackageDirty();
+}
+
+void AInteriorPlacementManager::PlaceFurnitureCopyAtGridAnchor(FVector2D GridAnchor, FVector2D Dimensions, FRotator Rotation, const FFurnitureDataRow& InFurnitureRow)
+{
+	if (!Grid || !FurnitureClass) return;
+
+	int32 L = (int32)Dimensions.X;
+	int32 B = (int32)Dimensions.Y;
+
+	bool bOutOfBounds = (GridAnchor.X < 0 || GridAnchor.Y < 0 ||
+		(GridAnchor.X + L) > Grid->GetLength() ||
+		(GridAnchor.Y + B) > Grid->GetBreadth());
+
+	bool bOverlapping = false;
+	if (!bOutOfBounds)
+	{
+		for (int i = 0; i < L && !bOutOfBounds && !bOverlapping; i++)
+		{
+			for (int j = 0; j < B; j++)
+			{
+				FVector2D Cell(GridAnchor.X + i, GridAnchor.Y + j);
+
+				if (Grid->GetTileState(Cell) == EGridTileState::None)
+				{
+					bOutOfBounds = true;
+					break;
+				}
+
+				if (Grid->GetFurniture(Cell) != nullptr)
+				{
+					bOverlapping = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if (bOutOfBounds || bOverlapping) return;
+
+	FVector World = Grid->ToWorldPosition(FVector2D(
+		(float)GridAnchor.X + ((float)L / 2.0f) - 0.5f,
+		(float)GridAnchor.Y + ((float)B / 2.0f) - 0.5f
+	));
+	World.Z = GetActorLocation().Z;
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(FurnitureClass, World, Rotation, Params);
+	if (!NewFurniture) return;
+
+	NewFurniture->ApplyFurnitureRow(InFurnitureRow);
+	NewFurniture->SetActorLocation(World);
+	NewFurniture->SetActorRotation(Rotation);
+
+	// 도면 외곽/내벽/다른 가구와 AABB 겹침 검사. 라인 중간에 벽이나 가구 있으면 그 칸은 스킵
+	if (!IsFurnitureCornersInsideFloor(NewFurniture) || FurnitureIntersectsWalls(NewFurniture))
+	{
+		NewFurniture->Destroy();
+		return;
+	}
+
+	FBox NewBounds = NewFurniture->GetCollisionBounds().ExpandBy(-1.0f);
+	for (AFurniture* Placed : PlacedFurnitures)
+	{
+		if (!IsValid(Placed)) continue;
+		if (NewBounds.Intersect(Placed->GetCollisionBounds()))
+		{
+			NewFurniture->Destroy();
+			return;
+		}
+	}
+
+	for (int i = 0; i < L; i++)
+	{
+		for (int j = 0; j < B; j++)
+		{
+			Grid->SetFurniture(FVector2D(GridAnchor.X + i, GridAnchor.Y + j), NewFurniture);
+		}
+	}
+
+	NewFurniture->PlacedGridAnchor = GridAnchor;
+	NewFurniture->PlacedDimensions = Dimensions;
+	NewFurniture->SetPlacedSurfaceType(EPlacementSurfaceType::Floor);
+
+	NewFurniture->Tags.Add(TEXT("InteriorFurniture"));
+	NewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), NewFurniture->FurnitureID)));
+
+	NewFurniture->SetPlacementState(EPlacementState::Placed);
+	PlacedFurnitures.Add(NewFurniture);
 }
 
 void AInteriorPlacementManager::RotatePreview(float AngleDeg)
@@ -705,13 +913,72 @@ void AInteriorPlacementManager::RotatePreview(float AngleDeg)
 
 	Swap(CurrentDimensions.X, CurrentDimensions.Y);
 
-	UpdatePreviewLocation(LastRayPosition);
+	FHitResult RotateHit;
+	RotateHit.Location = LastRayPosition;
+	RotateHit.ImpactPoint = LastRayPosition;
+
+	if (CurrentPreviewSurfaceType == EPlacementSurfaceType::Wall)
+	{
+		// 벽 노멀(밀착 오프셋 기준)은 CurrentWallNormal에 보관된 값을 그대로 사용
+		UpdatePreviewLocationOnWall(RotateHit);
+	}
+	else
+	{
+		RotateHit.ImpactNormal = FVector::UpVector;
+		UpdatePreviewLocationOnFloor(RotateHit);
+	}
 }
 
-void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
+EPlacementSurfaceType AInteriorPlacementManager::DetermineHitSurfaceType(const FHitResult& CursorHit) const
+{
+	const UPrimitiveComponent* HitComp = CursorHit.GetComponent();
+	if (HitComp && HitComp->ComponentHasTag(TEXT("EditableWall")))
+	{
+		return EPlacementSurfaceType::Wall;
+	}
+	
+	float FloorThresholdZ = GetActorLocation().Z + 5.0f; 
+	if (CursorHit.Location.Z > FloorThresholdZ)
+	{
+		return EPlacementSurfaceType::Wall;
+	}
+
+	// TODO: Surface(가구 위 표면)/Ceiling 판정
+	return EPlacementSurfaceType::Floor;
+}
+
+void AInteriorPlacementManager::UpdatePreviewLocation(const FHitResult& CursorHit)
 {
 	if (!PreviewFurniture || !Grid) return;
 
+	const EPlacementSurfaceType HitSurfaceType = DetermineHitSurfaceType(CursorHit);
+	CurrentPreviewSurfaceType = HitSurfaceType;
+	
+	if (!PreviewFurniture->SupportsPlacementType(HitSurfaceType))
+	{
+		InvalidReason = EPlacementInvalidReason::UnsupportedSurface;
+		PreviewFurniture->SetPlacementState(EPlacementState::Invalid);
+		ClearPlacementCellViz();
+		return;
+	}
+
+	if (HitSurfaceType == EPlacementSurfaceType::Wall)
+	{
+		// 트레이스에서 얻은 벽 노멀 저장 (밀착 오프셋 계산용, 회전 중엔 갱신 안 됨)
+		CurrentWallNormal = CursorHit.ImpactNormal;
+		UpdatePreviewLocationOnWall(CursorHit);
+	}
+	else
+	{
+		UpdatePreviewLocationOnFloor(CursorHit);
+	}
+}
+
+void AInteriorPlacementManager::UpdatePreviewLocationOnFloor(const FHitResult& CursorHit)
+{
+	if (!PreviewFurniture || !Grid) return;
+
+	const FVector RayPosition = CursorHit.Location;
 	LastRayPosition = RayPosition;
 
 	FVector2D GridPos = Grid->ToGridPosition(RayPosition);
@@ -721,9 +988,18 @@ void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 	int L = (int)CurrentDimensions.X;
 	int B = (int)CurrentDimensions.Y;
 
-	// 앵커는 int 나눗셈 — 홀수(L=1,3)·짝수(L=2,4) 모두 커서 셀 기준 올바른 중앙 확보
+	// 앵커는 int 나눗셈으로 계산. 홀수(L=1,3)·짝수(L=2,4) 둘 다 커서 셀 기준 중앙 맞음
 	PreviewGridAnchor.X = SnapX - L / 2;
 	PreviewGridAnchor.Y = SnapY - B / 2;
+	
+	for (AFurniture* LoopPreview : LinePreviewFurnitures)
+	{
+		if (IsValid(LoopPreview))
+		{
+			LoopPreview->Destroy();
+		}
+	}
+	LinePreviewFurnitures.Empty();
 
 	// 시각 중심은 앵커 + 크기/2 - 0.5 → 짝수 크기 가구도 점유 영역 정중앙에 렌더링
 	FVector SnappedWorld = Grid->ToWorldPosition(FVector2D(
@@ -767,7 +1043,7 @@ void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 		}
 	}
 
-	// AABB 실제 겹침 검사 — 그리드 미등록 가구(로드된 가구)까지 포함
+	// AABB 실제 겹침 검사 (그리드 미등록 가구, 즉 로드된 가구도 포함)
 	if (!bOutOfBounds && !bOverlapping)
 	{
 		FBox PreviewBox = PreviewFurniture->GetCollisionBounds().ExpandBy(-1.0f);
@@ -811,6 +1087,102 @@ void AInteriorPlacementManager::UpdatePreviewLocation(FVector RayPosition)
 	RefreshPlacementCellViz(PreviewFurniture, bOutOfBounds || bOverlapping);
 }
 
+void AInteriorPlacementManager::UpdatePreviewLocationOnWall(const FHitResult& CursorHit)
+{
+	if (!PreviewFurniture || InnerWallSegments.IsEmpty()) return;
+
+	const FVector2D HitPoint2D(CursorHit.Location.X, CursorHit.Location.Y);
+
+	// 커서와 가장 가까운 벽 세그먼트 탐색
+	float BestDistSq = TNumericLimits<float>::Max();
+	FVector2D BestSegStart = FVector2D::ZeroVector;
+	FVector2D BestSegEnd = FVector2D::ZeroVector;
+	float BestT = 0.0f;
+
+	for (const TPair<FVector2D, FVector2D>& Segment : InnerWallSegments)
+	{
+		float T;
+		const FVector2D Projected = ProjectPointOnSegment(HitPoint2D, Segment.Key, Segment.Value, T);
+		const float DistSq = FVector2D::DistSquared(HitPoint2D, Projected);
+		if (DistSq < BestDistSq)
+		{
+			BestDistSq = DistSq;
+			BestSegStart = Segment.Key;
+			BestSegEnd = Segment.Value;
+			BestT = T;
+		}
+	}
+
+	// 회전은 자동 정렬 안 하고 R키로 설정한 PreviewRotation 그대로 사용
+	const FVector2D SegDir = BestSegEnd - BestSegStart;
+	const float SegLength = SegDir.Size();
+	const FVector2D SegDirNorm = SegLength > KINDA_SMALL_NUMBER ? SegDir / SegLength : FVector2D(1.0f, 0.0f);
+
+	// 회전을 먼저 적용해야 콜리전 박스의 월드 바운드가 현재 방향을 반영함
+	PreviewFurniture->SetActorRotation(PreviewRotation);
+
+	const FBox CollisionBox = PreviewFurniture->GetCollisionBounds();
+	const FVector BoxExtent = CollisionBox.GetExtent();
+	const FVector BoxCenterOffset = CollisionBox.GetCenter() - PreviewFurniture->GetActorLocation();
+	
+	const float HalfFurnitureWidth = FMath::Abs(BoxExtent.X * SegDirNorm.X) + FMath::Abs(BoxExtent.Y * SegDirNorm.Y);
+	float SnappedDist = FMath::RoundToFloat((BestT * SegLength) / GridCellSize) * GridCellSize;
+	SnappedDist = FMath::Clamp(SnappedDist, HalfFurnitureWidth, SegLength - HalfFurnitureWidth);
+
+	const FVector2D SnappedXY = BestSegStart + SegDirNorm * SnappedDist;
+
+	// Z: 그리드 단위 스냅, 바닥 아래로는 못 내려가게 클램프
+	const float FloorZ = GetActorLocation().Z;
+	const float SnappedZ = FMath::Max(FMath::RoundToFloat(CursorHit.Location.Z / GridCellSize) * GridCellSize, FloorZ);
+
+	// 콜리전 박스 면이 벽에 맞닿도록 박스 월드 바운드를 벽 노멀에 투영해서 두께 구하고
+	// WallOffset만큼 벽 노멀 방향으로 추가로 띄움
+	const FFurnitureDataRow* Row = FindFurnitureRowByID(PreviewFurniture->FurnitureID);
+	const float WallOffset = Row ? Row->WallOffset : 0.0f;
+	const FVector2D Normal2D(CurrentWallNormal.X, CurrentWallNormal.Y);
+
+	// 콜리전 박스를 벽 노멀로 투영한 반폭, 피벗→박스중심 오프셋의 벽 노멀 성분
+	const float ExtentAlongNormal = FMath::Abs(BoxExtent.X * Normal2D.X) + FMath::Abs(BoxExtent.Y * Normal2D.Y);
+	const float OriginAlongNormal = BoxCenterOffset.X * Normal2D.X + BoxCenterOffset.Y * Normal2D.Y;
+
+	// InnerWallSegments는 벽 중심선이라 실내측 벽면까지 벽 두께 절반만큼 추가로 밀어냄
+	const float WallSurfaceOffset = WallThickness * 0.5f;
+
+	const float PushOffset = WallSurfaceOffset + (ExtentAlongNormal - OriginAlongNormal) + WallOffset;
+	const FVector2D FinalXY = SnappedXY + Normal2D * PushOffset;
+
+	const FVector FinalLocation(FinalXY.X, FinalXY.Y, SnappedZ);
+	LastRayPosition = FinalLocation;
+	
+	PreviewFurniture->SetActorLocation(FinalLocation);
+
+	// 벽 가구는 그리드/도면 검사 대신 다른 배치 가구와의 AABB 겹침만 검사
+	bool bOverlapping = false;
+	const FBox PreviewBox = PreviewFurniture->GetCollisionBounds().ExpandBy(-2.0f);
+	for (AFurniture* Placed : PlacedFurnitures)
+	{
+		if (!IsValid(Placed)) continue;
+		if (PreviewBox.Intersect(Placed->GetCollisionBounds()))
+		{
+			bOverlapping = true;
+			break;
+		}
+	}
+
+	if (!bOverlapping)
+	{
+		InvalidReason = EPlacementInvalidReason::None;
+		PreviewFurniture->SetPlacementState(EPlacementState::Preview);
+	}
+	else
+	{
+		InvalidReason = EPlacementInvalidReason::Overlapping;
+		PreviewFurniture->SetPlacementState(EPlacementState::Invalid);
+	}
+
+	RefreshPlacementCellViz(PreviewFurniture, bOverlapping);
+}
+
 void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
 {
 	if (!Target || !Grid)
@@ -820,17 +1192,20 @@ void AInteriorPlacementManager::RemoveFurniture(AFurniture* Target)
 	
 	RecordUndoSnapshot();
 
-	int L = (int)Target->PlacedDimensions.X;
-	int B = (int)Target->PlacedDimensions.Y;
-
-	for (int i = 0; i < L; i++)
+	if (Target->GetPlacedSurfaceType() == EPlacementSurfaceType::Floor)
 	{
-		for (int j = 0; j < B; j++)
+		int L = (int)Target->PlacedDimensions.X;
+		int B = (int)Target->PlacedDimensions.Y;
+
+		for (int i = 0; i < L; i++)
 		{
-			FVector2D Cell(Target->PlacedGridAnchor.X + i, Target->PlacedGridAnchor.Y + j);
-			if (Grid->GetFurniture(Cell) == Target)
+			for (int j = 0; j < B; j++)
 			{
-				Grid->SetFurniture(Cell, nullptr);
+				FVector2D Cell(Target->PlacedGridAnchor.X + i, Target->PlacedGridAnchor.Y + j);
+				if (Grid->GetFurniture(Cell) == Target)
+				{
+					Grid->SetFurniture(Cell, nullptr);
+				}
 			}
 		}
 	}
@@ -950,6 +1325,12 @@ FString AInteriorPlacementManager::ExportPlacedFurnituresJson()
 			continue;
 		}
 
+		// TODO: 벽 가구 저장/복원은 다음 단계. 지금은 세션 내 배치 확인용으로만 동작
+		if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor)
+		{
+			continue;
+		}
+
 		TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
 		Obj->SetNumberField(TEXT("furnitureId"), Placed->FurnitureID);
 		Obj->SetNumberField(TEXT("gridX"), Placed->PlacedGridAnchor.X);
@@ -969,6 +1350,9 @@ FString AInteriorPlacementManager::ExportPlacedFurnituresJson()
 void AInteriorPlacementManager::BeginGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
+
+	// TODO: 벽 가구 기즈모 이동은 다음 단계
+	if (Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor) return;
 
 	PendingGizmoUndoSnapshot = ExportPlacedFurnituresJson();
 	bHasPendingGizmoUndoSnapshot = true;
@@ -999,6 +1383,9 @@ void AInteriorPlacementManager::BeginGizmoMove(AFurniture* Target)
 void AInteriorPlacementManager::UpdateGizmoMoveLocation(FVector CursorOnGround, AFurniture* Target, const FString& Axis)
 {
 	if (!Target || !Grid) return;
+
+	// TODO: 벽 가구 기즈모 이동은 다음 단계
+	if (Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor) return;
 
 	FVector NewLoc = GizmoDragStartLocation;
 	if (Axis == TEXT("MoveX"))
@@ -1047,7 +1434,7 @@ void AInteriorPlacementManager::UpdateGizmoMoveLocation(FVector CursorOnGround, 
 		}
 	}
 
-	// AABB 실제 겹침 검사 — 자기 자신 제외
+	// AABB 실제 겹침 검사 (자기 자신 제외)
 	if (!bOutOfBounds && !bOverlapping)
 	{
 		FBox TargetBox = Target->GetCollisionBounds().ExpandBy(-1.0f);
@@ -1090,6 +1477,9 @@ void AInteriorPlacementManager::UpdateGizmoMoveFree(FVector TargetWorldLocation,
 {
 	if (!Target || !Grid) return;
 
+	// TODO: 벽 가구 기즈모 이동은 다음 단계
+	if (Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor) return;
+
 	FVector NewLoc = TargetWorldLocation;
 	NewLoc.Z = GetActorLocation().Z;
 	Target->SetActorLocation(NewLoc);
@@ -1129,7 +1519,7 @@ void AInteriorPlacementManager::UpdateGizmoMoveFree(FVector TargetWorldLocation,
 		}
 	}
 
-	// AABB 실제 겹침 검사 — 자기 자신 제외
+	// AABB 실제 겹침 검사 (자기 자신 제외)
 	if (!bOutOfBounds && !bOverlapping)
 	{
 		FBox TargetBox = Target->GetCollisionBounds().ExpandBy(-1.0f);
@@ -1171,7 +1561,10 @@ void AInteriorPlacementManager::UpdateGizmoMoveFree(FVector TargetWorldLocation,
 void AInteriorPlacementManager::AbortGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
-	
+
+	// TODO: 벽 가구 기즈모 이동은 다음 단계
+	if (Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor) return;
+
 	bHasPendingGizmoUndoSnapshot = false;
 	PendingGizmoUndoSnapshot.Empty();
 
@@ -1197,7 +1590,10 @@ void AInteriorPlacementManager::AbortGizmoMove(AFurniture* Target)
 void AInteriorPlacementManager::FinalizeGizmoMove(AFurniture* Target)
 {
 	if (!Target || !Grid) return;
-	
+
+	// TODO: 벽 가구 기즈모 이동은 다음 단계
+	if (Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor) return;
+
 	if (bHasPendingGizmoUndoSnapshot && InvalidReason == EPlacementInvalidReason::None)
 	{
 		PushUndoSnapshot(PendingGizmoUndoSnapshot);

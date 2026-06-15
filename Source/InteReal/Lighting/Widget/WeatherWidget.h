@@ -18,10 +18,8 @@ protected:
 	virtual void NativeConstruct() override;
 
 	// UI 컴포넌트
-	// UPROPERTY(meta = (BindWidget)) UComboBoxString* CB_CityMain;   // 광역시
 	UPROPERTY(meta = (BindWidget)) UComboBoxString* CB_CityDetail; // 세부지역
 	UPROPERTY(meta = (BindWidget)) UComboBoxString* CB_Solar;      // 절기
-	// UPROPERTY(meta = (BindWidget)) UComboBoxString* CB_Weather;    // 날씨
 	UPROPERTY(meta = (BindWidget)) USlider* Slider_Time;		   // 시간
 	UPROPERTY(meta = (BindWidget)) UEditableTextBox* Text_Time;		// 시간 텍스트
 	
@@ -99,7 +97,6 @@ protected:
 	void UpdateSolarBySeason(FString SeasonName);
 	
 	// 변경 이벤트 핸들러
-	// UFUNCTION() void OnCityMainChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 	UFUNCTION() void OnAnySelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 	UFUNCTION() void OnSliderChanged(float Value);
 	UFUNCTION() void OnTimeTextChanged(const FText& Text, ETextCommit::Type CommitMethod); 
