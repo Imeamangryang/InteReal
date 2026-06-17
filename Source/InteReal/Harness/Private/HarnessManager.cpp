@@ -1,10 +1,8 @@
 #include "InteReal/Harness/Public/HarnessManager.h"
 #include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "InteReal/Harness/Public/HarnessMinimapCaptureComponent.h"
-#include "InteReal/Harness/Public/HarnessMainHUD.h"
 #include "InteReal/Harness/Public/HarnessSaveManagerComponent.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
-#include "InteReal/UI/InteRealPlanViewModel.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "InteReal/Master/InteRealPlayerController.h"
@@ -27,8 +25,6 @@ void AHarnessManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    UInteRealPlanViewModel* ViewModel = NewObject<UInteRealPlanViewModel>(this);
-
     if (auto* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
     {
         Pipeline->InitializePipeline(SaveManagerComponent, HarnessComponent);
@@ -41,20 +37,6 @@ void AHarnessManager::BeginPlay()
             {
                 HUD->BindHarnessPipeline(Pipeline);
             }
-        }
-    }
-
-    if (MainHUDClass)
-    {
-        auto* HUD = CreateWidget<UHarnessMainHUD>(GetWorld(), MainHUDClass);
-        if (HUD)
-        {
-            HUD->SetupHUD(ViewModel);
-            HUD->AddToViewport();
-            
-            APlayerController* PC = GetWorld()->GetFirstPlayerController();
-            PC->SetShowMouseCursor(true);
-            PC->SetInputMode(FInputModeGameAndUI());
         }
     }
 }
@@ -97,7 +79,7 @@ void AHarnessManager::DelayedCapture()
         TWeakObjectPtr<AInteRealPlayerController> WeakPC = ViewPC;
         GetWorld()->GetTimerManager().SetTimer(CaptureTimerHandle, FTimerDelegate::CreateLambda([this, WeakPC]() {
             if (CaptureComponent) {
-                CaptureComponent->CaptureScene();
+                CaptureComponent->UpdateMinimap();
                 if (WeakPC.IsValid()) WeakPC->ShowMinimap();
             }
         }), 1.0f, false);

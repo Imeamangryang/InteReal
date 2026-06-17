@@ -6,13 +6,14 @@
 #include "InteReal/EditMode/UI/PlacementTooltipWidget.h"
 #include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/UI/UserGuideWidget.h"
-#include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteRealPlayerController.h"
 #include "InteRealHUD.generated.h"
 
+class UEnvironmentPanel;
 class UUserWidget;
 class UHarnessMinimapCaptureComponent;
-class UHarnessCaptureMinimapWidget;
+class UInteRealMinimap;
 class UTextureRenderTarget2D;
 class UInteReal2DFloorPlanViewportWidget;
 class UHarnessPipelineManager;
@@ -36,12 +37,12 @@ public:
 	);
 
 	void SetupMinimapHUD(
-		UHarnessMinimapCaptureComponent* InCaptureComp,
-		UTextureRenderTarget2D* InRT,
-		TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass,
-		EHarnessViewMode CurrentViewMode,
-		EInteRealControlMode CurrentControlMode
-	);
+			UHarnessMinimapCaptureComponent* InCaptureComp,
+			UTextureRenderTarget2D* InRT,
+			TSubclassOf<UInteRealMinimap> InWidgetClass,
+			EHarnessViewMode CurrentViewMode,
+			EInteRealControlMode CurrentControlMode
+		);
 
 	void UpdateUserGuide(bool bVisible, EPlacementInvalidReason Reason, const FVector2D& MousePosition);
 	void ShowMinimap(EInteRealControlMode CurrentMode);
@@ -95,22 +96,16 @@ public:
 
 	// ===== View Mode UI =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
-	TSubclassOf<UUserWidget> ViewModeWidgetClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
-	TSubclassOf<UHarnessCaptureMinimapWidget> MinimapWidgetClass;
+	TSubclassOf<UInteRealMinimap> MinimapWidgetClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")
-	TSubclassOf<UUserWidget> WeatherWidgetClass;
+	TSubclassOf<UEnvironmentPanel> EnvironmentPanelClass;
 
 	UPROPERTY()
-	TObjectPtr<UUserWidget> ViewModeWidgetInstance = nullptr;
-
-	UPROPERTY()
-	TObjectPtr<UHarnessCaptureMinimapWidget> MinimapWidgetInstance = nullptr;
+	TObjectPtr<UInteRealMinimap> MinimapWidgetInstance = nullptr;
 	
 	UPROPERTY()
-	TObjectPtr<UUserWidget> WeatherWidgetInstance = nullptr;
+	TObjectPtr<UEnvironmentPanel> EnvironmentPanelInstance = nullptr;
 
 private:
 	UFUNCTION()

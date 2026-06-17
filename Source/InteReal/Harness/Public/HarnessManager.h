@@ -6,7 +6,7 @@
 
 class UHarnessGeneratorComponent;
 class UHarnessMinimapCaptureComponent;
-class UHarnessCaptureMinimapWidget;
+class UInteRealMinimap;
 class UHarnessSaveManagerComponent;
 class UHarnessPipelineManager;
 
@@ -39,11 +39,7 @@ public:
 
     // 블루프린트 위젯(WBP_CaptureMinimap) 클래스를 할당할 변수
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|UI")
-    TSubclassOf<UHarnessCaptureMinimapWidget> MinimapWidgetClass;
-
-    // 메인 HUD 위젯 클래스 (도면 목록 UI)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|UI")
-    TSubclassOf<class UHarnessMainHUD> MainHUDClass;
+    TSubclassOf<UInteRealMinimap> MinimapWidgetClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
     bool bBuildOnBeginPlay = false;
@@ -54,7 +50,7 @@ public:
 private:
     // 생성된 위젯 인스턴스 보관용 포인터
     UPROPERTY(Transient)
-    TObjectPtr<UHarnessCaptureMinimapWidget> MinimapWidget;
+    TObjectPtr<UInteRealMinimap> MinimapWidget;
 
     // 머티리얼 적용 대기 후 캡처를 위한 타이머
     FTimerHandle CaptureTimerHandle;

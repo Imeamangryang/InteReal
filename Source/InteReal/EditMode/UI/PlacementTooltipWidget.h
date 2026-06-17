@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
-#include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "Subsystem/InteriorPlacementSubsystem.h"
 #include "PlacementTooltipWidget.generated.h"
 
 UCLASS()

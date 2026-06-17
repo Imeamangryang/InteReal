@@ -14,35 +14,109 @@
   <component name="ChangeListManager">
     <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Bathtub.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Bed_Lamp_1.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Bed_Lamp_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Bed_Table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Bed_lamp_3.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_Leather_Armchair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_Leather_Sofa.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_Leather_sofa_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_Picture.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_Round_Table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_chair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Classic_table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Coffee_Table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Commode.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Elegant_chair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Elegant_chair_ottoman.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Military_Bed.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Military_Bed_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Armchair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Bed_1.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Bed_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Chair_1.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Office_chair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Sofa_1.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Sofa_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Modern_Table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Old_Chair.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Old_Table.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Picture.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_TV.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Table_Lamp.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/SM_Toilet.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Inputs/IMC_EditMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Inputs/IMC_EditMode.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Grid.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Grid.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterOutline.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterOutline.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/UI/WBP_Tooltip.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/UI/WBP_Tooltip.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/UI/WBP_UserGuide.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/UI/WBP_UserGuide.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Fab/3_Pack_of_Storm_Lightning/3_pack_of_storm_lightning/Materials/th_bolt.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Fab/3_Pack_of_Storm_Lightning/3_pack_of_storm_lightning/Materials/th_bolt.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Harness/BP_HarnessManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Harness/BP_HarnessManager.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Harness/NewPixelStreaming2MediaTexture.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Harness/NewPixelStreaming2MediaTexture_Mat.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Harness/WBP_HarnessMainHUD.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Harness/WBP_Minimap.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealHUD.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Blueprints/BP_InteRealPlayerController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/TestData/test11.json" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestData/test11.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/UI/Components/WBP_IconTextWidget.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Components/WBP_IconTextWidget.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Image/mouse_cursor.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Maps/MasterMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Maps/MasterMap.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Component/WBP_BaseButton.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Component/WBP_BaseComboBox.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Component/WBP_BaseInput.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Component/WBP_BaseSlider.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Component/WBP_SelectableButton.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/Template/DA_InteRealTheme.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widget/WBP_Cursor.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/TestData/test10.json" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestData/test10.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/TestData/test10_delta.json" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestData/test10_delta.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/TestData/test1_delta.json" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestData/test1_delta.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/Widgets/WBP_FloorPlan.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Widgets/WBP_FloorPlan.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/ViewMode/BP_ViewModeController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/ViewMode/BP_ViewModeController.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InteReal.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/InteReal.sln.DotSettings.user" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/FFurnitureDataRow.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/FFurnitureDataRow.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furnitures/Furniture.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/InteriorPlacementManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/PlacementTooltipWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/UserGuideWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/UserGuideWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessGeneratorComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessGeneratorComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMainHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMainHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMinimapCaptureComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessMinimapCaptureComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessSaveManagerComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessSaveManagerComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessDataTypes.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessDataTypes.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessGeneratorComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessGeneratorComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessMinimapCaptureComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessMinimapCaptureComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/IconTextButtonWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/BaseComboBox.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/BaseComboBox.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/BaseSlider.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/BaseSlider.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/TopBarWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Network/InteRealDataTypes.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Network/InteRealDataTypes.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/UI/InteRealPlanViewModel.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/UI/InteRealPlanViewModel.h" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,6 +141,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Programs/AutomationTool/AutomationUtils/ProcessUtils.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Programs/Shared/EpicGames.MsBuild/CsProjBuilder.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/Engine/Classes/GameFramework/Actor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/SlateCore/Public/Rendering/DrawElementTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/UMG/Public/Blueprint/WidgetBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Content/TestData/test11.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanConverter.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -143,27 +218,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "C/C++ 프로젝트.InteReal.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "advanced.settings",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;C/C++ 프로젝트.InteReal.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="ReadonlyStatusHandler">
     <option name="SHOW_DIALOG" value="false" />
   </component>
@@ -302,7 +377,10 @@
       <workItem from="1781061055416" duration="10808000" />
       <workItem from="1781135683563" duration="20201000" />
       <workItem from="1781222835681" duration="19251000" />
-      <workItem from="1781478215352" duration="13737000" />
+      <workItem from="1781478215352" duration="18264000" />
+      <workItem from="1781569163718" duration="26767000" />
+      <workItem from="1781655173336" duration="3684000" />
+      <workItem from="1781659374355" duration="2850000" />
     </task>
     <servers />
   </component>

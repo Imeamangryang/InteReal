@@ -26,7 +26,7 @@ public:
 
     // 에디터에서 즉시 끄고 켤 수 있는 인테리어 조명 토글
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Lighting")
-    bool bEnableInteriorLights = true;
+    bool bEnableInteriorLights = false;
     
     // 도면 생성 요청 진입점 (기존 도면이 있으면 애니메이션 처리 후 내부 함수 호출)
     UFUNCTION(BlueprintCallable, Category="Harness")
@@ -34,6 +34,10 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Harness")
     void ClearHarness();
+
+    // 💡 천장 높이 동적 수정 기능
+    UFUNCTION(BlueprintCallable, Category="Harness")
+    void UpdateCeilingHeight(FString FaceId, float NewHeight);
     
     TMap<FString, FVector2D> VertexCache;
     TMap<FString, FTopologyHalfEdge> EdgeCache;

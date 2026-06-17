@@ -45,6 +45,10 @@ void UWeatherUISubsystem::SetOrientation(float Offset) { CurrentOrientation = Of
 void UWeatherUISubsystem::ForceUpdate() { BroadcastEnvironment(); }
 
 void UWeatherUISubsystem::BroadcastEnvironment() {
+	
+	// 1. 테이블 유효성 검사 추가 (안전성 확보)
+	if (!CityDetailTable || !WeatherTable || !SolarTermTable || !CityMainTable) return;
+	
     auto* D = CityDetailTable->FindRow<FCityDetailData>(CurrentCityDetailID, TEXT(""));
     auto* W = WeatherTable->FindRow<FWeatherData>(CurrentWeatherID, TEXT(""));
     auto* S = SolarTermTable->FindRow<FSolarTermData>(CurrentSolarID, TEXT(""));
@@ -57,7 +61,12 @@ void UWeatherUISubsystem::BroadcastEnvironment() {
        }
     }
 
-    if (W && C && D && S) {
-       OnEnvironmentUpdate.Broadcast(*W, *C, *D, *S, CurrentTime, CurrentOrientation);
-    }
+	// 2. 모든 데이터가 찾았을 때만 브로드캐스트
+	if (W && C && D && S) {
+		OnEnvironmentUpdate.Broadcast(*W, *C, *D, *S, CurrentTime, CurrentOrientation);
+	} 
+	else {
+		// 데이터가 없으면 오류를 출력하여 어떤 RowName이 문제인지 바로 확인 가능하게 함
+		UE_LOG(LogTemp, Warning, TEXT("Environment Data Load Failed!"));
+	}
 }

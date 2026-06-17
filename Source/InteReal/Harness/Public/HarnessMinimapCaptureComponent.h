@@ -17,6 +17,9 @@ class INTEREAL_API UHarnessMinimapCaptureComponent : public USceneCaptureCompone
 public:
 	UHarnessMinimapCaptureComponent();
 
+	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
+	void ApplyStableCaptureSettings();
+
 	// 렌더 타겟을 싱글턴 패턴처럼 관리하여 반환
 	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
 	UTextureRenderTarget2D* GetOrCreateRenderTarget(int32 Resolution = 1024);
@@ -30,9 +33,9 @@ public:
 	void UpdateMinimap();
 
 protected:
+	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextureRenderTarget2D> MinimapRenderTarget;

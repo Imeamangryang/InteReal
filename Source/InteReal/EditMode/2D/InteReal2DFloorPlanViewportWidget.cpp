@@ -1,8 +1,11 @@
 #include "InteReal2DFloorPlanViewportWidget.h"
-
 #include "InteReal2DFloorPlanConverter.h"
-#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "InputCoreTypes.h"
 #include "Rendering/DrawElements.h"
+#include "Styling/SlateBrush.h"
+#include "Components/Border.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 
 void UInteReal2DFloorPlanViewportWidget::SetDocument(const FInteReal2DFloorPlanDocument& InDocument)
 {
@@ -16,6 +19,16 @@ void UInteReal2DFloorPlanViewportWidget::LoadFromHarnessFloorData(const FHarness
     InvalidateLayoutAndVolatility();
 }
 
+void UInteReal2DFloorPlanViewportWidget::SetDrawArea(const FVector2D& InDrawOffset, const FVector2D& InDrawSizeOverride)
+{
+    DrawOffset = InDrawOffset;
+    DrawSizeOverride = InDrawSizeOverride;
+    bUseDrawSizeOverride = DrawSizeOverride.X > 0.0f && DrawSizeOverride.Y > 0.0f;
+
+    ApplyInputCatcherLayout(GetCachedGeometry().GetLocalSize());
+    InvalidateLayoutAndVolatility();
+}
+
 FVector2D UInteReal2DFloorPlanViewportWidget::GetDocumentSize() const
 {
     return Document.BoundsMax - Document.BoundsMin;
@@ -23,35 +36,78 @@ FVector2D UInteReal2DFloorPlanViewportWidget::GetDocumentSize() const
 
 FVector2D UInteReal2DFloorPlanViewportWidget::TransformDocumentPointToLocal(const FVector2D& DocPoint, const FVector2D& LocalSize) const
 {
+    const FVector2D DrawSize = bUseDrawSizeOverride
+        ? FVector2D(
+            FMath::Max(DrawSizeOverride.X, 1.0f),
+            FMath::Max(DrawSizeOverride.Y, 1.0f)
+        )
+        : LocalSize;
+
     const FVector2D DocSize = GetDocumentSize();
 
     const float SafeDocWidth = FMath::Max(DocSize.X, 1.0f);
     const float SafeDocHeight = FMath::Max(DocSize.Y, 1.0f);
 
-    const float AvailableWidth = FMath::Max(1.0f, LocalSize.X - ViewPadding * 2.0f);
-    const float AvailableHeight = FMath::Max(1.0f, LocalSize.Y - ViewPadding * 2.0f);
+    const float RotationRadians = FMath::DegreesToRadians(-DrawRotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
 
-    const float Scale = FMath::Min(AvailableWidth / SafeDocWidth, AvailableHeight / SafeDocHeight);
+    const float RotatedBoundsWidth =
+        FMath::Abs(CosAngle) * SafeDocWidth +
+        FMath::Abs(SinAngle) * SafeDocHeight;
 
-    const FVector2D ScaledDocSize(SafeDocWidth * Scale, SafeDocHeight * Scale);
-    const FVector2D Offset(
-        (LocalSize.X - ScaledDocSize.X) * 0.5f,
-        (LocalSize.Y - ScaledDocSize.Y) * 0.5f
+    const float RotatedBoundsHeight =
+        FMath::Abs(SinAngle) * SafeDocWidth +
+        FMath::Abs(CosAngle) * SafeDocHeight;
+
+    const float AvailableWidth = FMath::Max(1.0f, DrawSize.X - ViewPadding * 2.0f);
+    const float AvailableHeight = FMath::Max(1.0f, DrawSize.Y - ViewPadding * 2.0f);
+
+    const float Scale = FMath::Min(
+        AvailableWidth / FMath::Max(RotatedBoundsWidth, 1.0f),
+        AvailableHeight / FMath::Max(RotatedBoundsHeight, 1.0f)
     );
 
-    const float LocalX = Offset.X + (DocPoint.X - Document.BoundsMin.X) * Scale;
+    const FVector2D ScaledRotatedBounds(
+        RotatedBoundsWidth * Scale,
+        RotatedBoundsHeight * Scale
+    );
 
-    float LocalY = 0.0f;
+    const FVector2D Offset(
+        DrawOffset.X + (DrawSize.X - ScaledRotatedBounds.X) * 0.5f,
+        DrawOffset.Y + (DrawSize.Y - ScaledRotatedBounds.Y) * 0.5f
+    );
+
+    const float UnrotatedX = DocPoint.X - Document.BoundsMin.X;
+
+    float UnrotatedY = 0.0f;
     if (bFlipYForScreenSpace)
     {
-        LocalY = Offset.Y + (Document.BoundsMax.Y - DocPoint.Y) * Scale;
+        UnrotatedY = Document.BoundsMax.Y - DocPoint.Y;
     }
     else
     {
-        LocalY = Offset.Y + (DocPoint.Y - Document.BoundsMin.Y) * Scale;
+        UnrotatedY = DocPoint.Y - Document.BoundsMin.Y;
     }
 
-    return FVector2D(LocalX, LocalY);
+    const FVector2D DocumentCenter(
+        SafeDocWidth * 0.5f,
+        SafeDocHeight * 0.5f
+    );
+
+    const FVector2D CenteredPoint =
+        FVector2D(UnrotatedX, UnrotatedY) - DocumentCenter;
+
+    const FVector2D RotatedCenteredPoint(
+        CenteredPoint.X * CosAngle - CenteredPoint.Y * SinAngle,
+        CenteredPoint.X * SinAngle + CenteredPoint.Y * CosAngle
+    );
+
+    const FVector2D RotatedPoint =
+        RotatedCenteredPoint +
+        FVector2D(RotatedBoundsWidth * 0.5f, RotatedBoundsHeight * 0.5f);
+
+    return Offset + RotatedPoint * Scale;
 }
 
 FLinearColor UInteReal2DFloorPlanViewportWidget::ResolveOpeningColor(const FString& OpeningType) const
@@ -69,6 +125,30 @@ FLinearColor UInteReal2DFloorPlanViewportWidget::ResolveOpeningColor(const FStri
     return OpeningDefaultColor;
 }
 
+void UInteReal2DFloorPlanViewportWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+    
+    SetIsEnabled(true);
+    SetVisibility(ESlateVisibility::Visible);
+    SetIsFocusable(true);
+
+    if (InputCatcherBorder)
+    {
+        InputCatcherBorder->SetVisibility(ESlateVisibility::Visible);
+        InputCatcherBorder->OnMouseButtonDownEvent.BindDynamic(
+            this,
+            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown
+        );
+        InputCatcherBorder->OnMouseMoveEvent.BindDynamic(
+            this,
+            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove
+        );
+
+        ApplyInputCatcherLayout(GetCachedGeometry().GetLocalSize());
+    }
+}
+
 int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
     const FPaintArgs& Args,
     const FGeometry& AllottedGeometry,
@@ -79,6 +159,31 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
     bool bParentEnabled
 ) const
 {
+    if (bDrawBackground)
+    {
+        const FVector2D BackgroundOffset = GetDrawAreaOffset();
+        const FVector2D BackgroundSize = GetDrawAreaSize(AllottedGeometry.GetLocalSize());
+
+        const FSlateRoundedBoxBrush BackgroundBrush(
+            BackgroundColor,
+            BackgroundCornerRadius
+        );
+
+        FSlateDrawElement::MakeBox(
+            OutDrawElements,
+            LayerId,
+            AllottedGeometry.ToPaintGeometry(
+                BackgroundSize,
+                FSlateLayoutTransform(BackgroundOffset)
+            ),
+            &BackgroundBrush,
+            ESlateDrawEffect::None,
+            InWidgetStyle.GetColorAndOpacityTint()
+        );
+
+        ++LayerId;
+    }
+    
     LayerId = Super::NativePaint(
         Args,
         AllottedGeometry,
@@ -145,5 +250,430 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
         );
     }
 
+    ++LayerId;
+
+    for (const FInteReal2DPlacedFurniture& Furniture : PlacedFurnitures2D)
+    {
+        DrawFurnitureRect(
+            OutDrawElements,
+            AllottedGeometry,
+            LayerId,
+            Furniture,
+            FurnitureFillColor,
+            FurnitureOutlineColor
+        );
+    }
+
+    LayerId += 2;
+
+    if (bIsPlacingFurniture2D && bHasFurniturePreviewPosition)
+    {
+        FInteReal2DPlacedFurniture PreviewFurniture;
+        PreviewFurniture.FurnitureID = PendingFurnitureRow.ID;
+        PreviewFurniture.DisplayName = PendingFurnitureRow.DisplayName;
+        PreviewFurniture.CenterDocumentPosition = PreviewFurnitureCenterDocument;
+        PreviewFurniture.Size = PendingFurnitureSize;
+        PreviewFurniture.RotationDegrees = 0.0f;
+
+        DrawFurnitureRect(
+            OutDrawElements,
+            AllottedGeometry,
+            LayerId,
+            PreviewFurniture,
+            FurniturePreviewFillColor,
+            FurniturePreviewOutlineColor
+        );
+
+        LayerId += 2;
+    }
+
     return LayerId + 1;
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::GetDrawAreaOffset() const
+{
+    return bUseDrawSizeOverride
+        ? DrawOffset
+        : FVector2D::ZeroVector;
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::GetDrawAreaSize(const FVector2D& LocalSize) const
+{
+    return bUseDrawSizeOverride
+        ? FVector2D(
+            FMath::Max(DrawSizeOverride.X, 1.0f),
+            FMath::Max(DrawSizeOverride.Y, 1.0f)
+        )
+        : LocalSize;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::IsLocalPointInsideDrawArea(const FVector2D& LocalPoint, const FVector2D& LocalSize) const
+{
+    const FVector2D AreaOffset = GetDrawAreaOffset();
+    const FVector2D AreaSize = GetDrawAreaSize(LocalSize);
+
+    return LocalPoint.X >= AreaOffset.X &&
+        LocalPoint.Y >= AreaOffset.Y &&
+        LocalPoint.X <= AreaOffset.X + AreaSize.X &&
+        LocalPoint.Y <= AreaOffset.Y + AreaSize.Y;
+}
+
+FReply UInteReal2DFloorPlanViewportWidget::NativeOnMouseButtonDown(
+    const FGeometry& InGeometry,
+    const FPointerEvent& InMouseEvent
+)
+{
+    if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+    {
+        return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+    }
+
+    LastClickedLocalPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    bLastClickInsideDrawArea = IsLocalPointInsideDrawArea(
+        LastClickedLocalPosition,
+        InGeometry.GetLocalSize()
+    );
+
+    if (!bLastClickInsideDrawArea)
+    {
+        return FReply::Unhandled();
+    }
+
+    OnDrawAreaClicked.Broadcast(LastClickedLocalPosition);
+
+    return FReply::Handled();
+}
+
+FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown(
+    FGeometry MyGeometry,
+    const FPointerEvent& MouseEvent
+)
+{
+    FEventReply Reply;
+
+    if (MouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+    {
+        return Reply;
+    }
+
+    const FGeometry CachedGeometry = GetCachedGeometry();
+    LastClickedLocalPosition = CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+    bLastClickInsideDrawArea = IsLocalPointInsideDrawArea(
+        LastClickedLocalPosition,
+        CachedGeometry.GetLocalSize()
+    );
+
+    if (!bLastClickInsideDrawArea)
+    {
+        return Reply;
+    }
+
+    OnDrawAreaClicked.Broadcast(LastClickedLocalPosition);
+
+    if (bIsPlacingFurniture2D && Document.bIsValid)
+    {
+        PreviewFurnitureCenterDocument = TransformLocalPointToDocument(
+            LastClickedLocalPosition,
+            CachedGeometry.GetLocalSize()
+        );
+        bHasFurniturePreviewPosition = true;
+
+        OnFurniturePlacementRequested2D.Broadcast(PreviewFurnitureCenterDocument);
+    }
+
+    return UWidgetBlueprintLibrary::Handled();
+}
+
+FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
+    FGeometry MyGeometry,
+    const FPointerEvent& MouseEvent
+)
+{
+    FEventReply Reply;
+
+    if (!bIsPlacingFurniture2D || !Document.bIsValid)
+    {
+        return Reply;
+    }
+
+    const FGeometry CachedGeometry = GetCachedGeometry();
+    const FVector2D LocalMousePosition =
+        CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+
+    if (!IsLocalPointInsideDrawArea(LocalMousePosition, CachedGeometry.GetLocalSize()))
+    {
+        bHasFurniturePreviewPosition = false;
+        Invalidate(EInvalidateWidgetReason::Paint);
+        return Reply;
+    }
+
+    PreviewFurnitureCenterDocument = TransformLocalPointToDocument(
+        LocalMousePosition,
+        CachedGeometry.GetLocalSize()
+    );
+    bHasFurniturePreviewPosition = true;
+    
+    OnFurniturePreviewMoved2D.Broadcast(PreviewFurnitureCenterDocument);
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+
+    return UWidgetBlueprintLibrary::Handled();
+}
+
+void UInteReal2DFloorPlanViewportWidget::ApplyInputCatcherLayout(const FVector2D& LocalSize)
+{
+    if (!InputCatcherBorder)
+    {
+        return;
+    }
+
+    const FVector2D AreaOffset = GetDrawAreaOffset();
+    const FVector2D AreaSize = GetDrawAreaSize(LocalSize);
+
+    InputCatcherBorder->SetVisibility(ESlateVisibility::Visible);
+
+    if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(InputCatcherBorder->Slot))
+    {
+        CanvasSlot->SetAutoSize(false);
+        CanvasSlot->SetAlignment(FVector2D::ZeroVector);
+        CanvasSlot->SetPosition(AreaOffset);
+        CanvasSlot->SetSize(AreaSize);
+    }
+    else
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("InputCatcherBorder is not inside a CanvasPanel. Position/Size cannot be applied with DrawOffset/DrawSizeOverride.")
+        );
+    }
+}
+
+void UInteReal2DFloorPlanViewportWidget::StartFurniturePlacement(const FFurnitureDataRow& FurnitureRow)
+{
+    PendingFurnitureRow = FurnitureRow;
+    PendingFurnitureSize = FVector2D(
+        FMath::Max(FurnitureRow.Width, 1.0f),
+        FMath::Max(FurnitureRow.Depth, 1.0f)
+    );
+
+    bIsPlacingFurniture2D = true;
+    bHasFurniturePreviewPosition = false;
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::CancelFurniturePlacement()
+{
+    bIsPlacingFurniture2D = false;
+    bHasFurniturePreviewPosition = false;
+    PendingFurnitureRow = FFurnitureDataRow();
+    PendingFurnitureSize = FVector2D::ZeroVector;
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::ClearPlacedFurnitures()
+{
+    PlacedFurnitures2D.Reset();
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::TransformLocalPointToDocument(const FVector2D& LocalPoint, const FVector2D& LocalSize) const
+{
+    const FVector2D DrawSize = bUseDrawSizeOverride
+        ? FVector2D(
+            FMath::Max(DrawSizeOverride.X, 1.0f),
+            FMath::Max(DrawSizeOverride.Y, 1.0f)
+        )
+        : LocalSize;
+
+    const FVector2D DocSize = GetDocumentSize();
+
+    const float SafeDocWidth = FMath::Max(DocSize.X, 1.0f);
+    const float SafeDocHeight = FMath::Max(DocSize.Y, 1.0f);
+
+    const float RotationRadians = FMath::DegreesToRadians(-DrawRotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    const float RotatedBoundsWidth =
+        FMath::Abs(CosAngle) * SafeDocWidth +
+        FMath::Abs(SinAngle) * SafeDocHeight;
+
+    const float RotatedBoundsHeight =
+        FMath::Abs(SinAngle) * SafeDocWidth +
+        FMath::Abs(CosAngle) * SafeDocHeight;
+
+    const float AvailableWidth = FMath::Max(1.0f, DrawSize.X - ViewPadding * 2.0f);
+    const float AvailableHeight = FMath::Max(1.0f, DrawSize.Y - ViewPadding * 2.0f);
+
+    const float Scale = FMath::Min(
+        AvailableWidth / FMath::Max(RotatedBoundsWidth, 1.0f),
+        AvailableHeight / FMath::Max(RotatedBoundsHeight, 1.0f)
+    );
+
+    const FVector2D ScaledRotatedBounds(
+        RotatedBoundsWidth * Scale,
+        RotatedBoundsHeight * Scale
+    );
+
+    const FVector2D Offset(
+        DrawOffset.X + (DrawSize.X - ScaledRotatedBounds.X) * 0.5f,
+        DrawOffset.Y + (DrawSize.Y - ScaledRotatedBounds.Y) * 0.5f
+    );
+
+    const FVector2D RotatedPoint = (LocalPoint - Offset) / FMath::Max(Scale, UE_SMALL_NUMBER);
+
+    const FVector2D RotatedCenteredPoint =
+        RotatedPoint - FVector2D(RotatedBoundsWidth * 0.5f, RotatedBoundsHeight * 0.5f);
+
+    const FVector2D CenteredPoint(
+        RotatedCenteredPoint.X * CosAngle + RotatedCenteredPoint.Y * SinAngle,
+        -RotatedCenteredPoint.X * SinAngle + RotatedCenteredPoint.Y * CosAngle
+    );
+
+    const FVector2D DocumentCenter(
+        SafeDocWidth * 0.5f,
+        SafeDocHeight * 0.5f
+    );
+
+    const FVector2D UnrotatedPoint = CenteredPoint + DocumentCenter;
+
+    const float DocX = Document.BoundsMin.X + UnrotatedPoint.X;
+
+    const float DocY = bFlipYForScreenSpace
+        ? Document.BoundsMax.Y - UnrotatedPoint.Y
+        : Document.BoundsMin.Y + UnrotatedPoint.Y;
+
+    return FVector2D(DocX, DocY);
+}
+
+void UInteReal2DFloorPlanViewportWidget::DrawFurnitureRect(
+    FSlateWindowElementList& OutDrawElements,
+    const FGeometry& AllottedGeometry,
+    int32 LayerId,
+    const FInteReal2DPlacedFurniture& Furniture,
+    const FLinearColor& FillColor,
+    const FLinearColor& OutlineColor
+) const
+{
+    const FVector2D LocalSize = AllottedGeometry.GetLocalSize();
+
+    const FVector2D HalfSize = Furniture.Size * 0.5f;
+    const float RotationRadians = FMath::DegreesToRadians(Furniture.RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    const FVector2D LocalCorners[4]
+    {
+        FVector2D(-HalfSize.X, -HalfSize.Y),
+        FVector2D(HalfSize.X, -HalfSize.Y),
+        FVector2D(HalfSize.X, HalfSize.Y),
+        FVector2D(-HalfSize.X, HalfSize.Y)
+    };
+
+    TArray<FVector2D> DrawPoints;
+    DrawPoints.Reserve(5);
+
+    for (const FVector2D& Corner : LocalCorners)
+    {
+        const FVector2D RotatedCorner(
+            Corner.X * CosAngle - Corner.Y * SinAngle,
+            Corner.X * SinAngle + Corner.Y * CosAngle
+        );
+
+        const FVector2D DocPoint = Furniture.CenterDocumentPosition + RotatedCorner;
+        DrawPoints.Add(TransformDocumentPointToLocal(DocPoint, LocalSize));
+    }
+
+    if (DrawPoints.Num() != 4)
+    {
+        return;
+    }
+
+    const FVector2D ScreenCenter =
+        (DrawPoints[0] + DrawPoints[1] + DrawPoints[2] + DrawPoints[3]) * 0.25f;
+
+    const float ScreenWidth = FVector2D::Distance(DrawPoints[0], DrawPoints[1]);
+    const float ScreenHeight = FVector2D::Distance(DrawPoints[1], DrawPoints[2]);
+
+    if (ScreenWidth <= UE_SMALL_NUMBER || ScreenHeight <= UE_SMALL_NUMBER)
+    {
+        return;
+    }
+
+    const FVector2D ScreenXAxis = DrawPoints[1] - DrawPoints[0];
+    const float ScreenRotationRadians = FMath::Atan2(ScreenXAxis.Y, ScreenXAxis.X);
+
+    const FVector2D PaintSize(ScreenWidth, ScreenHeight);
+    const FVector2D PaintPosition = ScreenCenter - PaintSize * 0.5f;
+
+    const FSlateColorBrush FillBrush(FillColor);
+
+    FSlateDrawElement::MakeRotatedBox(
+        OutDrawElements,
+        LayerId,
+        AllottedGeometry.ToPaintGeometry(
+            PaintSize,
+            FSlateLayoutTransform(PaintPosition)
+        ),
+        &FillBrush,
+        ESlateDrawEffect::None,
+        ScreenRotationRadians,
+        TOptional<FVector2D>(),
+        FSlateDrawElement::RelativeToElement,
+        FLinearColor::White
+    );
+
+    const FVector2D FirstDrawPoint = DrawPoints[0];
+    DrawPoints.Add(FirstDrawPoint);
+
+    FSlateDrawElement::MakeLines(
+        OutDrawElements,
+        LayerId + 1,
+        AllottedGeometry.ToPaintGeometry(),
+        DrawPoints,
+        ESlateDrawEffect::None,
+        OutlineColor,
+        true,
+        FurnitureOutlineThickness
+    );
+}
+
+void UInteReal2DFloorPlanViewportWidget::AddPlacedFurnitureAtDocumentPosition(
+    const FFurnitureDataRow& FurnitureRow,
+    const FVector2D& CenterDocumentPosition,
+    float RotationDegrees
+)
+{
+    FInteReal2DPlacedFurniture NewFurniture;
+    NewFurniture.FurnitureID = FurnitureRow.ID;
+    NewFurniture.DisplayName = FurnitureRow.DisplayName;
+    NewFurniture.CenterDocumentPosition = CenterDocumentPosition;
+    NewFurniture.Size = FVector2D(
+        FMath::Max(FurnitureRow.Width, 1.0f),
+        FMath::Max(FurnitureRow.Depth, 1.0f)
+    );
+    NewFurniture.RotationDegrees = RotationDegrees;
+
+    PlacedFurnitures2D.Add(NewFurniture);
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewAtDocumentPosition(
+    const FVector2D& CenterDocumentPosition,
+    float RotationDegrees
+)
+{
+    if (!bIsPlacingFurniture2D)
+    {
+        return;
+    }
+
+    PreviewFurnitureCenterDocument = CenterDocumentPosition;
+    bHasFurniturePreviewPosition = true;
+
+    Invalidate(EInvalidateWidgetReason::Paint);
 }

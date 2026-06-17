@@ -91,6 +91,14 @@ void AGridSpaceManager::SetFurniture(FVector2D GridPosition, AActor* Furniture)
 	GridCells[index] = Furniture;
 }
 
+void AGridSpaceManager::ClearFurnitureOccupancy()
+{
+	for (AActor*& Cell : GridCells)
+	{
+		Cell = nullptr;
+	}
+}
+
 EGridTileState AGridSpaceManager::GetTileState(FVector2D GridPosition)
 {
 	int index = GetIndex(GridPosition);

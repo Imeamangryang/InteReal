@@ -61,6 +61,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetFurniture(FVector2D GridPosition, AActor* Furniture);
 
+	UFUNCTION(BlueprintCallable)
+	void ClearFurnitureOccupancy();
+
 	// --- tile state (도면 내부/외부 판정)
 	UFUNCTION(BlueprintPure)
 	EGridTileState GetTileState(FVector2D GridPosition);

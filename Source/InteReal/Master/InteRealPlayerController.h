@@ -8,9 +8,11 @@
 #include "InputActionValue.h"
 #include "InteRealPlayerController.generated.h"
 
-class AInteriorPlacementManager;
+class UInteRealMinimap;
+class UInteriorPlacementSubsystem;
 class AViewModeManager;
 class AInteRealHUD;
+class AInteRealGizmoActor;
 class UFurnitureGizmoComponent;
 class UHarnessMinimapCaptureComponent;
 class UHarnessCaptureMinimapWidget;
@@ -54,6 +56,12 @@ public:
 
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
+	
+	UFUNCTION()
+	void HandleFloorPlan2DFurniturePlacementRequested(FVector2D DocumentPosition);
+	
+	UFUNCTION()
+	void HandleFloorPlan2DFurniturePreviewMoved(FVector2D DocumentPosition);
 
 	UFUNCTION()
 	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
@@ -83,7 +91,7 @@ public:
 	void ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
-	TSubclassOf<AActor> GizmoActorClass;
+	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
 	
 protected:
 	void UpdateCursorHit();
@@ -108,10 +116,6 @@ protected:
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
 
-	void InitGizmoAxisMaterials();
-	void UpdateGizmoHover();
-	void SetGizmoAxisOpacity(const FString& Axis, float Opacity);
-	
 	void SelectSurface(UMeshComponent* SurfaceComponent);
 	void DeselectSurface();
 
@@ -121,7 +125,7 @@ protected:
 	UFUNCTION(BlueprintPure, Category = "EditMode|Input")
 	bool GetIsHitting() const { return bIsHitting; }
 
-	void FindPlacementManager();
+	UInteriorPlacementSubsystem* GetPlacementSubsystem() const;
 
 	// ===== View Mode =====
 public:
@@ -132,7 +136,7 @@ public:
 	void SetupMinimapHUD(
 		UHarnessMinimapCaptureComponent* InCaptureComp,
 		UTextureRenderTarget2D* InRT,
-		TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass
+		TSubclassOf<UInteRealMinimap> InWidgetClass
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "Harness|Minimap")
@@ -170,7 +174,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
 	TObjectPtr<UInputAction> IA_Look = nullptr;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Common|Input")
 	TObjectPtr<UInputAction> IA_Zoom = nullptr;
 
@@ -178,9 +182,6 @@ public:
 	TObjectPtr<UInputAction> IA_FocusSelection = nullptr;
 
 	// ===== Edit Mode References =====
-	UPROPERTY(EditAnywhere, Category = "EditMode")
-	TObjectPtr<AInteriorPlacementManager> PlacementManager = nullptr;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Input")
 	TEnumAsByte<ECollisionChannel> WallTraceChannel = ECC_GameTraceChannel1;
 
@@ -225,18 +226,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Save = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
-	float GizmoRotationSensitivity = 1.5f;
-	
-	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
-	FName GizmoOpacityParamName = TEXT("Opacity");
-	
-	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
-	float GizmoDefaultOpacity = 0.3f;
-	
-	UPROPERTY(EditAnywhere, Category = "EditMode|Gizmo")
-	float GizmoHighlightOpacity = 1.0f;
-
 	// ===== View Mode Input =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
 	TObjectPtr<UInputMappingContext> IMC_ViewMode = nullptr;
@@ -267,21 +256,13 @@ private:
 	TObjectPtr<UMeshComponent> SelectedSurfaceComponent = nullptr;
 	
 	UPROPERTY()
-	AActor* SpawnedGizmo = nullptr;
-	
+	TObjectPtr<AInteRealGizmoActor> SpawnedGizmo = nullptr;
+
 	bool bHasCopiedFurniture = false;
 	FFurnitureDataRow CopiedFurnitureRow;
 	FRotator CopiedFurnitureRotation = FRotator::ZeroRotator;
 
-	bool bIsDraggingGizmo = false;
-	FString CurrentDraggingAxis;
-	float DragStartAngleDeg = 0.0f;
-	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
 	FVector DragStartFurnitureLocation = FVector::ZeroVector;
-	
-	// Gizmo
-	TMap<FString, TArray<TObjectPtr<UMaterialInstanceDynamic>>> GizmoAxisMaterials;
-	FString HoveredGizmoAxis;
 
 	// ===== View Mode State =====
 	UPROPERTY()

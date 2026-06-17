@@ -1,34 +1,78 @@
 #include "Public/HarnessMinimapCaptureComponent.h"
 #include "Public/HarnessPipelineManager.h"
+#include "Engine/Scene.h"
 #include "EngineUtils.h"
 
 UHarnessMinimapCaptureComponent::UHarnessMinimapCaptureComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true; // 위젯 등에 데이터 공급이 필요할 수 있으므로 활성화
+	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 
 	// 미니맵용 캡처 디폴트 세팅
-	ProjectionType = ECameraProjectionMode::Orthographic;
-	CaptureSource = SCS_FinalColorLDR;
-	
-	bCaptureEveryFrame = false;
-	bCaptureOnMovement = false;
-	
-	ShowFlags.SetLighting(false);
-	ShowFlags.SetPostProcessing(false);
+	ApplyStableCaptureSettings();
     
 	// 수직 아래를 바라보도록 기본 회전값 고정
 	SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 }
 
+void UHarnessMinimapCaptureComponent::ApplyStableCaptureSettings()
+{
+	ProjectionType = ECameraProjectionMode::Orthographic;
+	CaptureSource = SCS_FinalColorLDR;
+	UnlitViewmode = ESceneCaptureUnlitViewmode::Capture;
+
+	bCaptureEveryFrame = false;
+	bCaptureOnMovement = false;
+	PostProcessBlendWeight = 1.0f;
+
+	ShowFlags.DisableFeaturesForUnlit(false);
+	ShowFlags.DisableAdvancedFeatures();
+	ShowFlags.SetAntiAliasing(false);
+	ShowFlags.SetAtmosphere(false);
+	ShowFlags.SetFog(false);
+	ShowFlags.SetVolumetricFog(false);
+	ShowFlags.SetDynamicShadows(false);
+	ShowFlags.SetSkyLighting(false);
+	ShowFlags.SetAmbientOcclusion(false);
+	ShowFlags.SetScreenSpaceReflections(false);
+	ShowFlags.SetBloom(false);
+	ShowFlags.SetLocalExposure(false);
+	ShowFlags.SetEyeAdaptation(false);
+	ShowFlags.SetColorGrading(false);
+	ShowFlags.SetTonemapper(false);
+	ShowFlags.SetUnlitViewmode(true);
+
+	PostProcessSettings.bOverride_AutoExposureMethod = true;
+	PostProcessSettings.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
+	PostProcessSettings.bOverride_AutoExposureMinBrightness = true;
+	PostProcessSettings.AutoExposureMinBrightness = 1.0f;
+	PostProcessSettings.bOverride_AutoExposureMaxBrightness = true;
+	PostProcessSettings.AutoExposureMaxBrightness = 1.0f;
+	PostProcessSettings.bOverride_AutoExposureBias = true;
+	PostProcessSettings.AutoExposureBias = 0.0f;
+	PostProcessSettings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+	PostProcessSettings.AutoExposureApplyPhysicalCameraExposure = false;
+	PostProcessSettings.bOverride_BloomIntensity = true;
+	PostProcessSettings.BloomIntensity = 0.0f;
+	PostProcessSettings.bOverride_SceneFringeIntensity = true;
+	PostProcessSettings.SceneFringeIntensity = 0.0f;
+	PostProcessSettings.bOverride_VignetteIntensity = true;
+	PostProcessSettings.VignetteIntensity = 0.0f;
+	PostProcessSettings.bOverride_MotionBlurAmount = true;
+	PostProcessSettings.MotionBlurAmount = 0.0f;
+}
+
 UTextureRenderTarget2D* UHarnessMinimapCaptureComponent::GetOrCreateRenderTarget(int32 Resolution)
 {
+	ApplyStableCaptureSettings();
+
 	if (!MinimapRenderTarget)
 	{
 		MinimapRenderTarget = NewObject<UTextureRenderTarget2D>(this, TEXT("DynamicMinimapRT"));
 		check(MinimapRenderTarget);
-		MinimapRenderTarget->InitAutoFormat(Resolution, Resolution);
-		MinimapRenderTarget->ClearColor = FLinearColor::Transparent;
+		MinimapRenderTarget->ClearColor = FLinearColor::Black;
+		MinimapRenderTarget->TargetGamma = 2.2f;
+		MinimapRenderTarget->InitCustomFormat(Resolution, Resolution, PF_B8G8R8A8, false);
 		MinimapRenderTarget->UpdateResourceImmediate(true);
 
 		this->TextureTarget = MinimapRenderTarget;
@@ -57,22 +101,26 @@ void UHarnessMinimapCaptureComponent::AdjustToBoundingBox(FVector2D MinBounds, F
 void UHarnessMinimapCaptureComponent::UpdateMinimap()
 {
 	// 명시적으로 씬을 캡처하여 렌더 타겟 업데이트
+	ApplyStableCaptureSettings();
 	CaptureScene();
+}
+
+void UHarnessMinimapCaptureComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	ApplyStableCaptureSettings();
 }
 
 void UHarnessMinimapCaptureComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ApplyStableCaptureSettings();
+
 	// PipelineManager 서브시스템에서 월드 상태 변경 이벤트 구독
 	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
 	{
 		PipelineManager->OnWorldStateChanged.AddDynamic(this, &UHarnessMinimapCaptureComponent::UpdateMinimap);
 	}
-}
-
-void UHarnessMinimapCaptureComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	// 여기에 매 프레임 필요한 미니맵 데이터 업데이트 로직 추가 가능
 }

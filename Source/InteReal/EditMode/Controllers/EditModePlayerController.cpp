@@ -19,6 +19,8 @@ void AEditModePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UE_LOG(LogTemp, Warning, TEXT("[WallMaterialDebug] AEditModePlayerController BeginPlay: this legacy controller is active. AInteRealPlayerController wall material logs will not run."));
+
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
 	bEnableMouseOverEvents = true;

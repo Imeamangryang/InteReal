@@ -1,4 +1,5 @@
 #include "InteRealUISubSystem.h"
+#include "Materials/MaterialInterface.h"
 
 void UInteRealUISubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -22,6 +23,10 @@ void UInteRealUISubSystem::NotifyFurnitureSpawn(const FFurnitureDataRow& Furnitu
 
 void UInteRealUISubSystem::NotifyWallMaterialChanged(UMaterialInterface* NewMaterial)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[WallMaterialDebug] NotifyWallMaterialChanged: NewMaterial=%s ListenerCount=%d"),
+		NewMaterial ? *NewMaterial->GetPathName() : TEXT("<null>"),
+		OnWallMaterialChanged.IsBound() ? 1 : 0);
+
 	OnWallMaterialChanged.Broadcast(NewMaterial);
 }
 

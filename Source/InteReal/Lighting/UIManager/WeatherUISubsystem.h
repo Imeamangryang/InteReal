@@ -38,9 +38,9 @@ public:
 	
 	float GetCurrentTime() const { return CurrentTime; }
 private:
-	FName CurrentCityDetailID = TEXT("Seoul_Gangnam");
-	FName CurrentWeatherID = TEXT("Clear");
-	FName CurrentSolarID = TEXT("SpringEquinox");
+	FName CurrentCityDetailID = TEXT("Uijeongbu-si"); 
+	FName CurrentWeatherID = TEXT("Clear");          
+	FName CurrentSolarID = TEXT("Spring04");
 	float CurrentTime = 12.0f;
 	float CurrentOrientation = 0.0f;
     

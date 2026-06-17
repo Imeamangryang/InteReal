@@ -3,6 +3,7 @@
 #include "Public/HarnessJsonParser.h"
 #include "Public/HarnessSaveManagerComponent.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/EditMode/Furnitures/Furniture.h"
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -15,6 +16,11 @@ void UHarnessPipelineManager::InitializePipeline(UHarnessSaveManagerComponent* I
 
 void UHarnessPipelineManager::ClearWorld()
 {
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	
 	if (GeneratorComp) GeneratorComp->ClearHarness();
 	if (SaveManagerComp) {
 		TArray<AActor*> FoundActors;
@@ -27,6 +33,12 @@ void UHarnessPipelineManager::LoadProject(int32 PlanId)
 {
 	CurrentPlanId = PlanId;
 	ClearWorld();
+
+	if (GetWorld())
+	{
+		// Auto-save every 3 minutes (180 seconds)
+		GetWorld()->GetTimerManager().SetTimer(AutoSaveTimerHandle, this, &UHarnessPipelineManager::SaveCurrentProject, 180.0f, true);
+	}
 }
 
 void UHarnessPipelineManager::SaveCurrentProject()

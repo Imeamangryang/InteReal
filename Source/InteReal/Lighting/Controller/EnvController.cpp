@@ -235,12 +235,14 @@ void AEnvController::TriggerRandomLightning()
             PL->SetVisibility(true);
         }
 
-        // 3. 0.1초 뒤에 끄기
+        // 0.1 ~ 0.2초 사이의 랜덤한 시간으로 설정
+        float RandomDuration = FMath::RandRange(0.1f, 0.2f);
+        
         FTimerHandle ResetHandle;
         GetWorldTimerManager().SetTimer(ResetHandle, [Selected, PL]() {
             Selected->SetActorHiddenInGame(true);
             if(PL) PL->SetVisibility(false);
-        }, 0.1f, false);
+        }, RandomDuration, false);
     }
     // 전체 하늘 번쩍임
     if (LightningLight) 

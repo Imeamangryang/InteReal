@@ -25,6 +25,10 @@ public:
 	AFurniture();
 
 protected:
+	void SetMeshesCustomDepth(bool bEnabled, int32 StencilValue);
+	
+	void SetMeshesVisibilityCollision(ECollisionResponse Response);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UStaticMeshComponent* MeshComponent;
 
@@ -39,6 +43,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
 	UMaterialInterface* InvalidOutlineMat;
+
+	// OutlineThickness
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
+	float PreviewOutlineThickness = 1.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
+	float PlacedOutlineThickness = 1.0f;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
@@ -55,6 +66,12 @@ public:
 	FVector2D PlacedGridAnchor = FVector2D::ZeroVector;
 	FVector2D PlacedDimensions = FVector2D::ZeroVector;
 
+	// 벽 배치 시 벽 노멀 저장 (기즈모 이동 시 재사용)
+	FVector WallNormalAtPlacement = FVector::ZeroVector;
+
+	UPROPERTY()
+	AFurniture* ParentFurniture = nullptr;
+
 	EPlacementState GetPlacementState() const { return PlacementState; }
 
 	bool SupportsPlacementType(EPlacementSurfaceType Type) const
@@ -64,8 +81,7 @@ public:
 
 	EPlacementSurfaceType GetPlacedSurfaceType() const { return PlacedSurfaceType; }
 	void SetPlacedSurfaceType(EPlacementSurfaceType Type) { PlacedSurfaceType = Type; }
-
-	// 기즈모 포함 전체 바운드 아니고 콜리전 박스만 반환 (배치 겹침 판정용)
+	
 	FBox GetCollisionBounds() const
 	{
 		if (CollisionBoxComponent)
@@ -73,6 +89,16 @@ public:
 			return CollisionBoxComponent->Bounds.GetBox();
 		}
 		return MeshComponent->Bounds.GetBox();
+	}
+
+	FBox GetVisualBounds() const
+	{
+		return GetComponentsBoundingBox(true);
+	}
+	
+	float GetPivotToBottomOffsetZ() const
+	{
+		return CollisionBoxComponent ? CollisionBoxComponent->GetRelativeLocation().Z : 0.0f;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
@@ -83,5 +109,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	void SetSelected(bool bSelected);
-
 };

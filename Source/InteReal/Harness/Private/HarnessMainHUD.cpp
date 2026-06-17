@@ -3,8 +3,8 @@
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
-#include "InteReal/UI/InteRealPlanViewModel.h"
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
+#include "InteReal/Network/ViewModel/InteRealPlanViewModel.h"
 #include "Kismet/GameplayStatics.h"
 
 void UHarnessMainHUD::NativeConstruct()

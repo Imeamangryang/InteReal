@@ -1,12 +1,13 @@
 #include "InteRealHUD.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Public/HarnessCaptureMinimapWidget.h"
 #include "Components/Overlay.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "InteReal/Harness/Public/HarnessData.h"
+#include "UI/ViewModeWidgets/EnvironmentPanel.h"
+#include "UI/ViewModeWidgets/InteRealMinimap.h"
 
 void AInteRealHUD::BeginPlay()
 {
@@ -74,21 +75,12 @@ void AInteRealHUD::InitializeHUDWidgets()
 		}
 	}
 
-	if (ViewModeWidgetClass)
+	if (EnvironmentPanelClass)
 	{
-		ViewModeWidgetInstance = CreateWidget<UUserWidget>(GetOwningPlayerController(), ViewModeWidgetClass);
-		if (ViewModeWidgetInstance)
+		EnvironmentPanelInstance = CreateWidget<UEnvironmentPanel>(GetOwningPlayerController(), EnvironmentPanelClass);
+		if (EnvironmentPanelInstance)
 		{
-			ViewModeWidgetInstance->AddToViewport();
-		}
-	}
-
-	if (WeatherWidgetClass)
-	{
-		WeatherWidgetInstance = CreateWidget<UUserWidget>(GetOwningPlayerController(), WeatherWidgetClass);
-		if (WeatherWidgetInstance)
-		{
-			WeatherWidgetInstance->AddToViewport();
+			EnvironmentPanelInstance->AddToViewport(); 
 		}
 	}
 }
@@ -126,14 +118,9 @@ void AInteRealHUD::UpdateModeUIVisibility(EInteRealControlMode CurrentMode)
 		);
 	}
 
-	if (ViewModeWidgetInstance)
+	if (EnvironmentPanelInstance)
 	{
-		ViewModeWidgetInstance->SetVisibility(ViewVisibility);
-	}
-
-	if (WeatherWidgetInstance)
-	{
-		WeatherWidgetInstance->SetVisibility(ViewVisibility);
+		EnvironmentPanelInstance->SetVisibility(ViewVisibility);
 	}
 
 	if (MinimapWidgetInstance)
@@ -175,7 +162,7 @@ void AInteRealHUD::UpdatePlacementTooltip(
 void AInteRealHUD::SetupMinimapHUD(
 	UHarnessMinimapCaptureComponent* InCaptureComp,
 	UTextureRenderTarget2D* InRT,
-	TSubclassOf<UHarnessCaptureMinimapWidget> InWidgetClass,
+	TSubclassOf<UInteRealMinimap> InWidgetClass,
 	EHarnessViewMode CurrentViewMode,
 	EInteRealControlMode CurrentControlMode)
 {
@@ -187,7 +174,8 @@ void AInteRealHUD::SetupMinimapHUD(
 		MinimapWidgetInstance = nullptr;
 	}
 
-	MinimapWidgetInstance = CreateWidget<UHarnessCaptureMinimapWidget>(GetOwningPlayerController(), InWidgetClass);
+	// 💡 [수정] CreateWidget의 타입 파라미터 변경
+	MinimapWidgetInstance = CreateWidget<UInteRealMinimap>(GetOwningPlayerController(), InWidgetClass);
 	if (MinimapWidgetInstance)
 	{
 		MinimapWidgetInstance->InjectMinimapData(InCaptureComp, InRT);

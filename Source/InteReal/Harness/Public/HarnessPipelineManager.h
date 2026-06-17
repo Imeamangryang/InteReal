@@ -67,4 +67,6 @@ private:
 	TObjectPtr<UHarnessGeneratorComponent> GeneratorComp;
 
 	int32 CurrentPlanId = 0;
+
+	FTimerHandle AutoSaveTimerHandle;
 };

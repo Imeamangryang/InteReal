@@ -79,6 +79,18 @@ struct FUnrealPlanSearchParams
     FString q;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    bool executable_only = true;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString file_name;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString tag;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString status;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString registration_status = TEXT("all");
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
@@ -122,6 +134,9 @@ struct FUnrealPlanItem
     FString name;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString title;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     bool can_open_unreal = false;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
@@ -129,6 +144,15 @@ struct FUnrealPlanItem
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString status;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 registered_project_count = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString created_at;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString updated_at;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     TArray<FString> tags;
@@ -139,6 +163,16 @@ struct FUnrealPlanItem
     bool operator==(const FUnrealPlanItem& Other) const 
     { 
         return id == Other.id; 
+    }
+
+    FString GetDisplayTitle() const
+    {
+        if (!title.IsEmpty())
+        {
+            return title;
+        }
+
+        return name;
     }
 };
 
@@ -160,6 +194,89 @@ struct FUnrealPlanListResponse
     }
 };
 
+/** Delta version item returned by the Unreal API. */
+USTRUCT(BlueprintType)
+struct FUnrealDeltaVersionItem
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 version_id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 plan_id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 version = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString title;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString name;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString style_name;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString status;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString created_at;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString updated_at;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    bool is_latest = false;
+
+    bool operator==(const FUnrealDeltaVersionItem& Other) const
+    {
+        return plan_id == Other.plan_id && version == Other.version && version_id == Other.version_id && id == Other.id;
+    }
+
+    FString GetDisplayTitle() const
+    {
+        if (!title.IsEmpty())
+        {
+            return title;
+        }
+
+        if (!name.IsEmpty())
+        {
+            return name;
+        }
+
+        if (!style_name.IsEmpty())
+        {
+            return style_name;
+        }
+
+        return version > 0 ? FString::Printf(TEXT("Version %d"), version) : TEXT("Latest");
+    }
+};
+
+/** Delta version list response. */
+USTRUCT(BlueprintType)
+struct FUnrealDeltaVersionListResponse
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    TArray<FUnrealDeltaVersionItem> items;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 total = 0;
+
+    bool operator==(const FUnrealDeltaVersionListResponse& Other) const
+    {
+        return items == Other.items && total == Other.total;
+    }
+};
+
 /** Base Topology 내보내기 요청 파라미터 */
 USTRUCT(BlueprintType)
 struct FUeTopologyExportRequest
@@ -171,6 +288,30 @@ struct FUeTopologyExportRequest
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString scale_unit = TEXT("cm");
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString reference_coordinate_system = TEXT("UE_Z_Up_Y_Right");
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString coordinate_policy = TEXT("ue_z_up_y_negative");
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float default_wall_height_cm = 260.0f;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float default_door_height_cm = 200.0f;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float default_window_height_cm = 150.0f;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float default_window_sill_height_cm = 90.0f;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float visual_scale_factor_cm_per_px = 1.0f;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    float vertex_merge_tolerance_cm = 0.001f;
 };
 
 /** 일반적인 성공 응답 */

@@ -1,0 +1,361 @@
+{
+	"furnitureItems": [
+		{
+			"furnitureId": "1",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -685.79998779296875,
+					"y": 103.04998779296875,
+					"z": 1
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			}
+		},
+		{
+			"furnitureId": "3",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -825.79998779296875,
+					"y": 123.04998779296875,
+					"z": 1
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			}
+		},
+		{
+			"furnitureId": "9",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -825.79998779296875,
+					"y": 243.04998779296875,
+					"z": 1
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			}
+		}
+	],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "FloorFace_room_1781491346617",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_split_ws_wc_0_a_0_0_0",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_split_ws_wc_0_a_0_0_0",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_split_ws_wc_16_b_0_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_split_ws_wc_16_b_0_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_split_weld_1781490879481_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_split_weld_1781490879481_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491055380",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491055380",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_split_weld_1781490879481_b_0_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_split_weld_1781490879481_b_0_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490893523_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490893523_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491148100",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491148100",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490893523_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490893523_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_window_window_1781491112930",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_window_window_1781491112930",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_2",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_2",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_window_window_1781491123528",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_window_window_1781491123528",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_0",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_weld_1781490832967_0_0",
+			"materialPath": "/Game/Assets/Models/Materials/Surface/MI_Parquet.MI_Parquet"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781490950475",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781490950475",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491107703",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491107703",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_weld_1781490799621_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_20_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_20_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_19_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_19_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_18_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_18_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_15_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_15_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_14_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_14_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_13_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_13_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_9_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_9_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_7_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_7_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491099398",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_lintel_door_1781491099398",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_7_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_7_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_6_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_6_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_1_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_in_ws_wc_1_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_ws_wc_17_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_ws_wc_17_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_ws_wc_10_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallEdge_he_out_ws_wc_10_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781491410617",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781491440942",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781491471033",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781491485141",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781491507387",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		}
+	]
+}

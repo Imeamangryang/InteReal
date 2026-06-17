@@ -46,14 +46,21 @@ void UBaseSlider::NativePreConstruct()
 
 		auto ConfigureThumb = [&](FSlateBrush& OutBrush, float Size)
 		{
-			OutBrush = FSlateBrush();
-			OutBrush.DrawAs = ESlateBrushDrawType::Image;
+			OutBrush = FSlateBrush(); // 안전한 초기화
+			
+			// 🔥 Image에서 RoundedBox로 변경
+			OutBrush.DrawAs = ESlateBrushDrawType::RoundedBox; 
 			OutBrush.TintColor = FSlateColor(ThemeData->Accent_Gold);
 			OutBrush.ImageSize = FVector2D(Size, Size);
+			
+			// 🔥 크기의 절반을 반경(Radius)으로 설정하여 완벽한 원형 생성
+			const float HalfSize = Size / 2.0f;
+			OutBrush.OutlineSettings.RoundingType = ESlateBrushRoundingType::FixedRadius;
+			OutBrush.OutlineSettings.CornerRadii = FVector4(HalfSize, HalfSize, HalfSize, HalfSize);
 		};
 
 		ConfigureThumb(SliderStyle.NormalThumbImage, 20.0f);
-		ConfigureThumb(SliderStyle.HoveredThumbImage, 24.0f);
+		ConfigureThumb(SliderStyle.HoveredThumbImage, 28.0f); // 마우스를 올렸을 때 조금 더 커지게(24 -> 28) 하면 터치감이 좋아집니다!
 		
 		Slider_Main->SetWidgetStyle(SliderStyle);
 	}

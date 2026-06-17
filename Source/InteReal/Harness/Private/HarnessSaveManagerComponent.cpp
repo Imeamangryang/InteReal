@@ -1,11 +1,48 @@
 #include "Public/HarnessSaveManagerComponent.h"
 
+#include "Public/HarnessPipelineManager.h"
+#include "Public/HarnessGeneratorComponent.h"
+#include "Components/MeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 #include "JsonObjectConverter.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/DataTable.h"
 #include "InteReal/EditMode/Furnitures/Furniture.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+
+namespace
+{
+	FString FindHarnessSurfaceId(const UMeshComponent* MeshComp)
+	{
+		if (!MeshComp)
+		{
+			return FString();
+		}
+
+		static const TCHAR* PreferredPrefixes[] =
+		{
+			TEXT("WallSurface_"),
+			TEXT("WallExterior_"),
+			TEXT("FloorFace_"),
+			TEXT("WallEdge_")
+		};
+
+		for (const TCHAR* Prefix : PreferredPrefixes)
+		{
+			for (const FName& Tag : MeshComp->ComponentTags)
+			{
+				const FString TagStr = Tag.ToString();
+				if (TagStr.StartsWith(Prefix))
+				{
+					return TagStr;
+				}
+			}
+		}
+
+		return FString();
+	}
+}
 
 UHarnessSaveManagerComponent::UHarnessSaveManagerComponent()
 {
@@ -14,31 +51,67 @@ UHarnessSaveManagerComponent::UHarnessSaveManagerComponent()
 
 FString UHarnessSaveManagerComponent::SaveInteriorState()
 {
-	FFurnitureDeltaList DeltaList;
+	FInteriorDeltaList DeltaList;
 	
 	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("InteriorFurniture"), FoundActors);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFurniture::StaticClass(), FoundActors);
+	
+	UE_LOG(LogTemp, Log, TEXT("[SaveManager] Found %d AFurniture actors."), FoundActors.Num());
 
 	for (AActor* Actor : FoundActors)
 	{
+		AFurniture* Furn = Cast<AFurniture>(Actor);
+		if (!Furn || Furn->GetPlacementState() != EPlacementState::Placed) 
+		{
+			if (Furn) UE_LOG(LogTemp, Warning, TEXT("[SaveManager] Skipping furniture %d (State: %d)"), Furn->FurnitureID, (int32)Furn->GetPlacementState());
+			continue;
+		}
+
 		FFurnitureDelta Delta;
 		Delta.Transform = Actor->GetActorTransform();
-		
-		for (const FName& Tag : Actor->Tags)
-		{
-			FString TagStr = Tag.ToString();
-			if (TagStr.StartsWith(TEXT("ID_")))
-			{
-				Delta.FurnitureID = FName(*TagStr.RightChop(3));
-				break;
-			}
-		}
+		Delta.FurnitureID = FName(FString::FromInt(Furn->FurnitureID));
 		
 		DeltaList.FurnitureItems.Add(Delta);
 	}
 
+	int32 SurfaceCount = 0;
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		if (UHarnessGeneratorComponent* GenComp = Pipeline->GetGeneratorComp())
+		{
+			if (AActor* HarnessOwner = GenComp->GetOwner())
+			{
+				TArray<UMeshComponent*> MeshComps;
+				HarnessOwner->GetComponents<UMeshComponent>(MeshComps);
+				for (UMeshComponent* MeshComp : MeshComps)
+				{
+					if (MeshComp->ComponentHasTag(TEXT("EditableWall")) || MeshComp->ComponentHasTag(TEXT("EditableFloor")))
+					{
+						UMaterialInterface* Mat = MeshComp->GetMaterial(0);
+						if (Mat)
+						{
+							const FString SurfaceID = FindHarnessSurfaceId(MeshComp);
+							if (!SurfaceID.IsEmpty())
+							{
+								FSurfaceMaterialDelta MatDelta;
+								MatDelta.SurfaceID = SurfaceID;
+								MatDelta.MaterialPath = Mat->GetPathName();
+								DeltaList.SurfaceMaterials.Add(MatDelta);
+								SurfaceCount++;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	FString OutputString;
 	FJsonObjectConverter::UStructToJsonObjectString(DeltaList, OutputString, 0, 0);
+	
+	UE_LOG(LogTemp, Log, TEXT("[SaveManager] Serialization complete. Furniture: %d, Surfaces: %d, JSON Length: %d"), 
+		DeltaList.FurnitureItems.Num(), SurfaceCount, OutputString.Len());
+		
 	return OutputString;
 }
 
@@ -48,7 +121,7 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 
 	ClearInterior();
 
-	FFurnitureDeltaList DeltaList;
+	FInteriorDeltaList DeltaList;
 	if (FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &DeltaList, 0, 0))
 	{
 		// InteriorPlacementManager를 찾아 가구 스폰 지원 요청
@@ -80,6 +153,33 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 						// 저장용 태그 복구
 						SpawnedActor->Tags.Add(TEXT("InteriorFurniture"));
 						SpawnedActor->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), FurnID)));
+					}
+				}
+			}
+		}
+
+		if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+		{
+			if (UHarnessGeneratorComponent* GenComp = Pipeline->GetGeneratorComp())
+			{
+				if (AActor* HarnessOwner = GenComp->GetOwner())
+				{
+					TArray<UMeshComponent*> MeshComps;
+					HarnessOwner->GetComponents<UMeshComponent>(MeshComps);
+					for (UMeshComponent* MeshComp : MeshComps)
+					{
+						for (const FSurfaceMaterialDelta& MatDelta : DeltaList.SurfaceMaterials)
+						{
+							if (MeshComp->ComponentHasTag(FName(*MatDelta.SurfaceID)))
+							{
+								UMaterialInterface* LoadedMat = Cast<UMaterialInterface>(StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MatDelta.MaterialPath));
+								if (LoadedMat)
+								{
+									MeshComp->SetMaterial(0, LoadedMat);
+								}
+								break;
+							}
+						}
 					}
 				}
 			}
