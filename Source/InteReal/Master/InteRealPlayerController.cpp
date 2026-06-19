@@ -187,6 +187,8 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 		FVector2D MousePos;
 		GetMousePosition(MousePos.X, MousePos.Y);
 		SpawnedGizmo->UpdateDrag(SelectedFurniture, WorldOrigin, WorldDir, GetPlacementSubsystem(), IsInputKeyDown(EKeys::LeftControl), MousePos);
+		SyncFloorPlan2DFromFurniture(SelectedFurniture);
+		
 		if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 		{
 			const EGizmoTransformAxis DraggedAxis = SpawnedGizmo->GetCurrentAxis();
@@ -214,6 +216,7 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 	if (bIsMovingFurniture && SelectedFurniture && PS2)
 	{
 		PS2->UpdateGizmoMoveFree(CurrentCursorWorldLoc + MoveDragOffset, SelectedFurniture);
+		SyncFloorPlan2DFromFurniture(SelectedFurniture);
 		return;
 	}
 
@@ -860,6 +863,9 @@ void AInteRealPlayerController::OnPlaceKey()
 	{
 		if (bIsHitting)
 		{
+			TSet<TObjectKey<AFurniture>> PreviouslyPlacedFurnitureKeys;
+			SnapshotPlacedFurnitureActors(PreviouslyPlacedFurnitureKeys);
+
 			AFurniture* PreviewFurniture = PS->GetPreviewFurniture();
 			const int32 FurnitureID = PreviewFurniture ? PreviewFurniture->FurnitureID : 0;
 			const FFurnitureDataRow* FurnitureRow = PS->FindFurnitureRowByID(FurnitureID);
@@ -876,16 +882,28 @@ void AInteRealPlayerController::OnPlaceKey()
 			const bool bContinuePlacement = bContinuousModifierHeld;
 			PS->ConfirmFurniture(bContinuePlacement);
 
+			AFurniture* ConfirmedFurniture = ResolveConfirmedFurnitureActor(
+				PreviewFurniture,
+				PreviouslyPlacedFurnitureKeys
+			);
+
 			if (FurnitureRow)
 			{
 				if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 				{
 					if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
 					{
+						BindFloorPlan2DEvents();
+
 						FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(
 							*FurnitureRow,
 							FVector2D(ConfirmedWorldLocation.X, ConfirmedWorldLocation.Y),
 							ConfirmedYaw
+						);
+
+						RegisterLastAddedFloorPlan2DFurnitureActor(
+							FloorPlan2DWidget,
+							ConfirmedFurniture
 						);
 
 						if (bContinuePlacement)
@@ -895,6 +913,11 @@ void AInteRealPlayerController::OnPlaceKey()
 						else
 						{
 							FloorPlan2DWidget->CancelFurniturePlacement();
+
+							if (IsValid(ConfirmedFurniture))
+							{
+								SelectFurniture(ConfirmedFurniture);
+							}
 						}
 					}
 				}
@@ -1025,6 +1048,7 @@ void AInteRealPlayerController::OnPlaceReleasedKey()
 			else
 				PSEnd->AbortGizmoMove(SelectedFurniture);
 		}
+		SyncFloorPlan2DFromFurniture(SelectedFurniture);
 		SelectedFurniture->SetSelected(true);
 	}
 }
@@ -1052,8 +1076,12 @@ void AInteRealPlayerController::OnRemoveKey()
 	if (SelectedFurniture)
 	{
 		AFurniture* ToRemove = SelectedFurniture;
-		DeselectFurniture();
-		PS->RemoveFurniture(ToRemove);
+
+		bIsDeletingFurnitureFrom3D = true;
+		RemoveFloorPlan2DForFurniture(ToRemove);
+		bIsDeletingFurnitureFrom3D = false;
+
+		DeleteFurnitureActor(ToRemove);
 	}
 }
 
@@ -1074,6 +1102,7 @@ void AInteRealPlayerController::OnRotatePreviewKey()
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 90.0f);
 		SelectedFurniture->SetActorRotation(Rot);
+		SyncFloorPlan2DFromFurniture(SelectedFurniture);
 	}
 }
 
@@ -1094,6 +1123,7 @@ void AInteRealPlayerController::OnRotate15Key()
 		FRotator Rot = SelectedFurniture->GetActorRotation();
 		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 15.0f);
 		SelectedFurniture->SetActorRotation(Rot);
+		SyncFloorPlan2DFromFurniture(SelectedFurniture);
 	}
 }
 
@@ -1167,6 +1197,23 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 				}
 
 				SpawnedGizmo->InitAxisMaterials();
+			}
+		}
+		
+		if (!bIsSyncingFurniture3DFrom2D)
+		{
+			FGuid InstanceGuid;
+			if (FindFloorPlan2DGuidForFurniture(SelectedFurniture, InstanceGuid))
+			{
+				if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+				{
+					if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
+					{
+						bIsSyncingFloorPlan2DFrom3D = true;
+						FloorPlan2DWidget->SelectPlacedFurnitureByGuid(InstanceGuid);
+						bIsSyncingFloorPlan2DFrom3D = false;
+					}
+				}
 			}
 		}
 	}
@@ -1245,7 +1292,17 @@ void AInteRealPlayerController::ReceiveWebCommand(const FString& JsonString)
 				ConfirmedYaw = PreviewFurniture->GetActorRotation().Yaw;
 			}
 
+			TSet<TObjectKey<AFurniture>> PreviouslyPlacedFurnitureKeys;
+			SnapshotPlacedFurnitureActors(PreviouslyPlacedFurnitureKeys);
+
+			AFurniture* PreviewFurnitureBeforeConfirm = PreviewFurniture;
+
 			PS->ConfirmFurniture();
+
+			AFurniture* ConfirmedFurniture = ResolveConfirmedFurnitureActor(
+				PreviewFurnitureBeforeConfirm,
+				PreviouslyPlacedFurnitureKeys
+			);
 
 			if (FurnitureRow)
 			{
@@ -1253,13 +1310,25 @@ void AInteRealPlayerController::ReceiveWebCommand(const FString& JsonString)
 				{
 					if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
 					{
+						BindFloorPlan2DEvents();
+
 						FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(
 							*FurnitureRow,
 							FVector2D(ConfirmedWorldLocation.X, ConfirmedWorldLocation.Y),
 							ConfirmedYaw
 						);
 
+						RegisterLastAddedFloorPlan2DFurnitureActor(
+							FloorPlan2DWidget,
+							ConfirmedFurniture
+						);
+
 						FloorPlan2DWidget->CancelFurniturePlacement();
+
+						if (IsValid(ConfirmedFurniture))
+						{
+							SelectFurniture(ConfirmedFurniture);
+						}
 					}
 				}
 			}
@@ -1309,15 +1378,7 @@ void AInteRealPlayerController::StartFurniturePlacement(const FFurnitureDataRow&
 	{
 		if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
 		{
-			FloorPlan2DWidget->OnFurniturePlacementRequested2D.AddUniqueDynamic(
-				this,
-				&AInteRealPlayerController::HandleFloorPlan2DFurniturePlacementRequested
-			);
-
-			FloorPlan2DWidget->OnFurniturePreviewMoved2D.AddUniqueDynamic(
-				this,
-				&AInteRealPlayerController::HandleFloorPlan2DFurniturePreviewMoved
-			);
+			BindFloorPlan2DEvents();
 
 			FloorPlan2DWidget->StartFurniturePlacement(FurnitureRow);
 		}
@@ -1751,19 +1812,41 @@ void AInteRealPlayerController::HandleFloorPlan2DFurniturePlacementRequested(FVe
 	const FVector ConfirmedWorldLocation = PreviewFurniture->GetActorLocation();
 	const float ConfirmedYaw = PreviewFurniture->GetActorRotation().Yaw;
 
+	TSet<TObjectKey<AFurniture>> PreviouslyPlacedFurnitureKeys;
+	SnapshotPlacedFurnitureActors(PreviouslyPlacedFurnitureKeys);
+
+	AFurniture* PreviewFurnitureBeforeConfirm = PreviewFurniture;
+
 	PS->ConfirmFurniture(false);
+
+	AFurniture* ConfirmedFurniture = ResolveConfirmedFurnitureActor(
+		PreviewFurnitureBeforeConfirm,
+		PreviouslyPlacedFurnitureKeys
+	);
 
 	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 	{
 		if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
 		{
+			BindFloorPlan2DEvents();
+
 			FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(
 				*FurnitureRow,
 				FVector2D(ConfirmedWorldLocation.X, ConfirmedWorldLocation.Y),
 				ConfirmedYaw
 			);
 
+			RegisterLastAddedFloorPlan2DFurnitureActor(
+				FloorPlan2DWidget,
+				ConfirmedFurniture
+			);
+
 			FloorPlan2DWidget->CancelFurniturePlacement();
+
+			if (IsValid(ConfirmedFurniture))
+			{
+				SelectFurniture(ConfirmedFurniture);
+			}
 		}
 	}
 }
@@ -1824,3 +1907,453 @@ void AInteRealPlayerController::HandleFloorPlan2DFurniturePreviewMoved(FVector2D
 	}
 }
 
+void AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureSelected(
+	int32 FurnitureIndex,
+	FInteReal2DPlacedFurniture Furniture
+)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit || bIsSyncingFloorPlan2DFrom3D)
+	{
+		return;
+	}
+
+	TWeakObjectPtr<AFurniture>* FurnitureActorPtr =
+		FloorPlan2DFurnitureActors.Find(Furniture.InstanceGuid);
+
+	if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
+	{
+		return;
+	}
+
+	bIsSyncingFurniture3DFrom2D = true;
+	SelectFurniture(FurnitureActorPtr->Get());
+	bIsSyncingFurniture3DFrom2D = false;
+}
+
+void AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureMoved(
+	int32 FurnitureIndex,
+	FInteReal2DPlacedFurniture Furniture
+)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit)
+	{
+		return;
+	}
+
+	TWeakObjectPtr<AFurniture>* FurnitureActorPtr =
+		FloorPlan2DFurnitureActors.Find(Furniture.InstanceGuid);
+
+	if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
+	{
+		return;
+	}
+
+	AFurniture* FurnitureActor = FurnitureActorPtr->Get();
+
+	if (SelectedFurniture != FurnitureActor)
+	{
+		bIsSyncingFurniture3DFrom2D = true;
+		SelectFurniture(FurnitureActor);
+		bIsSyncingFurniture3DFrom2D = false;
+	}
+
+	if (!bIsMovingFurnitureFromFloorPlan2D)
+	{
+		bIsMovingFurnitureFromFloorPlan2D = true;
+
+		if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+		{
+			PS->BeginGizmoMove(FurnitureActor);
+		}
+	}
+
+	SyncFurnitureActorFromFloorPlan2D(Furniture);
+}
+
+void AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureMoveEnded(
+	int32 FurnitureIndex,
+	FInteReal2DPlacedFurniture Furniture
+)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit)
+	{
+		return;
+	}
+
+	TWeakObjectPtr<AFurniture>* FurnitureActorPtr =
+		FloorPlan2DFurnitureActors.Find(Furniture.InstanceGuid);
+
+	if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
+	{
+		bIsMovingFurnitureFromFloorPlan2D = false;
+		return;
+	}
+
+	AFurniture* FurnitureActor = FurnitureActorPtr->Get();
+
+	SyncFurnitureActorFromFloorPlan2D(Furniture);
+
+	if (bIsMovingFurnitureFromFloorPlan2D)
+	{
+		if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+		{
+			PS->FinalizeGizmoMove(FurnitureActor);
+		}
+	}
+
+	bIsMovingFurnitureFromFloorPlan2D = false;
+
+	if (FurnitureActor)
+	{
+		FurnitureActor->SetSelected(true);
+	}
+}
+
+void AInteRealPlayerController::BindFloorPlan2DEvents()
+{
+	AInteRealHUD* InteRealHUD = GetInteRealHUD();
+	if (!InteRealHUD)
+	{
+		return;
+	}
+
+	UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget();
+	if (!FloorPlan2DWidget)
+	{
+		return;
+	}
+
+	FloorPlan2DWidget->OnFurniturePlacementRequested2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DFurniturePlacementRequested
+	);
+
+	FloorPlan2DWidget->OnFurniturePreviewMoved2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DFurniturePreviewMoved
+	);
+
+	FloorPlan2DWidget->OnPlacedFurnitureSelected2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureSelected
+	);
+
+	FloorPlan2DWidget->OnPlacedFurnitureMoved2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureMoved
+	);
+
+	FloorPlan2DWidget->OnPlacedFurnitureMoveEnded2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureMoveEnded
+	);
+
+	FloorPlan2DWidget->OnPlacedFurnitureDeleted2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureDeleted
+	);
+
+	FloorPlan2DWidget->OnPlacedFurnituresCleared2D.AddUniqueDynamic(
+		this,
+		&AInteRealPlayerController::HandleFloorPlan2DPlacedFurnituresCleared
+	);
+}
+
+void AInteRealPlayerController::RegisterFloorPlan2DFurnitureActor(
+	const FInteReal2DPlacedFurniture& Furniture2D,
+	AFurniture* FurnitureActor
+)
+{
+	if (!Furniture2D.InstanceGuid.IsValid() || !IsValid(FurnitureActor))
+	{
+		return;
+	}
+
+	FloorPlan2DFurnitureActors.Add(Furniture2D.InstanceGuid, FurnitureActor);
+}
+
+bool AInteRealPlayerController::FindFloorPlan2DGuidForFurniture(
+	const AFurniture* FurnitureActor,
+	FGuid& OutInstanceGuid
+) const
+{
+	OutInstanceGuid.Invalidate();
+
+	if (!IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	for (const TPair<FGuid, TWeakObjectPtr<AFurniture>>& Pair : FloorPlan2DFurnitureActors)
+	{
+		if (Pair.Value.Get() == FurnitureActor)
+		{
+			OutInstanceGuid = Pair.Key;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void AInteRealPlayerController::SyncFloorPlan2DFromFurniture(AFurniture* FurnitureActor)
+{
+    if (!IsValid(FurnitureActor) || bIsSyncingFurniture3DFrom2D)
+    {
+        return;
+    }
+
+    FGuid InstanceGuid;
+    if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
+    {
+        return;
+    }
+
+    AInteRealHUD* InteRealHUD = GetInteRealHUD();
+    if (!InteRealHUD)
+    {
+        return;
+    }
+
+    UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget();
+    if (!FloorPlan2DWidget)
+    {
+        return;
+    }
+
+    const FVector WorldLocation = FurnitureActor->GetActorLocation();
+    const float WorldYaw = FurnitureActor->GetActorRotation().Yaw;
+
+    bIsSyncingFloorPlan2DFrom3D = true;
+
+    FloorPlan2DWidget->UpdatePlacedFurnitureByGuid(
+        InstanceGuid,
+        FVector2D(WorldLocation.X, WorldLocation.Y),
+        WorldYaw
+    );
+
+    bIsSyncingFloorPlan2DFrom3D = false;
+}
+
+void AInteRealPlayerController::SyncFurnitureActorFromFloorPlan2D(
+    const FInteReal2DPlacedFurniture& Furniture2D
+)
+{
+    if (bIsSyncingFloorPlan2DFrom3D || !Furniture2D.InstanceGuid.IsValid())
+    {
+        return;
+    }
+
+    TWeakObjectPtr<AFurniture>* FurnitureActorPtr =
+        FloorPlan2DFurnitureActors.Find(Furniture2D.InstanceGuid);
+
+    if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
+    {
+        return;
+    }
+
+    AFurniture* FurnitureActor = FurnitureActorPtr->Get();
+    if (!IsValid(FurnitureActor))
+    {
+        return;
+    }
+
+    bIsSyncingFurniture3DFrom2D = true;
+
+    const FVector CurrentLocation = FurnitureActor->GetActorLocation();
+    const FVector NewLocation(
+        Furniture2D.CenterDocumentPosition.X,
+        Furniture2D.CenterDocumentPosition.Y,
+        CurrentLocation.Z
+    );
+
+    FRotator NewRotation = FurnitureActor->GetActorRotation();
+    NewRotation.Yaw = Furniture2D.RotationDegrees;
+
+    FurnitureActor->SetActorLocation(NewLocation);
+    FurnitureActor->SetActorRotation(NewRotation);
+
+    bIsSyncingFurniture3DFrom2D = false;
+}
+
+bool AInteRealPlayerController::RemoveFloorPlan2DForFurniture(AFurniture* FurnitureActor)
+{
+	if (!IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	FGuid InstanceGuid;
+	if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
+	{
+		return false;
+	}
+
+	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+	{
+		if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
+		{
+			const bool bRemoved = FloorPlan2DWidget->RemovePlacedFurnitureByGuid(InstanceGuid);
+			if (bRemoved)
+			{
+				return true;
+			}
+		}
+	}
+
+	FloorPlan2DFurnitureActors.Remove(InstanceGuid);
+	return false;
+}
+
+void AInteRealPlayerController::HandleFloorPlan2DPlacedFurnitureDeleted(
+    int32 FurnitureIndex,
+    FGuid InstanceGuid
+)
+{
+	if (bIsDeletingFurnitureFrom3D)
+	{
+		FloorPlan2DFurnitureActors.Remove(InstanceGuid);
+		return;
+	}
+
+	TWeakObjectPtr<AFurniture>* FurnitureActorPtr = FloorPlan2DFurnitureActors.Find(InstanceGuid);
+	if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
+	{
+		FloorPlan2DFurnitureActors.Remove(InstanceGuid);
+		return;
+	}
+
+	AFurniture* FurnitureActor = FurnitureActorPtr->Get();
+
+	FloorPlan2DFurnitureActors.Remove(InstanceGuid);
+
+	bIsDeletingFurnitureFromFloorPlan2D = true;
+	DeleteFurnitureActor(FurnitureActor);
+	bIsDeletingFurnitureFromFloorPlan2D = false;
+}
+
+void AInteRealPlayerController::HandleFloorPlan2DPlacedFurnituresCleared()
+{
+	if (bIsDeletingFurnitureFrom3D)
+	{
+		FloorPlan2DFurnitureActors.Empty();
+		return;
+	}
+
+	TArray<TWeakObjectPtr<AFurniture>> FurnitureActors;
+	FloorPlan2DFurnitureActors.GenerateValueArray(FurnitureActors);
+	FloorPlan2DFurnitureActors.Empty();
+
+	bIsDeletingFurnitureFromFloorPlan2D = true;
+
+	for (const TWeakObjectPtr<AFurniture>& FurnitureActorPtr : FurnitureActors)
+	{
+		if (FurnitureActorPtr.IsValid())
+		{
+			DeleteFurnitureActor(FurnitureActorPtr.Get());
+		}
+	}
+
+	bIsDeletingFurnitureFromFloorPlan2D = false;
+}
+
+void AInteRealPlayerController::SnapshotPlacedFurnitureActors(
+	TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys
+) const
+{
+	OutPlacedFurnitureKeys.Reset();
+
+	const UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS)
+	{
+		return;
+	}
+
+	for (AFurniture* PlacedFurniture : PS->GetPlacedFurnitures())
+	{
+		if (IsValid(PlacedFurniture))
+		{
+			OutPlacedFurnitureKeys.Add(TObjectKey<AFurniture>(PlacedFurniture));
+		}
+	}
+}
+
+AFurniture* AInteRealPlayerController::ResolveConfirmedFurnitureActor(
+	AFurniture* PreviousPreviewFurniture,
+	const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys
+) const
+{
+	if (IsValid(PreviousPreviewFurniture) &&
+		PreviousPreviewFurniture->GetPlacementState() == EPlacementState::Placed)
+	{
+		return PreviousPreviewFurniture;
+	}
+
+	const UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS)
+	{
+		return IsValid(PreviousPreviewFurniture) ? PreviousPreviewFurniture : nullptr;
+	}
+
+	for (AFurniture* PlacedFurniture : PS->GetPlacedFurnitures())
+	{
+		if (!IsValid(PlacedFurniture))
+		{
+			continue;
+		}
+
+		if (!PreviouslyPlacedFurnitureKeys.Contains(TObjectKey<AFurniture>(PlacedFurniture)))
+		{
+			return PlacedFurniture;
+		}
+	}
+
+	return IsValid(PreviousPreviewFurniture) ? PreviousPreviewFurniture : nullptr;
+}
+
+bool AInteRealPlayerController::RegisterLastAddedFloorPlan2DFurnitureActor(
+	UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget,
+	AFurniture* FurnitureActor
+)
+{
+	if (!FloorPlan2DWidget || !IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	const int32 FurnitureIndex = FloorPlan2DWidget->SelectedFurnitureIndex;
+	if (!FloorPlan2DWidget->PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+	{
+		return false;
+	}
+
+	RegisterFloorPlan2DFurnitureActor(
+		FloorPlan2DWidget->PlacedFurnitures2D[FurnitureIndex],
+		FurnitureActor
+	);
+
+	return true;
+}
+
+void AInteRealPlayerController::DeleteFurnitureActor(AFurniture* FurnitureActor)
+{
+	if (!IsValid(FurnitureActor))
+	{
+		return;
+	}
+
+	if (SelectedFurniture == FurnitureActor)
+	{
+		DeselectFurniture();
+	}
+
+	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+	{
+		PS->RemoveFurniture(FurnitureActor);
+	}
+
+	if (IsValid(FurnitureActor) && !FurnitureActor->IsActorBeingDestroyed())
+	{
+		FurnitureActor->Destroy();
+	}
+}

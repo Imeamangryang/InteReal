@@ -140,6 +140,10 @@ void UInteReal2DFloorPlanViewportWidget::NativeConstruct()
             this,
             &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown
         );
+        InputCatcherBorder->OnMouseButtonUpEvent.BindDynamic(
+            this,
+            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp
+        );
         InputCatcherBorder->OnMouseMoveEvent.BindDynamic(
             this,
             &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove
@@ -252,15 +256,18 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
 
     ++LayerId;
 
-    for (const FInteReal2DPlacedFurniture& Furniture : PlacedFurnitures2D)
+    for (int32 FurnitureIndex = 0; FurnitureIndex < PlacedFurnitures2D.Num(); ++FurnitureIndex)
     {
+        const FInteReal2DPlacedFurniture& Furniture = PlacedFurnitures2D[FurnitureIndex];
+        const bool bIsSelected = FurnitureIndex == SelectedFurnitureIndex;
+
         DrawFurnitureRect(
             OutDrawElements,
             AllottedGeometry,
             LayerId,
             Furniture,
-            FurnitureFillColor,
-            FurnitureOutlineColor
+            bIsSelected ? SelectedFurnitureFillColor : FurnitureFillColor,
+            bIsSelected ? SelectedFurnitureOutlineColor : FurnitureOutlineColor
         );
     }
 
@@ -344,6 +351,32 @@ FReply UInteReal2DFloorPlanViewportWidget::NativeOnMouseButtonDown(
     return FReply::Handled();
 }
 
+FReply UInteReal2DFloorPlanViewportWidget::NativeOnMouseButtonUp(
+    const FGeometry& InGeometry,
+    const FPointerEvent& InMouseEvent
+)
+{
+    if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+    {
+        return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+    }
+
+    const int32 EndedFurnitureIndex = DraggingFurnitureIndex2D;
+    if (bIsDraggingSelectedFurniture2D && PlacedFurnitures2D.IsValidIndex(EndedFurnitureIndex))
+    {
+        OnPlacedFurnitureMoveEnded2D.Broadcast(
+            EndedFurnitureIndex,
+            PlacedFurnitures2D[EndedFurnitureIndex]
+        );
+    }
+
+    bIsDraggingSelectedFurniture2D = false;
+    DraggingFurnitureIndex2D = INDEX_NONE;
+    FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+
+    return FReply::Handled();
+}
+
 FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown(
     FGeometry MyGeometry,
     const FPointerEvent& MouseEvent
@@ -380,8 +413,67 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDow
 
         OnFurniturePlacementRequested2D.Broadcast(PreviewFurnitureCenterDocument);
     }
+    else if (Document.bIsValid)
+    {
+        int32 HitFurnitureIndex = INDEX_NONE;
+        if (TryGetPlacedFurnitureIndexAtLocalPosition(
+            LastClickedLocalPosition,
+            CachedGeometry.GetLocalSize(),
+            HitFurnitureIndex
+        ))
+        {
+            SelectPlacedFurnitureByIndex(HitFurnitureIndex);
+
+            const FVector2D ClickDocumentPosition = TransformLocalPointToDocument(
+                LastClickedLocalPosition,
+                CachedGeometry.GetLocalSize()
+            );
+
+            bIsDraggingSelectedFurniture2D = true;
+            DraggingFurnitureIndex2D = HitFurnitureIndex;
+            FurnitureDragDocumentOffset =
+                PlacedFurnitures2D[HitFurnitureIndex].CenterDocumentPosition - ClickDocumentPosition;
+
+            FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
+            return UWidgetBlueprintLibrary::CaptureMouse(HandledReply, InputCatcherBorder);
+        }
+
+        ClearSelectedFurniture();
+        bIsDraggingSelectedFurniture2D = false;
+        DraggingFurnitureIndex2D = INDEX_NONE;
+        FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+    }
 
     return UWidgetBlueprintLibrary::Handled();
+}
+
+FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp(
+    FGeometry MyGeometry,
+    const FPointerEvent& MouseEvent
+)
+{
+    FEventReply Reply;
+
+    if (MouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+    {
+        return Reply;
+    }
+
+    const int32 EndedFurnitureIndex = DraggingFurnitureIndex2D;
+    if (bIsDraggingSelectedFurniture2D && PlacedFurnitures2D.IsValidIndex(EndedFurnitureIndex))
+    {
+        OnPlacedFurnitureMoveEnded2D.Broadcast(
+            EndedFurnitureIndex,
+            PlacedFurnitures2D[EndedFurnitureIndex]
+        );
+    }
+
+    bIsDraggingSelectedFurniture2D = false;
+    DraggingFurnitureIndex2D = INDEX_NONE;
+    FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+
+    FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
+    return UWidgetBlueprintLibrary::ReleaseMouseCapture(HandledReply);
 }
 
 FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
@@ -391,14 +483,49 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
 {
     FEventReply Reply;
 
+    const FGeometry CachedGeometry = GetCachedGeometry();
+    const FVector2D LocalMousePosition =
+        CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+
+    if (bIsDraggingSelectedFurniture2D && PlacedFurnitures2D.IsValidIndex(DraggingFurnitureIndex2D))
+    {
+        if (!Document.bIsValid)
+        {
+            return Reply;
+        }
+
+        if (!IsLocalPointInsideDrawArea(LocalMousePosition, CachedGeometry.GetLocalSize()))
+        {
+            return Reply;
+        }
+
+        const FVector2D MouseDocumentPosition = TransformLocalPointToDocument(
+            LocalMousePosition,
+            CachedGeometry.GetLocalSize()
+        );
+
+        FInteReal2DPlacedFurniture& DraggingFurniture =
+            PlacedFurnitures2D[DraggingFurnitureIndex2D];
+
+        DraggingFurniture.CenterDocumentPosition =
+            MouseDocumentPosition + FurnitureDragDocumentOffset;
+
+        SelectedFurnitureIndex = DraggingFurnitureIndex2D;
+
+        OnPlacedFurnitureMoved2D.Broadcast(
+            DraggingFurnitureIndex2D,
+            DraggingFurniture
+        );
+
+        Invalidate(EInvalidateWidgetReason::Paint);
+
+        return UWidgetBlueprintLibrary::Handled();
+    }
+
     if (!bIsPlacingFurniture2D || !Document.bIsValid)
     {
         return Reply;
     }
-
-    const FGeometry CachedGeometry = GetCachedGeometry();
-    const FVector2D LocalMousePosition =
-        CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 
     if (!IsLocalPointInsideDrawArea(LocalMousePosition, CachedGeometry.GetLocalSize()))
     {
@@ -412,7 +539,7 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
         CachedGeometry.GetLocalSize()
     );
     bHasFurniturePreviewPosition = true;
-    
+
     OnFurniturePreviewMoved2D.Broadcast(PreviewFurnitureCenterDocument);
 
     Invalidate(EInvalidateWidgetReason::Paint);
@@ -476,7 +603,84 @@ void UInteReal2DFloorPlanViewportWidget::CancelFurniturePlacement()
 void UInteReal2DFloorPlanViewportWidget::ClearPlacedFurnitures()
 {
     PlacedFurnitures2D.Reset();
+    SelectedFurnitureIndex = INDEX_NONE;
+    bIsDraggingSelectedFurniture2D = false;
+    DraggingFurnitureIndex2D = INDEX_NONE;
+    FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+
+    OnPlacedFurnituresCleared2D.Broadcast();
+
     Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+int32 UInteReal2DFloorPlanViewportWidget::FindPlacedFurnitureIndexByGuid(const FGuid& InstanceGuid) const
+{
+    if (!InstanceGuid.IsValid())
+    {
+        return INDEX_NONE;
+    }
+
+    for (int32 FurnitureIndex = 0; FurnitureIndex < PlacedFurnitures2D.Num(); ++FurnitureIndex)
+    {
+        if (PlacedFurnitures2D[FurnitureIndex].InstanceGuid == InstanceGuid)
+        {
+            return FurnitureIndex;
+        }
+    }
+
+    return INDEX_NONE;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::SelectPlacedFurnitureByGuid(const FGuid& InstanceGuid)
+{
+    return SelectPlacedFurnitureByIndex(FindPlacedFurnitureIndexByGuid(InstanceGuid));
+}
+
+bool UInteReal2DFloorPlanViewportWidget::RemovePlacedFurnitureByIndex(int32 FurnitureIndex)
+{
+    if (!PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+    {
+        return false;
+    }
+
+    const FGuid RemovedInstanceGuid = PlacedFurnitures2D[FurnitureIndex].InstanceGuid;
+
+    PlacedFurnitures2D.RemoveAt(FurnitureIndex);
+
+    if (SelectedFurnitureIndex == FurnitureIndex)
+    {
+        SelectedFurnitureIndex = INDEX_NONE;
+    }
+    else if (SelectedFurnitureIndex > FurnitureIndex)
+    {
+        --SelectedFurnitureIndex;
+    }
+
+    if (DraggingFurnitureIndex2D == FurnitureIndex)
+    {
+        bIsDraggingSelectedFurniture2D = false;
+        DraggingFurnitureIndex2D = INDEX_NONE;
+        FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+    }
+    else if (DraggingFurnitureIndex2D > FurnitureIndex)
+    {
+        --DraggingFurnitureIndex2D;
+    }
+
+    OnPlacedFurnitureDeleted2D.Broadcast(FurnitureIndex, RemovedInstanceGuid);
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+    return true;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::RemovePlacedFurnitureByGuid(const FGuid& InstanceGuid)
+{
+    return RemovePlacedFurnitureByIndex(FindPlacedFurnitureIndexByGuid(InstanceGuid));
+}
+
+bool UInteReal2DFloorPlanViewportWidget::RemoveSelectedFurniture()
+{
+    return RemovePlacedFurnitureByIndex(SelectedFurnitureIndex);
 }
 
 FVector2D UInteReal2DFloorPlanViewportWidget::TransformLocalPointToDocument(const FVector2D& LocalPoint, const FVector2D& LocalSize) const
@@ -648,6 +852,7 @@ void UInteReal2DFloorPlanViewportWidget::AddPlacedFurnitureAtDocumentPosition(
 )
 {
     FInteReal2DPlacedFurniture NewFurniture;
+    NewFurniture.InstanceGuid = FGuid::NewGuid();
     NewFurniture.FurnitureID = FurnitureRow.ID;
     NewFurniture.DisplayName = FurnitureRow.DisplayName;
     NewFurniture.CenterDocumentPosition = CenterDocumentPosition;
@@ -657,7 +862,8 @@ void UInteReal2DFloorPlanViewportWidget::AddPlacedFurnitureAtDocumentPosition(
     );
     NewFurniture.RotationDegrees = RotationDegrees;
 
-    PlacedFurnitures2D.Add(NewFurniture);
+    const int32 NewFurnitureIndex = PlacedFurnitures2D.Add(NewFurniture);
+    SelectPlacedFurnitureByIndex(NewFurnitureIndex);
 
     Invalidate(EInvalidateWidgetReason::Paint);
 }
@@ -676,4 +882,133 @@ void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewAtDocumentPosition(
     bHasFurniturePreviewPosition = true;
 
     Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+bool UInteReal2DFloorPlanViewportWidget::SelectPlacedFurnitureByIndex(int32 FurnitureIndex)
+{
+    if (!PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+    {
+        return false;
+    }
+
+    SelectedFurnitureIndex = FurnitureIndex;
+
+    OnPlacedFurnitureSelected2D.Broadcast(
+        SelectedFurnitureIndex,
+        PlacedFurnitures2D[SelectedFurnitureIndex]
+    );
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+    return true;
+}
+
+void UInteReal2DFloorPlanViewportWidget::ClearSelectedFurniture()
+{
+    if (SelectedFurnitureIndex == INDEX_NONE)
+    {
+        return;
+    }
+
+    SelectedFurnitureIndex = INDEX_NONE;
+    bIsDraggingSelectedFurniture2D = false;
+    DraggingFurnitureIndex2D = INDEX_NONE;
+    FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurniture(
+    int32 FurnitureIndex,
+    const FVector2D& CenterDocumentPosition,
+    float RotationDegrees
+)
+{
+    if (!PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+    {
+        return false;
+    }
+
+    FInteReal2DPlacedFurniture& Furniture = PlacedFurnitures2D[FurnitureIndex];
+    Furniture.CenterDocumentPosition = CenterDocumentPosition;
+    Furniture.RotationDegrees = RotationDegrees;
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+    return true;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurnitureByGuid(
+    const FGuid& InstanceGuid,
+    const FVector2D& CenterDocumentPosition,
+    float RotationDegrees
+)
+{
+    return UpdatePlacedFurniture(
+        FindPlacedFurnitureIndexByGuid(InstanceGuid),
+        CenterDocumentPosition,
+        RotationDegrees
+    );
+}
+
+bool UInteReal2DFloorPlanViewportWidget::UpdateSelectedFurniture(
+    const FVector2D& CenterDocumentPosition,
+    float RotationDegrees
+)
+{
+    return UpdatePlacedFurniture(
+        SelectedFurnitureIndex,
+        CenterDocumentPosition,
+        RotationDegrees
+    );
+}
+
+bool UInteReal2DFloorPlanViewportWidget::TryGetPlacedFurnitureIndexAtLocalPosition(
+    const FVector2D& LocalPosition,
+    const FVector2D& LocalSize,
+    int32& OutFurnitureIndex
+) const
+{
+    OutFurnitureIndex = INDEX_NONE;
+
+    if (!Document.bIsValid)
+    {
+        return false;
+    }
+
+    const FVector2D DocumentPosition = TransformLocalPointToDocument(LocalPosition, LocalSize);
+
+    for (int32 FurnitureIndex = PlacedFurnitures2D.Num() - 1; FurnitureIndex >= 0; --FurnitureIndex)
+    {
+        if (IsDocumentPointInsideFurniture(DocumentPosition, PlacedFurnitures2D[FurnitureIndex]))
+        {
+            OutFurnitureIndex = FurnitureIndex;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::IsDocumentPointInsideFurniture(
+    const FVector2D& DocumentPosition,
+    const FInteReal2DPlacedFurniture& Furniture
+) const
+{
+    const FVector2D HalfSize = Furniture.Size * 0.5f;
+    if (HalfSize.X <= UE_SMALL_NUMBER || HalfSize.Y <= UE_SMALL_NUMBER)
+    {
+        return false;
+    }
+
+    const FVector2D Delta = DocumentPosition - Furniture.CenterDocumentPosition;
+
+    const float RotationRadians = FMath::DegreesToRadians(Furniture.RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    const FVector2D LocalPoint(
+        Delta.X * CosAngle + Delta.Y * SinAngle,
+        -Delta.X * SinAngle + Delta.Y * CosAngle
+    );
+
+    return FMath::Abs(LocalPoint.X) <= HalfSize.X &&
+        FMath::Abs(LocalPoint.Y) <= HalfSize.Y;
 }

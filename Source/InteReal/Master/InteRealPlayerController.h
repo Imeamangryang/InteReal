@@ -5,6 +5,7 @@
 #include "InteReal/ViewMode/ViewModeData.h"
 #include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InputActionValue.h"
 #include "InteRealPlayerController.generated.h"
 
@@ -65,6 +66,21 @@ public:
 
 	UFUNCTION()
 	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
+	
+	UFUNCTION()
+	void HandleFloorPlan2DPlacedFurnitureSelected(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
+	
+	UFUNCTION()
+	void HandleFloorPlan2DPlacedFurnitureMoved(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
+
+	UFUNCTION()
+	void HandleFloorPlan2DPlacedFurnitureMoveEnded(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
+	
+	UFUNCTION()
+	void HandleFloorPlan2DPlacedFurnitureDeleted(int32 FurnitureIndex, FGuid InstanceGuid);
+
+	UFUNCTION()
+	void HandleFloorPlan2DPlacedFurnituresCleared();
 
 	UFUNCTION(BlueprintPure, Category = "InteReal|Mode")
 	EInteRealControlMode GetControlMode() const { return CurrentControlMode; }
@@ -253,6 +269,30 @@ private:
 
 	bool bIsMovingFurniture = false;
 	FVector MoveDragOffset = FVector::ZeroVector;
+	
+	void BindFloorPlan2DEvents();
+	void RegisterFloorPlan2DFurnitureActor(const FInteReal2DPlacedFurniture& Furniture2D, AFurniture* FurnitureActor);
+	bool FindFloorPlan2DGuidForFurniture(const AFurniture* FurnitureActor, FGuid& OutInstanceGuid) const;
+	bool RemoveFloorPlan2DForFurniture(AFurniture* FurnitureActor);
+	void SyncFloorPlan2DFromFurniture(AFurniture* FurnitureActor);
+	void SyncFurnitureActorFromFloorPlan2D(const FInteReal2DPlacedFurniture& Furniture2D);
+	void SnapshotPlacedFurnitureActors(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const;
+	AFurniture* ResolveConfirmedFurnitureActor(
+		AFurniture* PreviousPreviewFurniture,
+		const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys
+	) const;
+	bool RegisterLastAddedFloorPlan2DFurnitureActor(
+		UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget,
+		AFurniture* FurnitureActor
+	);
+	void DeleteFurnitureActor(AFurniture* FurnitureActor);
+
+	TMap<FGuid, TWeakObjectPtr<AFurniture>> FloorPlan2DFurnitureActors;
+	bool bIsSyncingFloorPlan2DFrom3D = false;
+	bool bIsSyncingFurniture3DFrom2D = false;
+	bool bIsMovingFurnitureFromFloorPlan2D = false;
+	bool bIsDeletingFurnitureFromFloorPlan2D = false;
+	bool bIsDeletingFurnitureFrom3D = false;
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;

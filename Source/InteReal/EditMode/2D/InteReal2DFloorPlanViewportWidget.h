@@ -7,15 +7,14 @@
 #include "InteReal2DFloorPlanTypes.h"
 #include "InteReal2DFloorPlanViewportWidget.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DDrawAreaClickedSignature, FVector2D, LocalPosition);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DFurniturePlacementRequestedSignature, FVector2D, DocumentPosition);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DFurniturePreviewMovedSignature, FVector2D, DocumentPosition);
-
 USTRUCT(BlueprintType)
 struct FInteReal2DPlacedFurniture
 {
     GENERATED_BODY()
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FGuid InstanceGuid;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     int32 FurnitureID = 0;
 
@@ -31,6 +30,15 @@ struct FInteReal2DPlacedFurniture
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     float RotationDegrees = 0.0f;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DDrawAreaClickedSignature, FVector2D, LocalPosition);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DFurniturePlacementRequestedSignature, FVector2D, DocumentPosition);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DFurniturePreviewMovedSignature, FVector2D, DocumentPosition);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureSelectedSignature, int32, FurnitureIndex, FInteReal2DPlacedFurniture, Furniture);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureMovedSignature, int32, FurnitureIndex, FInteReal2DPlacedFurniture, Furniture);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureMoveEndedSignature, int32, FurnitureIndex, FInteReal2DPlacedFurniture, Furniture);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureDeletedSignature, int32, FurnitureIndex, FGuid, InstanceGuid);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteReal2DPlacedFurnituresClearedSignature);
 
 UCLASS(BlueprintType, Blueprintable)
 class INTEREAL_API UInteReal2DFloorPlanViewportWidget : public UUserWidget
@@ -55,6 +63,47 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     void ClearPlacedFurnitures();
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    int32 FindPlacedFurnitureIndexByGuid(const FGuid& InstanceGuid) const;
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool SelectPlacedFurnitureByGuid(const FGuid& InstanceGuid);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool RemovePlacedFurnitureByIndex(int32 FurnitureIndex);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool RemovePlacedFurnitureByGuid(const FGuid& InstanceGuid);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool RemoveSelectedFurniture();
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool SelectPlacedFurnitureByIndex(int32 FurnitureIndex);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    void ClearSelectedFurniture();
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdatePlacedFurniture(
+        int32 FurnitureIndex,
+        const FVector2D& CenterDocumentPosition,
+        float RotationDegrees
+    );
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdatePlacedFurnitureByGuid(
+        const FGuid& InstanceGuid,
+        const FVector2D& CenterDocumentPosition,
+        float RotationDegrees
+    );
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdateSelectedFurniture(
+        const FVector2D& CenterDocumentPosition,
+        float RotationDegrees
+    );
     
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     void AddPlacedFurnitureAtDocumentPosition(
@@ -79,6 +128,21 @@ public:
     
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
     FInteReal2DFurniturePreviewMovedSignature OnFurniturePreviewMoved2D;
+    
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnitureSelectedSignature OnPlacedFurnitureSelected2D;
+    
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnitureMovedSignature OnPlacedFurnitureMoved2D;
+    
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnitureMoveEndedSignature OnPlacedFurnitureMoveEnded2D;
+    
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnitureDeletedSignature OnPlacedFurnitureDeleted2D;
+
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnituresClearedSignature OnPlacedFurnituresCleared2D;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|Input")
     FVector2D LastClickedLocalPosition = FVector2D::ZeroVector;
@@ -138,6 +202,12 @@ public:
     FLinearColor FurnitureOutlineColor = FLinearColor(0.05f, 0.25f, 0.9f, 1.0f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor SelectedFurnitureFillColor = FLinearColor(1.0f, 0.75f, 0.1f, 0.35f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor SelectedFurnitureOutlineColor = FLinearColor(1.0f, 0.45f, 0.0f, 1.0f);
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     FLinearColor FurniturePreviewFillColor = FLinearColor(0.1f, 0.8f, 1.0f, 0.18f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
@@ -151,6 +221,9 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|Furniture")
     TArray<FInteReal2DPlacedFurniture> PlacedFurnitures2D;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|Furniture")
+    int32 SelectedFurnitureIndex = INDEX_NONE;
 
 protected:
     virtual void NativeConstruct() override;
@@ -170,9 +243,20 @@ protected:
         const FPointerEvent& InMouseEvent
     ) override;
     
+    virtual FReply NativeOnMouseButtonUp(
+        const FGeometry& InGeometry,
+        const FPointerEvent& InMouseEvent
+    ) override;
+    
 private:
     UFUNCTION()
     FEventReply HandleInputCatcherMouseButtonDown(
+        FGeometry MyGeometry,
+        const FPointerEvent& MouseEvent
+    );
+    
+    UFUNCTION()
+    FEventReply HandleInputCatcherMouseButtonUp(
         FGeometry MyGeometry,
         const FPointerEvent& MouseEvent
     );
@@ -206,10 +290,25 @@ private:
         const FLinearColor& OutlineColor
     ) const;
     
+    bool TryGetPlacedFurnitureIndexAtLocalPosition(
+        const FVector2D& LocalPosition,
+        const FVector2D& LocalSize,
+        int32& OutFurnitureIndex
+    ) const;
+
+    bool IsDocumentPointInsideFurniture(
+        const FVector2D& DocumentPosition,
+        const FInteReal2DPlacedFurniture& Furniture
+    ) const;
+    
     UPROPERTY()
     FFurnitureDataRow PendingFurnitureRow;
 
     FVector2D PendingFurnitureSize = FVector2D::ZeroVector;
     FVector2D PreviewFurnitureCenterDocument = FVector2D::ZeroVector;
     bool bHasFurniturePreviewPosition = false;
+    
+    bool bIsDraggingSelectedFurniture2D = false;
+    int32 DraggingFurnitureIndex2D = INDEX_NONE;
+    FVector2D FurnitureDragDocumentOffset = FVector2D::ZeroVector;
 };
