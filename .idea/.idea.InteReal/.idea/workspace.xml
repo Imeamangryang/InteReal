@@ -14,11 +14,6 @@
   <component name="ChangeListManager">
     <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Master/Widgets/MouseCursor/WBP_Cursor.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Widgets/MouseCursor/WBP_Cursor.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -284,7 +279,7 @@
       <workItem from="1781569163718" duration="26767000" />
       <workItem from="1781655173336" duration="3684000" />
       <workItem from="1781659374355" duration="16954000" />
-      <workItem from="1781822732646" duration="20976000" />
+      <workItem from="1781822732646" duration="23311000" />
     </task>
     <servers />
   </component>
