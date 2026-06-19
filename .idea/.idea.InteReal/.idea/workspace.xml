@@ -12,23 +12,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture01.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture01.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture02.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture02.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture03.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture03.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture04.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture04.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture05.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture05.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture06.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture06.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture07.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture07.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture08.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture08.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture09.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture09.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture10.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture10.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture11.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture11.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture12.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture12.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture13.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture13.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture14.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture14.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture15.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/TableSet01/Meshes/Sm_TableFurniture15.uasset" afterDir="false" />
-    </list>
+    <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -293,7 +277,7 @@
       <workItem from="1781569163718" duration="26767000" />
       <workItem from="1781655173336" duration="3684000" />
       <workItem from="1781659374355" duration="16954000" />
-      <workItem from="1781822732646" duration="3152000" />
+      <workItem from="1781822732646" duration="3716000" />
     </task>
     <servers />
   </component>
