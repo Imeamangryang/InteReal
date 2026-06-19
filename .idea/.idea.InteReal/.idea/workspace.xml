@@ -13,8 +13,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/SM_Cupboard_01.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/SM_Cupboard_01_Narrow.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/SM_Cupboard_02.uasset" beforeDir="false" />
@@ -363,7 +361,7 @@
       <workItem from="1781569163718" duration="26767000" />
       <workItem from="1781655173336" duration="3684000" />
       <workItem from="1781659374355" duration="16954000" />
-      <workItem from="1781822732646" duration="2126000" />
+      <workItem from="1781822732646" duration="2718000" />
     </task>
     <servers />
   </component>
