@@ -14,6 +14,7 @@ struct FTopologyCoordinateSystemMetadata
     UPROPERTY(EditAnywhere, BlueprintReadWrite) bool swapXY = false;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString target;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) float scaleCmPerPx = 1.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float scaleMmPerPx = 10.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString coordinatePolicy;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString imageXToUnrealAxis;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString imageYToUnrealAxis;
@@ -148,13 +149,34 @@ struct FHarnessFloorData
     bool UsesDirectUnrealCoordinates() const
     {
         const FTopologyCoordinateSystemMetadata& CoordinateSystem = metadata.coordinateSystem;
+        const bool bExplicitUnrealAxes =
+            CoordinateSystem.imageXToUnrealAxis.Equals(TEXT("X"), ESearchCase::IgnoreCase) &&
+            CoordinateSystem.imageYToUnrealAxis.Equals(TEXT("-Y"), ESearchCase::IgnoreCase);
+
         return CoordinateSystem.target.Equals(TEXT("unreal"), ESearchCase::IgnoreCase) ||
             CoordinateSystem.coordinatePolicy.Equals(TEXT("ue_z_up_y_negative"), ESearchCase::IgnoreCase) ||
-            CoordinateSystem.imageXToUnrealAxis.Equals(TEXT("X"), ESearchCase::IgnoreCase);
+            bExplicitUnrealAxes;
+    }
+
+    bool UsesNegativeImageYCoordinates() const
+    {
+        const FTopologyCoordinateSystemMetadata& CoordinateSystem = metadata.coordinateSystem;
+        return CoordinateSystem.coordinatePolicy.Equals(TEXT("ue_z_up_y_negative"), ESearchCase::IgnoreCase) ||
+            CoordinateSystem.imageYToUnrealAxis.Equals(TEXT("-Y"), ESearchCase::IgnoreCase);
     }
 
     FVector2D ToHarnessPoint(const FTopologyVertex& Vertex) const
     {
+        const bool bStrictUnrealCoordinatePayload =
+            metadata.coordinateSystem.target.IsEmpty() &&
+            metadata.coordinateSystem.coordinatePolicy.IsEmpty() &&
+            project_info.reference_coordinate_system.Contains(TEXT("UE"), ESearchCase::IgnoreCase);
+
+        if (bStrictUnrealCoordinatePayload || UsesDirectUnrealCoordinates())
+        {
+            return FVector2D(Vertex.x, UsesNegativeImageYCoordinates() ? -Vertex.y : Vertex.y);
+        }
+
         return FVector2D(Vertex.y, Vertex.x);
     }
 };

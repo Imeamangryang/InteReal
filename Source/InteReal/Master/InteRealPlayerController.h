@@ -122,7 +122,8 @@ protected:
 	void OnPlaceKey();
 	void OnPlaceReleasedKey();
 	void OnRemoveKey();
-	void OnRotatePreviewKey();
+	void RotateEditFurniture(float AngleDeg);
+	void OnRotateKey();
 	void OnRotate15Key();
 	void OnContinuousPressed();
 	void OnContinuousReleased();

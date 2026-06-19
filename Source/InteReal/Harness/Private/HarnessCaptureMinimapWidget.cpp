@@ -44,8 +44,8 @@ FReply UHarnessCaptureMinimapWidget::NativeOnMouseButtonDown(const FGeometry& In
     float OrthoWidth = CaptureCameraComp->OrthoWidth;
     
     // 💡 [버그 수정 2] 1:1 정방형 캡처이므로 X, Y 축 모두 OrthoWidth를 기준으로 3D 좌표 역산
-    float TargetWorldX = CameraLoc.X - ((V - 0.5f) * OrthoWidth);
-    float TargetWorldY = CameraLoc.Y + ((U - 0.5f) * OrthoWidth);
+    float TargetWorldX = CameraLoc.X + ((U - 0.5f) * OrthoWidth);
+    float TargetWorldY = CameraLoc.Y + ((V - 0.5f) * OrthoWidth);
 
     APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (PC)
@@ -93,8 +93,8 @@ void UHarnessCaptureMinimapWidget::NativeTick(const FGeometry& MyGeometry, float
     FVector2D MinimapSize = MinimapSlot->GetSize();
     if (MinimapSize.X <= 0 || MinimapSize.Y <= 0) return;
 
-    float U = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
-    float V = 0.5f - ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
+    float U = 0.5f + ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
+    float V = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
 
     U = FMath::Clamp(U, 0.0f, 1.0f);
     V = FMath::Clamp(V, 0.0f, 1.0f);

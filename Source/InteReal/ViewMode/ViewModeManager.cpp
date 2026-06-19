@@ -15,7 +15,7 @@ AViewModeManager::AViewModeManager()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bDoCollisionTest = false; 
-	SpringArm->SetRelativeRotation(FRotator(-45.f, 45.f, 0.f));
+	SpringArm->SetRelativeRotation(FRotator(-45.f, -45.f, 0.f));
 	SpringArm->TargetArmLength = 1500.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -23,7 +23,7 @@ AViewModeManager::AViewModeManager()
 
 	// Initial Targets
 	TargetLocation = FVector::ZeroVector;
-	TargetRotation = FRotator(-45.f, 45.f, 0.f);
+	TargetRotation = FRotator(-45.f, -45.f, 0.f);
 	TargetArmLength = 1500.f;
 	TargetFOV = 60.f;
 }
@@ -103,12 +103,12 @@ void AViewModeManager::CalculateOptimalZoom()
 	FVector2D Min, Max;
 	GenComp->GetFloorBounds(Min, Max);
 	
-	float DistX = Max.X - Min.X; // 남북(세로) 길이
-	float DistY = Max.Y - Min.Y; // 동서(가로) 길이
+	float DistX = Max.X - Min.X;
+	float DistY = Max.Y - Min.Y;
 
 	// (캔버스 회전) 기능 대응을 위해 가로/세로 매핑
-	float ScreenWidthRequired = bIsCanvasRotated ? DistX : DistY;
-	float ScreenHeightRequired = bIsCanvasRotated ? DistY : DistX;
+	float ScreenWidthRequired = bIsCanvasRotated ? DistY : DistX;
+	float ScreenHeightRequired = bIsCanvasRotated ? DistX : DistY;
 
 	// 16:9 모니터의 좁은 상하 폭에 담기 위해 세로 길이에 1.77배 가중치 적용
 	float AdjustedHeight = ScreenHeightRequired * 1.77f; 
@@ -131,7 +131,7 @@ void AViewModeManager::CalculateOptimalZoom()
 
 void AViewModeManager::UpdateTargetParameters()
 {
-	float BaseYaw = bIsCanvasRotated ? -90.f : 0.f;
+	float BaseYaw = bIsCanvasRotated ? 0.f : -90.f;
 
 	switch (CurrentMode)
 	{

@@ -1,4 +1,4 @@
-#include "ViewModePlayerController.h"
+﻿#include "ViewModePlayerController.h"
 #include "ViewModeManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
@@ -186,13 +186,13 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 			// 캔버스 회전 시 캐릭터/컨트롤러 방위각 동기화
 			if (CachedViewModeManager->IsCanvasRotated())
 			{
-				FRotator Rot(0.f, -90.f, 0.f);
+				FRotator Rot(0.f, 0.f, 0.f);
 				P->SetActorRotation(Rot);
 				SetControlRotation(Rot);
 			}
 			else
 			{
-				FRotator Rot(0.f, 0.f, 0.f);
+				FRotator Rot(0.f, -90.f, 0.f);
 				P->SetActorRotation(Rot);
 				SetControlRotation(Rot);
 			}

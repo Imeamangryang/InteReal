@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteRealMinimap.h"
 #include "InteReal/Harness/Public/HarnessMinimapCaptureComponent.h"
@@ -55,8 +55,8 @@ FReply UInteRealMinimap::NativeOnMouseButtonDown(const FGeometry& InGeometry, co
 	float OrthoWidth = CaptureCameraComp->OrthoWidth;
 	
 	// OrthoWidth 기반 3D 월드 좌표 정밀 역산
-	float TargetWorldX = CameraLoc.X - ((V - 0.5f) * OrthoWidth);
-	float TargetWorldY = CameraLoc.Y + ((U - 0.5f) * OrthoWidth);
+	float TargetWorldX = CameraLoc.X + ((U - 0.5f) * OrthoWidth);
+	float TargetWorldY = CameraLoc.Y + ((V - 0.5f) * OrthoWidth);
 
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (PC)
@@ -107,8 +107,8 @@ void UInteRealMinimap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	if (MinimapSize.X <= 0.0f || MinimapSize.Y <= 0.0f) return;
 
 	// 월드 좌표 좌표계를 2D 공간의 0 ~ 1 매핑 값으로 치환
-	float U = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
-	float V = 0.5f - ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
+	float U = 0.5f + ((PlayerLoc.X - CameraLoc.X) / OrthoWidth);
+	float V = 0.5f + ((PlayerLoc.Y - CameraLoc.Y) / OrthoWidth);
 
 	U = FMath::Clamp(U, 0.0f, 1.0f);
 	V = FMath::Clamp(V, 0.0f, 1.0f);

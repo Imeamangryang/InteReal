@@ -10,6 +10,13 @@ class AFurniture;
 class UInteriorPlacementSubsystem;
 class UMaterialInstanceDynamic;
 
+UENUM(BlueprintType)
+enum class EInteRealGizmoDisplayMode : uint8
+{
+	Move,
+	Rotation
+};
+
 UCLASS()
 class INTEREAL_API AInteRealGizmoActor : public AActor
 {
@@ -20,6 +27,8 @@ public:
 	
 	void InitAxisMaterials();
 	static FString GetAxisTagFromComponent(const UPrimitiveComponent* Component);
+	void SetDisplayMode(EInteRealGizmoDisplayMode NewMode);
+	EInteRealGizmoDisplayMode GetDisplayMode() const { return DisplayMode; }
 	
 	void UpdateHover(bool bIsHitting, const FHitResult& CursorHit);
 	
@@ -97,4 +106,5 @@ private:
 
 	TMap<FString, TArray<TObjectPtr<UMaterialInstanceDynamic>>> AxisMaterials;
 	FString HoveredAxis;
+	EInteRealGizmoDisplayMode DisplayMode = EInteRealGizmoDisplayMode::Move;
 };

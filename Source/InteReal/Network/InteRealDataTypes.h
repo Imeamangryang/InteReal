@@ -413,7 +413,7 @@ struct FUeTopologyExportRequest
     FString layout_type = TEXT("Korean_Standard_3Room_Apartment");
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    FString scale_unit = TEXT("cm");
+    FString scale_unit = TEXT("mm");
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString reference_coordinate_system = TEXT("UE_Z_Up_Y_Right");
@@ -422,22 +422,22 @@ struct FUeTopologyExportRequest
     FString coordinate_policy = TEXT("ue_z_up_y_negative");
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float default_wall_height_cm = 260.0f;
+    float default_wall_height_mm = 2600.0f;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float default_door_height_cm = 200.0f;
+    float default_door_height_mm = 2000.0f;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float default_window_height_cm = 150.0f;
+    float default_window_height_mm = 1500.0f;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float default_window_sill_height_cm = 90.0f;
+    float default_window_sill_height_mm = 900.0f;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float visual_scale_factor_cm_per_px = 1.0f;
+    float visual_scale_factor_mm_per_px = 10.0f;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    float vertex_merge_tolerance_cm = 0.001f;
+    float vertex_merge_tolerance_mm = 0.01f;
 };
 
 /** UE Topology export artifact 응답 */

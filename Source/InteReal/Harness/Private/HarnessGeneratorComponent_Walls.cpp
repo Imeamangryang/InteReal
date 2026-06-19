@@ -1,12 +1,10 @@
-#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
-
-#include "HarnessGeneratorGeometry.h"
-
+﻿#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "Components/DynamicMeshComponent.h"
 #include "UDynamicMesh.h"
 #include "DynamicMesh/MeshNormals.h"
 #include "GeometryScript/MeshBooleanFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
+#include "Public/HarnessGeneratorGeometry.h"
 
 using namespace InteReal::HarnessGenerator;
 
@@ -713,8 +711,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             SurfaceComp->ComponentTags.AddUnique(Tag);
         }
 
-        const bool bIsExteriorSurface = SurfaceComp->ComponentHasTag(TEXT("WallExterior"));
-
         SurfaceComp->SetRelativeScale3D(FVector(1.0f, 1.0f, 0.01f));
         SurfaceComp->SetRelativeLocationAndRotation(FVector(SurfaceCenter.X, SurfaceCenter.Y, 0.0f), FRotator(0.0f, Side.Angle, 0.0f));
         SurfaceComp->SetDynamicMesh(NewObject<UDynamicMesh>(SurfaceComp));
@@ -726,11 +722,13 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         }
 
         SurfaceComp->SetComplexAsSimpleCollisionEnabled(true, true);
-        SurfaceComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        SurfaceComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         SurfaceComp->SetCollisionObjectType(ECC_WorldStatic);
-        SurfaceComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-        SurfaceComp->SetCollisionResponseToChannel(ECC_Visibility, bIsExteriorSurface ? ECR_Ignore : ECR_Block);
-        SurfaceComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, bIsExteriorSurface ? ECR_Ignore : ECR_Block);
+        SurfaceComp->SetCollisionResponseToAllChannels(ECR_Block);
+        SurfaceComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+        SurfaceComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
+        SurfaceComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+        SurfaceComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
         SurfaceComp->bCastShadowAsTwoSided = true;
         SurfaceComp->NotifyMeshUpdated();
 
@@ -1339,8 +1337,8 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         }
     }
 
-    ApplyTJointSurfaceInsets(InteriorSurfaceSides, WallRuns);
-    ApplyWallRunEndpointInsets(WallRuns);
+    // ApplyTJointSurfaceInsets(InteriorSurfaceSides, WallRuns);
+    // ApplyWallRunEndpointInsets(WallRuns);
 
     for (const FWallRun& Run : WallRuns)
     {
@@ -1393,19 +1391,46 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             Opening.CenterX += OpeningCenterShift;
         }
 
+        // 💡 [수정] 통짜 뼈대를 세로로 반갈라 왼쪽/오른쪽 2개의 얇은 벽으로 분리 생성합니다.
+        const float HalfThickness = Run.WallThickness * 0.5f;
+        const float OffsetDist = HalfThickness * 0.5f; // 절반 두께의 중심점을 구하기 위한 오프셋
+        const FVector2D CoreNormal(-Run.Direction.Y, Run.Direction.X); // 벽의 수직 방향(Normal)
+
+        const FVector2D LeftCenter = CoreCenter + (CoreNormal * OffsetDist);
+        const FVector2D RightCenter = CoreCenter - (CoreNormal * OffsetDist);
+
+        // 1. 왼쪽 뼈대 메쉬
         BuildWallBox(
-            CoreCenter,
+            LeftCenter,
             Run.Angle,
-            CoreLength + (HarnessCoreEndOverlapCm * 2.0f),
-            Run.WallThickness,
+            CoreLength + Run.WallThickness,
+            HalfThickness, // 두께를 절반으로!
             CoreBottomZ,
             CoreTopZ,
             CoreOpenings,
             {
                 FName(TEXT("WallCore")),
-                FName(FString::Printf(TEXT("WallCore_%s"), *Run.RunId))
+                FName(TEXT("WallCore_Left")),
+                FName(FString::Printf(TEXT("WallCore_%s_L"), *Run.RunId))
             },
-            false
+            true // 마우스로 선택 가능하도록 bEditable을 true로 설정!
+        );
+
+        // 2. 오른쪽 뼈대 메쉬
+        BuildWallBox(
+            RightCenter,
+            Run.Angle,
+            CoreLength + Run.WallThickness,
+            HalfThickness, // 두께를 절반으로!
+            CoreBottomZ,
+            CoreTopZ,
+            CoreOpenings,
+            {
+                FName(TEXT("WallCore")),
+                FName(TEXT("WallCore_Right")),
+                FName(FString::Printf(TEXT("WallCore_%s_R"), *Run.RunId))
+            },
+            true // 마우스로 선택 가능하도록 bEditable을 true로 설정!
         );
     }
 

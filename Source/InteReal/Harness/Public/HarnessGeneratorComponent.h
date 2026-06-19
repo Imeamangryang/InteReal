@@ -27,6 +27,21 @@ public:
     // 에디터에서 즉시 끄고 켤 수 있는 인테리어 조명 토글
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Lighting")
     bool bEnableInteriorLights = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Scale", meta=(ClampMin="0.01", UIMin="0.1", UIMax="10.0", DisplayName="Editor Plan Scale"))
+    float EditorPlanScale = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category="Harness|Scale", meta=(ClampMin="0.01", DisplayName="Additional Plan Scale"))
+    float OverallPlanScale = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Scale")
+    bool bAutoScaleFromDoorWidth = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Scale", meta=(ClampMin="1.0"))
+    float DoorReferenceWidthCm = 90.0f;
+
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category="Harness|Scale")
+    float LastAppliedPlanScale = 1.0f;
     
     // 도면 생성 요청 진입점 (기존 도면이 있으면 애니메이션 처리 후 내부 함수 호출)
     UFUNCTION(BlueprintCallable, Category="Harness")
@@ -34,6 +49,12 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Harness")
     void ClearHarness();
+
+    UFUNCTION(BlueprintCallable, CallInEditor, Category="Harness|Scale")
+    void RebuildHarnessWithCurrentScale();
+
+    UFUNCTION(BlueprintCallable, Category="Harness|Scale")
+    void SetEditorPlanScale(float NewScale, bool bRebuild = true);
 
     // 💡 천장 높이 동적 수정 기능
     UFUNCTION(BlueprintCallable, Category="Harness")
@@ -45,6 +66,14 @@ public:
     TArray<FTopologySurfaceMeasurement> SurfaceMeasurementCache;
 
 private:
+    float CalculateEffectivePlanScale(const FHarnessFloorData& FloorData) const;
+    FHarnessFloorData MakeRuntimeFloorData(const FHarnessFloorData& FloorData, float PlanScale) const;
+    void RebuildHarnessFromRuntimeData(const FHarnessFloorData& FloorData);
+
+#if WITH_EDITOR
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
     void BuildTopologyCaches(const FHarnessFloorData& FloorData);
     void AssembleStructuralWalls(const FHarnessFloorData& FloorData);
     void FabricateDynamicPlanes(const FHarnessFloorData& FloorData);
@@ -60,6 +89,7 @@ private:
 
     // 텔레포트 시 방 좌표를 찾기 위해 원본 JSON 데이터를 저장해둘 멤버 변수
     FHarnessFloorData CachedFloorData;
+    FHarnessFloorData SourceFloorData;
 
     // 각 방의 중앙에 임시 조명을 배치하는 함수
     void InstallInteriorLights(const FHarnessFloorData& FloorData);

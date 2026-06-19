@@ -2,11 +2,29 @@
 #include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "Components/MeshComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 AInteRealGizmoActor::AInteRealGizmoActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
+}
+
+static bool IsCollisionOnlyGizmoComponent(const UPrimitiveComponent* Component)
+{
+	if (!Component)
+	{
+		return false;
+	}
+
+	const FString Name = Component->GetName();
+	if (Name.Contains(TEXT("Collision"), ESearchCase::IgnoreCase) ||
+		Name.Contains(TEXT("Hit"), ESearchCase::IgnoreCase))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 FString AInteRealGizmoActor::GetAxisTagFromComponent(const UPrimitiveComponent* Component)
@@ -64,6 +82,13 @@ void AInteRealGizmoActor::InitAxisMaterials()
 
 	for (UMeshComponent* Mesh : Meshes)
 	{
+		if (IsCollisionOnlyGizmoComponent(Mesh))
+		{
+			Mesh->SetVisibility(false, false);
+			Mesh->SetHiddenInGame(true, false);
+			continue;
+		}
+
 		const FString AxisTag = GetAxisTagFromComponent(Mesh);
 		if (AxisTag.IsEmpty()) continue;
 
@@ -79,6 +104,36 @@ void AInteRealGizmoActor::InitAxisMaterials()
 				DMIs.Add(DMI);
 			}
 		}
+	}
+
+	SetDisplayMode(DisplayMode);
+}
+
+void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
+{
+	DisplayMode = NewMode;
+	HoveredAxis.Empty();
+	ResetRotationVisuals();
+
+	TArray<UPrimitiveComponent*> Components;
+	GetComponents<UPrimitiveComponent>(Components);
+
+	for (UPrimitiveComponent* Component : Components)
+	{
+		if (!Component) continue;
+
+		const FString AxisTag = GetAxisTagFromComponent(Component);
+		if (AxisTag.IsEmpty()) continue;
+
+		const bool bIsRotationComponent = AxisTag.StartsWith(TEXT("Rotate")) || AxisTag == TEXT("RotationRing");
+		const bool bShouldShow = DisplayMode == EInteRealGizmoDisplayMode::Rotation
+			? bIsRotationComponent
+			: !bIsRotationComponent;
+
+		const bool bCollisionOnly = IsCollisionOnlyGizmoComponent(Component);
+		Component->SetVisibility(bShouldShow && !bCollisionOnly, true);
+		Component->SetHiddenInGame(!bShouldShow || bCollisionOnly, true);
+		Component->SetCollisionEnabled(bShouldShow ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	}
 }
 

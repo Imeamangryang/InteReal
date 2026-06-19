@@ -636,12 +636,12 @@ namespace
         {
             AppendQueryParam(Query, TEXT("coordinate_policy"), ExportParams.coordinate_policy);
         }
-        AppendQueryParam(Query, TEXT("default_wall_height_cm"), FString::SanitizeFloat(ExportParams.default_wall_height_cm));
-        AppendQueryParam(Query, TEXT("default_door_height_cm"), FString::SanitizeFloat(ExportParams.default_door_height_cm));
-        AppendQueryParam(Query, TEXT("default_window_height_cm"), FString::SanitizeFloat(ExportParams.default_window_height_cm));
-        AppendQueryParam(Query, TEXT("default_window_sill_height_cm"), FString::SanitizeFloat(ExportParams.default_window_sill_height_cm));
-        AppendQueryParam(Query, TEXT("visual_scale_factor_cm_per_px"), FString::SanitizeFloat(ExportParams.visual_scale_factor_cm_per_px));
-        AppendQueryParam(Query, TEXT("vertex_merge_tolerance_cm"), FString::SanitizeFloat(ExportParams.vertex_merge_tolerance_cm));
+        AppendQueryParam(Query, TEXT("default_wall_height_mm"), FString::SanitizeFloat(ExportParams.default_wall_height_mm));
+        AppendQueryParam(Query, TEXT("default_door_height_mm"), FString::SanitizeFloat(ExportParams.default_door_height_mm));
+        AppendQueryParam(Query, TEXT("default_window_height_mm"), FString::SanitizeFloat(ExportParams.default_window_height_mm));
+        AppendQueryParam(Query, TEXT("default_window_sill_height_mm"), FString::SanitizeFloat(ExportParams.default_window_sill_height_mm));
+        AppendQueryParam(Query, TEXT("visual_scale_factor_mm_per_px"), FString::SanitizeFloat(ExportParams.visual_scale_factor_mm_per_px));
+        AppendQueryParam(Query, TEXT("vertex_merge_tolerance_mm"), FString::SanitizeFloat(ExportParams.vertex_merge_tolerance_mm));
     }
 
     FUnrealPlanListResponse BuildMockPlanList(const FUnrealPlanSearchParams& Params)

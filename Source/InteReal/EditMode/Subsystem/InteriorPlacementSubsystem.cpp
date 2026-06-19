@@ -62,10 +62,11 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 	float MinY = TNumericLimits<float>::Max(), MaxY = TNumericLimits<float>::Lowest();
 	for (const FTopologyVertex& V : FloorData.vertices)
 	{
-		MinX = FMath::Min(MinX, V.y);
-		MaxX = FMath::Max(MaxX, V.y);
-		MinY = FMath::Min(MinY, V.x);
-		MaxY = FMath::Max(MaxY, V.x);
+		const FVector2D Point = FloorData.ToHarnessPoint(V);
+		MinX = FMath::Min(MinX, Point.X);
+		MaxX = FMath::Max(MaxX, Point.X);
+		MinY = FMath::Min(MinY, Point.Y);
+		MaxY = FMath::Max(MaxY, Point.Y);
 	}
 
 	const float CenterX = (MinX + MaxX) * 0.5f;
@@ -828,7 +829,13 @@ void UInteriorPlacementSubsystem::ApplyWallTraceCollision()
 		{
 			if (Comp->ComponentHasTag(TEXT("EditableWall")))
 			{
+				Comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				Comp->SetCollisionObjectType(ECC_WorldStatic);
+				Comp->SetCollisionResponseToAllChannels(ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			}
 			else
 			{
@@ -902,7 +909,7 @@ void UInteriorPlacementSubsystem::BuildFloorPolygon(const FHarnessFloorData& Flo
 	TMap<FString, FVector2D> VMap;
 	for (const FTopologyVertex& V : FloorData.vertices)
 	{
-		VMap.Add(V.id, FVector2D(V.y, V.x));
+		VMap.Add(V.id, FloorData.ToHarnessPoint(V));
 	}
 
 	for (const FTopologyFace& Face : FloorData.faces)
@@ -980,7 +987,7 @@ void UInteriorPlacementSubsystem::BuildWallSegments(const FHarnessFloorData& Flo
 	TMap<FString, FVector2D> VMap;
 	for (const FTopologyVertex& V : FloorData.vertices)
 	{
-		VMap.Add(V.id, FVector2D(V.y, V.x));
+		VMap.Add(V.id, FloorData.ToHarnessPoint(V));
 	}
 
 	TSet<FString> ProcessedTwinIds;

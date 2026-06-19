@@ -5,6 +5,98 @@
 #include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessSaveManagerComponent.h"
 
+float UHarnessGeneratorComponent::CalculateEffectivePlanScale(const FHarnessFloorData& FloorData) const
+{
+    float EffectiveScale = FMath::Max(EditorPlanScale * OverallPlanScale, UE_SMALL_NUMBER);
+
+    if (!bAutoScaleFromDoorWidth || DoorReferenceWidthCm <= UE_SMALL_NUMBER)
+    {
+        return EffectiveScale;
+    }
+
+    TArray<float> DoorWidthsBelowReference;
+    for (const FTopologyOpening& Opening : FloorData.openings)
+    {
+        if (!Opening.type.Equals(TEXT("Door"), ESearchCase::IgnoreCase))
+        {
+            continue;
+        }
+
+        if (Opening.width_cm > UE_SMALL_NUMBER && Opening.width_cm < DoorReferenceWidthCm)
+        {
+            DoorWidthsBelowReference.Add(Opening.width_cm);
+        }
+    }
+
+    if (DoorWidthsBelowReference.Num() == 0)
+    {
+        return EffectiveScale;
+    }
+
+    DoorWidthsBelowReference.Sort();
+
+    float SourceDoorWidth = 0.0f;
+    const int32 MidIndex = DoorWidthsBelowReference.Num() / 2;
+    if (DoorWidthsBelowReference.Num() % 2 == 0)
+    {
+        SourceDoorWidth = (DoorWidthsBelowReference[MidIndex - 1] + DoorWidthsBelowReference[MidIndex]) * 0.5f;
+    }
+    else
+    {
+        SourceDoorWidth = DoorWidthsBelowReference[MidIndex];
+    }
+
+    if (SourceDoorWidth <= UE_SMALL_NUMBER)
+    {
+        return EffectiveScale;
+    }
+
+    return EffectiveScale * (DoorReferenceWidthCm / SourceDoorWidth);
+}
+
+FHarnessFloorData UHarnessGeneratorComponent::MakeRuntimeFloorData(const FHarnessFloorData& FloorData, float PlanScale) const
+{
+    FHarnessFloorData RuntimeFloorData = FloorData;
+    if (FMath::IsNearlyEqual(PlanScale, 1.0f, UE_SMALL_NUMBER))
+    {
+        return RuntimeFloorData;
+    }
+
+    for (FTopologyVertex& Vertex : RuntimeFloorData.vertices)
+    {
+        Vertex.x *= PlanScale;
+        Vertex.y *= PlanScale;
+    }
+
+    for (FTopologyHalfEdge& Edge : RuntimeFloorData.half_edges)
+    {
+        Edge.wall_thickness *= PlanScale;
+    }
+
+    for (FTopologyWallSideMeasurement& Measurement : RuntimeFloorData.wall_side_measurements)
+    {
+        Measurement.length_cm *= PlanScale;
+    }
+
+    for (FTopologySurfaceMeasurement& Measurement : RuntimeFloorData.surface_measurements)
+    {
+        Measurement.start_distance_cm *= PlanScale;
+        Measurement.end_distance_cm *= PlanScale;
+        Measurement.length_cm *= PlanScale;
+        Measurement.start_point.x *= PlanScale;
+        Measurement.start_point.y *= PlanScale;
+        Measurement.end_point.x *= PlanScale;
+        Measurement.end_point.y *= PlanScale;
+    }
+
+    for (FTopologyOpening& Opening : RuntimeFloorData.openings)
+    {
+        Opening.width_cm *= PlanScale;
+    }
+
+    return RuntimeFloorData;
+}
+
 UHarnessGeneratorComponent::UHarnessGeneratorComponent()
 {
     // ?醫딅빍筌롫뗄???筌ｌ꼶?곭몴??袁る퉸 Tick???????렽? ?귐딅꺖????됰튋???袁る퉸 疫꿸퀡???怨밴묶????쑵??源딆넅(false)嚥???쇱젟??몃빍??
@@ -29,6 +121,28 @@ void UHarnessGeneratorComponent::ClearHarness()
     SurfaceMeasurementCache.Reset();
 
     bIsSpawning = false;
+}
+
+void UHarnessGeneratorComponent::RebuildHarnessFromRuntimeData(const FHarnessFloorData& FloorData)
+{
+    ClearHarness();
+    BuildTopologyCaches(FloorData);
+
+    AssembleStructuralWalls(FloorData);
+    FabricateDynamicPlanes(FloorData);
+    InstallOpeningComponents(FloorData);
+
+    if (bEnableInteriorLights)
+    {
+        InstallInteriorLights(FloorData);
+    }
+
+    if (AnimatedWalls.Num() > 0)
+    {
+        bIsSpawning = true;
+        WallAnimationProgress = 0.01f;
+        SetComponentTickEnabled(true);
+    }
 }
 
 // ==============================================================================
@@ -61,29 +175,51 @@ void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData
 {
     if (!GetOwner()) return;
 
-    CachedFloorData = FloorData;
+    SourceFloorData = FloorData;
+    RebuildHarnessWithCurrentScale();
+}
 
-    // ?袁ⓦ늺????덉쨮 域밸챶?곫묾??袁る퉸 疫꿸퀣???袁ⓦ늺??筌앸맦而???볤탢??몃빍??
-    ClearHarness();
-    BuildTopologyCaches(FloorData);
-
-    AssembleStructuralWalls(FloorData);      // 甕곗럩猿???밴쉐 獄?筌≪럥揆 ?닌됱컞 ??る┛(Boolean)
-    FabricateDynamicPlanes(FloorData);       // 獄쏅뗀?? 筌ｌ뮇????겹늺(Triangulation) 獄????袁⑹뒭 ?됰뗀以???밴쉐
-    InstallOpeningComponents(FloorData);     // ?????닌됱컞????筌≪럥揆 3D ?癒??獄쏄퀣??
-    
-    if (bEnableInteriorLights)
+void UHarnessGeneratorComponent::RebuildHarnessWithCurrentScale()
+{
+    if (!GetOwner() || SourceFloorData.vertices.IsEmpty())
     {
-        InstallInteriorLights(FloorData);    // 揶?獄?餓λ쵐釉?鈺곌퀡梨?獄쏄퀣??
+        return;
     }
 
-    // 筌뤴뫀諭?筌롫뗄????밴쉐????멸텢??겹늺, Z??疫꿸퀡而????살カ筌△뫁???醫딅빍筌롫뗄???륁뱽 ??뽰삂??몃빍??
-    if (AnimatedWalls.Num() > 0)
+    LastAppliedPlanScale = CalculateEffectivePlanScale(SourceFloorData);
+    CachedFloorData = MakeRuntimeFloorData(SourceFloorData, LastAppliedPlanScale);
+    RebuildHarnessFromRuntimeData(CachedFloorData);
+}
+
+void UHarnessGeneratorComponent::SetEditorPlanScale(float NewScale, bool bRebuild)
+{
+    EditorPlanScale = FMath::Max(NewScale, 0.01f);
+    if (bRebuild)
     {
-        bIsSpawning = true;
-        WallAnimationProgress = 0.01f;
-        SetComponentTickEnabled(true); 
+        RebuildHarnessWithCurrentScale();
     }
 }
+
+#if WITH_EDITOR
+void UHarnessGeneratorComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    const FName PropertyName = PropertyChangedEvent.Property
+        ? PropertyChangedEvent.Property->GetFName()
+        : NAME_None;
+
+    if (PropertyName == GET_MEMBER_NAME_CHECKED(UHarnessGeneratorComponent, EditorPlanScale) ||
+        PropertyName == GET_MEMBER_NAME_CHECKED(UHarnessGeneratorComponent, OverallPlanScale) ||
+        PropertyName == GET_MEMBER_NAME_CHECKED(UHarnessGeneratorComponent, bAutoScaleFromDoorWidth) ||
+        PropertyName == GET_MEMBER_NAME_CHECKED(UHarnessGeneratorComponent, DoorReferenceWidthCm))
+    {
+        EditorPlanScale = FMath::Max(EditorPlanScale, 0.01f);
+        OverallPlanScale = FMath::Max(OverallPlanScale, 0.01f);
+        RebuildHarnessWithCurrentScale();
+    }
+}
+#endif
 
 // ==============================================================================
 // 甕곗럩???袁⑥삋?癒?퐣 ?袁⑥쨮 ??쏅툡??삘뀮??Scale-Up) ?醫딅빍筌롫뗄???륁뱽 筌ｌ꼶???몃빍??
@@ -114,11 +250,13 @@ void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickT
                 {
                     Wall->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f)); 
                     // [餓λ쵐?? 筌ㅼ뮇??遺? ?袁る퉸 ?醫딅빍筌롫뗄???륁뵠 ??멸텆 ??뽰젎???얠눖???겸뫖猷?Collision)???????
-                    if (Wall->ComponentHasTag(TEXT("EditableWall")) && !Wall->ComponentHasTag(TEXT("WallExterior")))
+                    if (Wall->ComponentHasTag(TEXT("EditableWall")))
                     {
-                        Wall->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+                        Wall->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
                         Wall->SetCollisionObjectType(ECC_WorldStatic);
-                        Wall->SetCollisionResponseToAllChannels(ECR_Ignore);
+                        Wall->SetCollisionResponseToAllChannels(ECR_Block);
+                        Wall->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+                        Wall->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
                         Wall->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
                         Wall->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
                     }
@@ -265,17 +403,26 @@ void UHarnessGeneratorComponent::UpdateCeilingHeight(FString FaceId, float NewHe
             break;
         }
     }
+
+    for (FTopologyFace& Face : SourceFloorData.faces)
+    {
+        if (Face.face_id == FaceId)
+        {
+            Face.height_cm = NewHeight;
+            break;
+        }
+    }
     
     if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
     {
         if (UHarnessSaveManagerComponent* SaveComp = Pipeline->GetSaveManagerComp())
         {
             FString CurrentState = SaveComp->SaveInteriorState();
-            BuildHarness(CachedFloorData);
+            RebuildHarnessFromRuntimeData(CachedFloorData);
             SaveComp->LoadInteriorState(CurrentState);
             return;
         }
     }
     
-    BuildHarness(CachedFloorData);
+    RebuildHarnessFromRuntimeData(CachedFloorData);
 }

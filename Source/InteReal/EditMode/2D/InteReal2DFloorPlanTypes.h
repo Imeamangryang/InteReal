@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "InteReal2DFloorPlanTypes.generated.h"
@@ -49,4 +49,7 @@ struct FInteReal2DFloorPlanDocument
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D")
 	bool bIsValid = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D")
+	bool bFlipYForScreenSpace = false;
 };

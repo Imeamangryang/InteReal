@@ -112,6 +112,55 @@ namespace
         }
     }
 
+    struct FJsonFieldAlias
+    {
+        FString TargetField;
+        TArray<FString> AliasFields;
+    };
+
+    FJsonFieldAlias MakeFieldAlias(const FString& TargetField, const FString& AliasField)
+    {
+        FJsonFieldAlias Result;
+        Result.TargetField = TargetField;
+        Result.AliasFields.Add(AliasField);
+        return Result;
+    }
+
+    void NormalizeObjectFields(const TSharedPtr<FJsonObject>& Object, const TArray<FJsonFieldAlias>& FieldAliases)
+    {
+        if (!Object.IsValid())
+        {
+            return;
+        }
+
+        for (const FJsonFieldAlias& FieldAlias : FieldAliases)
+        {
+            CopyFieldIfMissing(Object, FieldAlias.TargetField, FieldAlias.AliasFields);
+        }
+    }
+
+    void NormalizeArrayObjectFields(const TSharedPtr<FJsonObject>& Object, const FString& ArrayField, const TArray<FJsonFieldAlias>& FieldAliases)
+    {
+        if (!Object.IsValid())
+        {
+            return;
+        }
+
+        const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+        if (!Object->TryGetArrayField(ArrayField, Values) || !Values)
+        {
+            return;
+        }
+
+        for (const TSharedPtr<FJsonValue>& Value : *Values)
+        {
+            if (Value.IsValid() && Value->Type == EJson::Object)
+            {
+                NormalizeObjectFields(Value->AsObject(), FieldAliases);
+            }
+        }
+    }
+
     void NormalizeFloorDataObject(const TSharedPtr<FJsonObject>& Object)
     {
         CopyFieldIfMissing(Object, TEXT("project_info"), { TEXT("projectInfo"), TEXT("project") });
@@ -120,6 +169,102 @@ namespace
         CopyFieldIfMissing(Object, TEXT("faces"), { TEXT("spaces"), TEXT("rooms") });
         CopyFieldIfMissing(Object, TEXT("wall_side_measurements"), { TEXT("wallSideMeasurements") });
         CopyFieldIfMissing(Object, TEXT("surface_measurements"), { TEXT("surfaceMeasurements") });
+
+        NormalizeArrayObjectFields(Object, TEXT("openings"), {
+            MakeFieldAlias(TEXT("width_cm"), TEXT("width_mm")),
+            MakeFieldAlias(TEXT("height_cm"), TEXT("height_mm")),
+            MakeFieldAlias(TEXT("z_offset_cm"), TEXT("z_offset_mm"))
+        });
+
+        NormalizeArrayObjectFields(Object, TEXT("faces"), {
+            MakeFieldAlias(TEXT("height_cm"), TEXT("height_mm")),
+            MakeFieldAlias(TEXT("z_offset"), TEXT("z_offset_mm"))
+        });
+
+        NormalizeArrayObjectFields(Object, TEXT("half_edges"), {
+            MakeFieldAlias(TEXT("wall_thickness"), TEXT("wall_thickness_mm"))
+        });
+
+        NormalizeArrayObjectFields(Object, TEXT("wall_side_measurements"), {
+            MakeFieldAlias(TEXT("length_cm"), TEXT("length_mm"))
+        });
+
+        NormalizeArrayObjectFields(Object, TEXT("surface_measurements"), {
+            MakeFieldAlias(TEXT("start_distance_cm"), TEXT("start_distance_mm")),
+            MakeFieldAlias(TEXT("end_distance_cm"), TEXT("end_distance_mm")),
+            MakeFieldAlias(TEXT("length_cm"), TEXT("length_mm"))
+        });
+    }
+
+    float GetLengthUnitToCentimeters(const FString& Unit)
+    {
+        if (Unit.Equals(TEXT("mm"), ESearchCase::IgnoreCase) ||
+            Unit.Equals(TEXT("millimeter"), ESearchCase::IgnoreCase) ||
+            Unit.Equals(TEXT("millimeters"), ESearchCase::IgnoreCase))
+        {
+            return 0.1f;
+        }
+
+        if (Unit.Equals(TEXT("m"), ESearchCase::IgnoreCase) ||
+            Unit.Equals(TEXT("meter"), ESearchCase::IgnoreCase) ||
+            Unit.Equals(TEXT("meters"), ESearchCase::IgnoreCase))
+        {
+            return 100.0f;
+        }
+
+        return 1.0f;
+    }
+
+    void ConvertFloorDataToCentimeters(FHarnessFloorData& Data)
+    {
+        const float UnitToCmScale = GetLengthUnitToCentimeters(Data.project_info.scale_unit);
+        if (FMath::IsNearlyEqual(UnitToCmScale, 1.0f, UE_SMALL_NUMBER))
+        {
+            Data.project_info.scale_unit = TEXT("cm");
+            return;
+        }
+
+        for (FTopologyVertex& Vertex : Data.vertices)
+        {
+            Vertex.x *= UnitToCmScale;
+            Vertex.y *= UnitToCmScale;
+        }
+
+        for (FTopologyHalfEdge& Edge : Data.half_edges)
+        {
+            Edge.wall_thickness *= UnitToCmScale;
+        }
+
+        for (FTopologyOpening& Opening : Data.openings)
+        {
+            Opening.width_cm *= UnitToCmScale;
+            Opening.height_cm *= UnitToCmScale;
+            Opening.z_offset_cm *= UnitToCmScale;
+        }
+
+        for (FTopologyFace& Face : Data.faces)
+        {
+            Face.height_cm *= UnitToCmScale;
+            Face.z_offset *= UnitToCmScale;
+        }
+
+        for (FTopologyWallSideMeasurement& Measurement : Data.wall_side_measurements)
+        {
+            Measurement.length_cm *= UnitToCmScale;
+        }
+
+        for (FTopologySurfaceMeasurement& Measurement : Data.surface_measurements)
+        {
+            Measurement.start_distance_cm *= UnitToCmScale;
+            Measurement.end_distance_cm *= UnitToCmScale;
+            Measurement.length_cm *= UnitToCmScale;
+            Measurement.start_point.x *= UnitToCmScale;
+            Measurement.start_point.y *= UnitToCmScale;
+            Measurement.end_point.x *= UnitToCmScale;
+            Measurement.end_point.y *= UnitToCmScale;
+        }
+
+        Data.project_info.scale_unit = TEXT("cm");
     }
 }
 
@@ -166,6 +311,8 @@ bool FHarnessJsonParser::ParseFloorDataFromJsonString(const FString& JsonString,
         OutError = TEXT("Data integrity warning: Parsed topology contains zero half_edges.");
         return false;
     }
+
+    ConvertFloorDataToCentimeters(OutData);
 
     return true;
 }

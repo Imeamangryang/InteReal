@@ -294,7 +294,7 @@ void AInteRealPlayerController::SetupInputComponent()
 
 	if (IA_Rotate)
 	{
-		EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotatePreviewKey);
+		EIC->BindAction(IA_Rotate, ETriggerEvent::Started, this, &AInteRealPlayerController::OnRotateKey);
 	}
 
 	if (IA_Rotate15)
@@ -562,9 +562,7 @@ UInteriorPlacementSubsystem* AInteRealPlayerController::GetPlacementSubsystem() 
 	return GetWorld() ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>() : nullptr;
 }
 
-// 기즈모 트레이스 결과 중 Move 축 콜리전을 우선 선택한다.
-// (Move 화살표와 Rotate 링의 콜리전이 겹치는 영역에서는 거리상 먼저 잡히는 쪽이 항상 Rotate가 되는 경우가 많아,
-// 의도적으로 Move 축을 우선 처리)
+// 기즈모 트레이스 결과 중 Move 축 콜리전을 우선 선택
 static bool IsRotateGizmoTag(const FString& Tag)
 {
 	return Tag.StartsWith(TEXT("Rotate")) || Tag == TEXT("RotationRing");
@@ -1085,14 +1083,14 @@ void AInteRealPlayerController::OnRemoveKey()
 	}
 }
 
-void AInteRealPlayerController::OnRotatePreviewKey()
+void AInteRealPlayerController::RotateEditFurniture(float AngleDeg)
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
 
 	if (PS && PS->HasActivePreview())
 	{
-		PS->RotatePreview(90.0f);
+		PS->RotatePreview(AngleDeg);
 		return;
 	}
 
@@ -1100,31 +1098,26 @@ void AInteRealPlayerController::OnRotatePreviewKey()
 	{
 		if (PS) PS->RecordUndoSnapshot();
 		FRotator Rot = SelectedFurniture->GetActorRotation();
-		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 90.0f);
+		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + AngleDeg);
 		SelectedFurniture->SetActorRotation(Rot);
+		if (SpawnedGizmo)
+		{
+			SpawnedGizmo->SetActorRotation(Rot);
+		}
 		SyncFloorPlan2DFromFurniture(SelectedFurniture);
 	}
 }
 
+void AInteRealPlayerController::OnRotateKey()
+{
+	const bool bReverse = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
+	RotateEditFurniture(bReverse ? -90.0f : 90.0f);
+}
+
 void AInteRealPlayerController::OnRotate15Key()
 {
-	if (CurrentControlMode != EInteRealControlMode::Edit) return;
-	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
-
-	if (PS && PS->HasActivePreview())
-	{
-		PS->RotatePreview(15.0f);
-		return;
-	}
-
-	if (SelectedFurniture)
-	{
-		if (PS) PS->RecordUndoSnapshot();
-		FRotator Rot = SelectedFurniture->GetActorRotation();
-		Rot.Yaw = FRotator::NormalizeAxis(Rot.Yaw + 15.0f);
-		SelectedFurniture->SetActorRotation(Rot);
-		SyncFloorPlan2DFromFurniture(SelectedFurniture);
-	}
+	const bool bReverse = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
+	RotateEditFurniture(bReverse ? -15.0f : 15.0f);
 }
 
 void AInteRealPlayerController::OnContinuousPressed()

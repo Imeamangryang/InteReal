@@ -48,6 +48,7 @@ void FInteReal2DFloorPlanConverter::ComputeBounds(FInteReal2DFloorPlanDocument& 
 FInteReal2DFloorPlanDocument FInteReal2DFloorPlanConverter::ConvertFromHarness(const FHarnessFloorData& FloorData)
 {
     FInteReal2DFloorPlanDocument Document;
+    Document.bFlipYForScreenSpace = false;
 
     TMap<FString, FVector2D> VertexMap;
     for (const FTopologyVertex& Vertex : FloorData.vertices)

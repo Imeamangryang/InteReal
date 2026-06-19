@@ -1,12 +1,12 @@
-#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
+﻿#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 
-#include "HarnessGeneratorGeometry.h"
 
 #include "Algo/Reverse.h"
 #include "Components/DynamicMeshComponent.h"
 #include "DynamicMesh/MeshNormals.h"
 #include "GeomTools.h"
 #include "UDynamicMesh.h"
+#include "Public/HarnessGeneratorGeometry.h"
 
 using namespace InteReal::HarnessGenerator;
 

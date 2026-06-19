@@ -1,4 +1,4 @@
-/*
+﻿/*
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteriorPlacementManager.h"
@@ -163,7 +163,13 @@ void AInteriorPlacementManager::ApplyWallTraceCollision()
 			// EditableWall 쒓렇媛 녿뒗 紐⑤뱺 而댄룷뚰듃(붿뿬 釉뚮윭ы븿)			// 踰몃젅댁뒪 梨꾨꼸臾댁떆섍쾶 섏뿬, 섎룄移딆 異⑸룎踰먯젙媛濡쒖콈吏 紐삵븯寃쒕떎.
 			if (Comp->ComponentHasTag(TEXT("EditableWall")))
 			{
+				Comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				Comp->SetCollisionObjectType(ECC_WorldStatic);
+				Comp->SetCollisionResponseToAllChannels(ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+				Comp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			}
 			else
 			{

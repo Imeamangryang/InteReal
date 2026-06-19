@@ -1,4 +1,4 @@
-#include "Public/HarnessMinimapCaptureComponent.h"
+﻿#include "Public/HarnessMinimapCaptureComponent.h"
 #include "Public/HarnessPipelineManager.h"
 #include "Engine/Scene.h"
 #include "EngineUtils.h"
@@ -12,11 +12,13 @@ UHarnessMinimapCaptureComponent::UHarnessMinimapCaptureComponent()
 	ApplyStableCaptureSettings();
     
 	// 수직 아래를 바라보도록 기본 회전값 고정
-	SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
+	SetRelativeRotation(FRotator(-90.0f, -90.0f, 0.0f));
 }
 
 void UHarnessMinimapCaptureComponent::ApplyStableCaptureSettings()
 {
+	SetRelativeRotation(FRotator(-90.0f, -90.0f, 0.0f));
+
 	ProjectionType = ECameraProjectionMode::Orthographic;
 	CaptureSource = SCS_FinalColorLDR;
 	UnlitViewmode = ESceneCaptureUnlitViewmode::Capture;
