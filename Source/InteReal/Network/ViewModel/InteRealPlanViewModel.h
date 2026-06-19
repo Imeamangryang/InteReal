@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "MVVMViewModelBase.h"
@@ -6,6 +6,7 @@
 #include "InteRealPlanViewModel.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlanListUpdated, bool, bSuccess, const FUnrealPlanListResponse&, Response);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnProjectListUpdated, bool, bSuccess, const FUnrealProjectListResponse&, Response);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDeltaVersionListUpdated, bool, bSuccess, const FUnrealDeltaVersionListResponse&, Response);
 
 /**
@@ -20,6 +21,9 @@ public:
     /** C++ 클래스에서 데이터 수신을 감지하기 위한 이벤트 */
     UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
     FOnPlanListUpdated OnPlanListUpdated;
+
+    UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
+    FOnProjectListUpdated OnProjectListUpdated;
 
     UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
     FOnDeltaVersionListUpdated OnDeltaVersionListUpdated;
@@ -56,12 +60,18 @@ public:
     void SetPlanList(FUnrealPlanListResponse InRes);
     FUnrealPlanListResponse GetPlanList() const { return PlanList; }
 
+    /** 마지막 수신된 프로젝트 리스트 */
+    UPROPERTY(BlueprintReadWrite, FieldNotify, Setter = "SetProjectList", Getter = "GetProjectList", Category = "InteReal|UI")
+    FUnrealProjectListResponse ProjectList;
+    void SetProjectList(FUnrealProjectListResponse InRes);
+    FUnrealProjectListResponse GetProjectList() const { return ProjectList; }
+
     UPROPERTY(BlueprintReadWrite, FieldNotify, Setter = "SetDeltaVersionList", Getter = "GetDeltaVersionList", Category = "InteReal|UI")
     FUnrealDeltaVersionListResponse DeltaVersionList;
     void SetDeltaVersionList(FUnrealDeltaVersionListResponse InRes);
     FUnrealDeltaVersionListResponse GetDeltaVersionList() const { return DeltaVersionList; }
 
-    // --- API Wrapper Functions (7개 전수 구현) ---
+    // --- API Wrapper Functions ---
 
     /** 1. 에셋 전체 목록 조회 */
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
@@ -82,12 +92,24 @@ public:
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
     void FetchExecutablePlanList(const FUnrealPlanSearchParams& Params);
 
+    UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+    void FetchProjectList();
+
+    UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+    void FetchProjectPlanList(const FString& ProjectId);
+
     /** 5. 하네스 파이프라인 통합: 특정 도면 시작 (Base -> Delta 자동 연쇄 로드) */
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
     void LoadPlanProject(const FUnrealPlanItem& PlanItem);
 
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
     void LoadPlanTopology(const FUnrealPlanItem& PlanItem);
+
+    UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+    void GenerateUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams);
+
+    UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+    void DownloadUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams);
 
     /** 6. 최신 변경사항(Delta)만 별도 로드 */
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
@@ -126,6 +148,9 @@ private:
 
     UFUNCTION()
     void OnPlansReceived(bool bSuccess, const FUnrealPlanListResponse& Response);
+
+    UFUNCTION()
+    void OnProjectsReceived(bool bSuccess, const FUnrealProjectListResponse& Response);
 
     UFUNCTION()
     void OnDeltaVersionsReceived(bool bSuccess, const FUnrealDeltaVersionListResponse& Response);

@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/DecalComponent.h"
 #include "Components/DynamicMeshComponent.h"
 #include "Engine/DataTable.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "PlacementVisualizerActor.generated.h"
 
 // 레벨에 배치되는 시각/설정 전담 Actor.
@@ -65,8 +65,9 @@ public:
 
 	// ===== Subsystem이 호출하는 시각 갱신 API =====
 	void SetGridVisible(bool bVisible);
-	void RebuildGridMesh(const TArray<FVector2D>& FloorPolygon, float InGridCellSize, float FloorZ);
+	void RebuildGridMesh(const TArray<TArray<FVector2D>>& FloorPolygons, float InGridCellSize, float FloorZ);
 	void RefreshPlacementCellViz(const FBox& FurnitureBounds, bool bInvalid, float ManagerZ);
+	void RefreshPlacementWallViz(const FBox& FurnitureBounds, FVector WallNormal, bool bInvalid);
 	void ClearPlacementCellViz();
 	void SetFloorZ(float Z);
 

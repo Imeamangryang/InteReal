@@ -1,4 +1,4 @@
-#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
+﻿#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 
 #include "Components/DynamicMeshComponent.h"
 #include "Components/PointLightComponent.h" 
@@ -25,6 +25,8 @@ void UHarnessGeneratorComponent::ClearHarness()
     AnimatedWalls.Reset(); 
     VertexCache.Reset();
     EdgeCache.Reset();
+    WallSideMeasurementCache.Reset();
+    SurfaceMeasurementCache.Reset();
 
     bIsSpawning = false;
 }
@@ -34,10 +36,13 @@ void UHarnessGeneratorComponent::ClearHarness()
 // ==============================================================================
 void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& FloorData)
 {
+    WallSideMeasurementCache = FloorData.wall_side_measurements;
+    SurfaceMeasurementCache = FloorData.surface_measurements;
+
     for (const FTopologyVertex& V : FloorData.vertices)
     {
         // ?袁ⓦ늺???怨밸릭 獄쏆꼷???롫뮉 野껉퍔??筌띾맦由??袁る퉸 X, Y?곕벡???대Ŋ媛?筌띲끋釉??몃빍??
-        VertexCache.Add(V.id, FVector2D(V.y, V.x));
+        VertexCache.Add(V.id, FloorData.ToHarnessPoint(V));
     }
     for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
     {
@@ -239,10 +244,11 @@ void UHarnessGeneratorComponent::GetFloorBounds(FVector2D& OutMin, FVector2D& Ou
 
     for (const FTopologyVertex& V : CachedFloorData.vertices)
     {
-        if (V.y < OutMin.X) OutMin.X = V.y;
-        if (V.y > OutMax.X) OutMax.X = V.y;
-        if (V.x < OutMin.Y) OutMin.Y = V.x;
-        if (V.x > OutMax.Y) OutMax.Y = V.x;
+        const FVector2D Point = CachedFloorData.ToHarnessPoint(V);
+        if (Point.X < OutMin.X) OutMin.X = Point.X;
+        if (Point.X > OutMax.X) OutMax.X = Point.X;
+        if (Point.Y < OutMin.Y) OutMin.Y = Point.Y;
+        if (Point.Y > OutMax.Y) OutMax.Y = Point.Y;
     }
 }
 

@@ -1,9 +1,8 @@
-#include "InteReal2DFloorPlanConverter.h"
+﻿#include "InteReal2DFloorPlanConverter.h"
 
-FVector2D FInteReal2DFloorPlanConverter::ConvertTopologyVertexToEditorPoint(const FTopologyVertex& Vertex)
+FVector2D FInteReal2DFloorPlanConverter::ConvertTopologyVertexToEditorPoint(const FHarnessFloorData& FloorData, const FTopologyVertex& Vertex)
 {
-    // 기존 HarnessGeneratorComponent와 좌표계 일치
-    return FVector2D(Vertex.y, Vertex.x);
+    return FloorData.ToHarnessPoint(Vertex);
 }
 
 void FInteReal2DFloorPlanConverter::ComputeBounds(FInteReal2DFloorPlanDocument& Document)
@@ -53,7 +52,7 @@ FInteReal2DFloorPlanDocument FInteReal2DFloorPlanConverter::ConvertFromHarness(c
     TMap<FString, FVector2D> VertexMap;
     for (const FTopologyVertex& Vertex : FloorData.vertices)
     {
-        VertexMap.Add(Vertex.id, ConvertTopologyVertexToEditorPoint(Vertex));
+        VertexMap.Add(Vertex.id, ConvertTopologyVertexToEditorPoint(FloorData, Vertex));
     }
 
     for (const FTopologyFace& Face : FloorData.faces)

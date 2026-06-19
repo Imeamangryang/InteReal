@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -15,6 +15,7 @@ class UBorder;
 class UInteRealThemeData;
 class UImage; 
 class UWeatherUISubsystem;
+class UEditableTextBox;
 
 UCLASS(Abstract)
 class INTEREAL_API UEnvironmentPanel : public UUserWidget
@@ -32,30 +33,39 @@ protected:
     UPROPERTY(BlueprintReadWrite, meta = (BindWidget)) TObjectPtr<UButton> Btn_TogglePanel;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UWidget> ContentContainer;
 
+    // 지역 선택 콤보박스
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UBaseComboBox> ComboBox_City;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UBaseComboBox> ComboBox_District;
+    
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_City;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_District;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_Time;
+    
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_Season;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_SolarTerm;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_Orientation;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> SubTitle_Weather;
 
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_TabEnvControl;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_TabLocationSettings;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UWidgetSwitcher> ContentSwitcher;
-
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UBaseSlider> Slider_Time;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> Txt_CurrentTime;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_PlayTime; 
-
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UEditableTextBox> Edit_Time;
+    
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Play;
+    // 재생 속도 조절용 콤보박스
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<UBaseComboBox> ComboBox_PlaySpeed;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Spring;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Summer;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Autumn;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Winter;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UBaseComboBox> ComboBox_SolarTerm;
 
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_North;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_East;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_South;
-    UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> Btn_West;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_North;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_NorthEast;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_East;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_SouthEast;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_South;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_SouthWest;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_West;
+    UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_NorthWest;
     UPROPERTY(meta = (BindWidget)) TObjectPtr<UImage> Img_Orientation;
     
     UPROPERTY(meta = (BindWidget)) TObjectPtr<USelectableButton> Btn_Clear;
@@ -77,12 +87,20 @@ protected:
 private:
     class UWeatherUISubsystem* GetWeatherSubsystem() const;
     
+    // 특정 계절에 맞춰 콤보박스 리스트를 갱신하는 함수
+    void RefreshSolarComboBox(FString Season, FString DefaultTerm = TEXT(""));
+    
+    // 속도 변경 이벤트 핸들러
+    UFUNCTION() void HandlePlaySpeedChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+    UFUNCTION() void HandleCityChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+    UFUNCTION() void HandleDistrictChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+    
     UFUNCTION() void HandleTogglePanelClicked();
-    UFUNCTION() void HandleEnvControlTabClicked();
-    UFUNCTION() void HandleLocationSettingsTabClicked();
     UFUNCTION() void HandleTimeChanged(float NewValue);
     UFUNCTION() void HandleSolarTermChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
     UFUNCTION() void HandlePlayClicked();
+    
+    UFUNCTION() void HandleTimeTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
     
     UFUNCTION() void HandleSpringClicked();
     UFUNCTION() void HandleSummerClicked();
@@ -90,9 +108,13 @@ private:
     UFUNCTION() void HandleWinterClicked();
 
     UFUNCTION() void HandleNorthClicked();
+    UFUNCTION() void HandleNorthEastClicked();
     UFUNCTION() void HandleEastClicked();
+    UFUNCTION() void HandleSouthEastClicked();
     UFUNCTION() void HandleSouthClicked();
+    UFUNCTION() void HandleSouthWestClicked();
     UFUNCTION() void HandleWestClicked();
+    UFUNCTION() void HandleNorthWestClicked();
     
     UFUNCTION() void HandleClearClicked();
     UFUNCTION() void HandleCloudyClicked();
@@ -102,9 +124,9 @@ private:
     UFUNCTION() void HandleStormyClicked();
     
     void UpdateOrientationUI(float Angle);
-    void SetActiveMainTab(bool bEnvControlActive);
     void UpdateSeasonGroup(TObjectPtr<USelectableButton> SelectedButton);
     void UpdateWeatherGroup(TObjectPtr<USelectableButton> SelectedButton);
+    void UpdateOrientationGroup(TObjectPtr<USelectableButton> SelectedButton);
     
     bool bIsPlaying = false;
     float PlaySpeed = 1.0f;

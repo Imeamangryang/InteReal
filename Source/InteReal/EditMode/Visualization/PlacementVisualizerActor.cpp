@@ -1,4 +1,4 @@
-#include "PlacementVisualizerActor.h"
+﻿#include "PlacementVisualizerActor.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UDynamicMesh.h"
@@ -90,49 +90,58 @@ void APlacementVisualizerActor::SetGridVisible(bool bVisible)
 	}
 }
 
-void APlacementVisualizerActor::RebuildGridMesh(const TArray<FVector2D>& FloorPolygon, float InGridCellSize, float FloorZ)
+void APlacementVisualizerActor::RebuildGridMesh(const TArray<TArray<FVector2D>>& FloorPolygons, float InGridCellSize, float FloorZ)
 {
-	if (!GridMeshComp || FloorPolygon.Num() < 3)
+	if (!GridMeshComp || FloorPolygons.IsEmpty())
 	{
 		return;
 	}
 
 	SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, FloorZ + 1.0f));
 
-	FVector2D Centroid(0, 0);
-	for (const FVector2D& P : FloorPolygon)
-	{
-		Centroid += P;
-	}
-	Centroid /= (float)FloorPolygon.Num();
-
 	UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(GridMeshComp);
 	UE::Geometry::FDynamicMesh3& Mesh = *DynMesh->GetMeshPtr();
 
 	constexpr float GridZ = 0.0f;
-	int32 CenterIdx = Mesh.AppendVertex(FVector3d(Centroid.X, Centroid.Y, GridZ));
 
-	TArray<int32> VertIds;
-	for (const FVector2D& P : FloorPolygon)
+	for (const TArray<FVector2D>& FloorPolygon : FloorPolygons)
 	{
-		VertIds.Add(Mesh.AppendVertex(FVector3d(P.X, P.Y, GridZ)));
-	}
+		if (FloorPolygon.Num() < 3)
+		{
+			continue;
+		}
 
-	double SignedArea = 0.0;
-	const int32 N = FloorPolygon.Num();
-	for (int32 i = 0; i < N; i++)
-	{
-		FVector2D Pi = FloorPolygon[i];
-		FVector2D Pj = FloorPolygon[(i + 1) % N];
-		SignedArea += Pi.X * Pj.Y - Pj.X * Pi.Y;
-	}
-	const bool bCCW = SignedArea > 0.0;
+		FVector2D Centroid(0, 0);
+		for (const FVector2D& P : FloorPolygon)
+		{
+			Centroid += P;
+		}
+		Centroid /= (float)FloorPolygon.Num();
 
-	for (int32 i = 0; i < N; i++)
-	{
-		int32 Va = VertIds[i];
-		int32 Vb = VertIds[(i + 1) % N];
-		Mesh.AppendTriangle(bCCW ? CenterIdx : Va, bCCW ? Vb : CenterIdx, bCCW ? Va : Vb);
+		const int32 CenterIdx = Mesh.AppendVertex(FVector3d(Centroid.X, Centroid.Y, GridZ));
+
+		TArray<int32> VertIds;
+		for (const FVector2D& P : FloorPolygon)
+		{
+			VertIds.Add(Mesh.AppendVertex(FVector3d(P.X, P.Y, GridZ)));
+		}
+
+		double SignedArea = 0.0;
+		const int32 N = FloorPolygon.Num();
+		for (int32 i = 0; i < N; i++)
+		{
+			FVector2D Pi = FloorPolygon[i];
+			FVector2D Pj = FloorPolygon[(i + 1) % N];
+			SignedArea += Pi.X * Pj.Y - Pj.X * Pi.Y;
+		}
+		const bool bCCW = SignedArea > 0.0;
+
+		for (int32 i = 0; i < N; i++)
+		{
+			const int32 Va = VertIds[i];
+			const int32 Vb = VertIds[(i + 1) % N];
+			Mesh.AppendTriangle(bCCW ? CenterIdx : Va, bCCW ? Vb : CenterIdx, bCCW ? Va : Vb);
+		}
 	}
 
 	GridMeshComp->SetDynamicMesh(DynMesh);
@@ -169,6 +178,84 @@ void APlacementVisualizerActor::RefreshPlacementCellViz(const FBox& FurnitureBou
 		int32 v3 = Mesh.AppendVertex(FVector3d(X0, Y1, LocalZ));
 		Mesh.AppendTriangle(v0, v1, v2);
 		Mesh.AppendTriangle(v0, v2, v3);
+		Comp->SetDynamicMesh(DynMesh);
+		Comp->SetVisibility(true);
+	};
+
+	if (bInvalid)
+	{
+		BuildRect(PlacementVizInvalid);
+		PlacementVizValid->SetVisibility(false);
+	}
+	else
+	{
+		BuildRect(PlacementVizValid);
+		PlacementVizInvalid->SetVisibility(false);
+	}
+}
+
+void APlacementVisualizerActor::RefreshPlacementWallViz(const FBox& FurnitureBounds, FVector WallNormal, bool bInvalid)
+{
+	if (!PlacementVizValid || !PlacementVizInvalid)
+	{
+		return;
+	}
+
+	WallNormal.Z = 0.0f;
+	if (!WallNormal.Normalize())
+	{
+		RefreshPlacementCellViz(FurnitureBounds, bInvalid, GetActorLocation().Z);
+		return;
+	}
+
+	const FVector WallTangent(-WallNormal.Y, WallNormal.X, 0.0f);
+	const FVector Up = FVector::UpVector;
+
+	float MinT = TNumericLimits<float>::Max();
+	float MaxT = TNumericLimits<float>::Lowest();
+	float MinZ = TNumericLimits<float>::Max();
+	float MaxZ = TNumericLimits<float>::Lowest();
+	float MinN = TNumericLimits<float>::Max();
+
+	const FVector Corners[8] = {
+		{FurnitureBounds.Min.X, FurnitureBounds.Min.Y, FurnitureBounds.Min.Z},
+		{FurnitureBounds.Max.X, FurnitureBounds.Min.Y, FurnitureBounds.Min.Z},
+		{FurnitureBounds.Min.X, FurnitureBounds.Max.Y, FurnitureBounds.Min.Z},
+		{FurnitureBounds.Max.X, FurnitureBounds.Max.Y, FurnitureBounds.Min.Z},
+		{FurnitureBounds.Min.X, FurnitureBounds.Min.Y, FurnitureBounds.Max.Z},
+		{FurnitureBounds.Max.X, FurnitureBounds.Min.Y, FurnitureBounds.Max.Z},
+		{FurnitureBounds.Min.X, FurnitureBounds.Max.Y, FurnitureBounds.Max.Z},
+		{FurnitureBounds.Max.X, FurnitureBounds.Max.Y, FurnitureBounds.Max.Z},
+	};
+
+	for (const FVector& Corner : Corners)
+	{
+		const float T = FVector::DotProduct(Corner, WallTangent);
+		const float N = FVector::DotProduct(Corner, WallNormal);
+		MinT = FMath::Min(MinT, T);
+		MaxT = FMath::Max(MaxT, T);
+		MinZ = FMath::Min(MinZ, Corner.Z);
+		MaxZ = FMath::Max(MaxZ, Corner.Z);
+		MinN = FMath::Min(MinN, N);
+	}
+
+	const float PlaneN = MinN - 1.0f;
+	const FVector ActorLoc = GetActorLocation();
+	const FVector P0 = WallTangent * MinT + WallNormal * PlaneN + Up * MinZ - ActorLoc;
+	const FVector P1 = WallTangent * MaxT + WallNormal * PlaneN + Up * MinZ - ActorLoc;
+	const FVector P2 = WallTangent * MaxT + WallNormal * PlaneN + Up * MaxZ - ActorLoc;
+	const FVector P3 = WallTangent * MinT + WallNormal * PlaneN + Up * MaxZ - ActorLoc;
+
+	auto BuildRect = [&](UDynamicMeshComponent* Comp)
+	{
+		UDynamicMesh* DynMesh = NewObject<UDynamicMesh>(Comp);
+		UE::Geometry::FDynamicMesh3& Mesh = *DynMesh->GetMeshPtr();
+		const int32 V0 = Mesh.AppendVertex((FVector3d)P0);
+		const int32 V1 = Mesh.AppendVertex((FVector3d)P1);
+		const int32 V2 = Mesh.AppendVertex((FVector3d)P2);
+		const int32 V3 = Mesh.AppendVertex((FVector3d)P3);
+		Mesh.AppendTriangle(V0, V1, V2);
+		Mesh.AppendTriangle(V0, V2, V3);
 		Comp->SetDynamicMesh(DynMesh);
 		Comp->SetVisibility(true);
 	};

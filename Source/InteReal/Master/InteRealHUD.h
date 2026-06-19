@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
@@ -17,6 +17,8 @@ class UInteRealMinimap;
 class UTextureRenderTarget2D;
 class UInteReal2DFloorPlanViewportWidget;
 class UHarnessPipelineManager;
+class UEditModeLayoutWidget;
+class UTopBarWidget;
 struct FHarnessFloorData;
 
 UCLASS()
@@ -45,6 +47,7 @@ public:
 		);
 
 	void UpdateUserGuide(bool bVisible, EPlacementInvalidReason Reason, const FVector2D& MousePosition);
+	void UpdateRotationGuide(bool bVisible, float DeltaAngle, const FVector2D& AnchorScreenPosition);
 	void ShowMinimap(EInteRealControlMode CurrentMode);
 	void UpdateMinimapIconVisibility(EHarnessViewMode NewMode);
 
@@ -57,12 +60,19 @@ public:
 	void LoadFloorPlan2DFromHarnessData(const FHarnessFloorData& InFloorData);
 
 	UFUNCTION(BlueprintPure, Category="InteReal2D|UI")
-	UInteReal2DFloorPlanViewportWidget* GetFloorPlan2DWidget() const { return FloorPlan2DWidgetInstance; }
+	UInteReal2DFloorPlanViewportWidget* GetFloorPlan2DWidget() const;
 
 	UFUNCTION(BlueprintCallable, Category="Harness|UI")
 	void BindHarnessPipeline(UHarnessPipelineManager* InPipelineManager);
 
 public:
+	// ===== Common UI =====
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Master|UI")
+	TSubclassOf<UTopBarWidget> TopBarWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTopBarWidget> TopBarWidgetInstance = nullptr;
+
 	// ===== Edit Mode UI =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
 	TSubclassOf<UUserWidget> PlacementTabWidget;
@@ -90,9 +100,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
 	TSubclassOf<UInteReal2DFloorPlanViewportWidget> FloorPlan2DWidgetClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
+	TSubclassOf<UEditModeLayoutWidget> EditModeLayoutWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<UInteReal2DFloorPlanViewportWidget> FloorPlan2DWidgetInstance = nullptr;
+	TObjectPtr<UEditModeLayoutWidget> EditModeLayoutWidgetInstance = nullptr;
 
 	// ===== View Mode UI =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")

@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "HarnessData.h" // FHarnessFloorData 사용을 위함
+#include "InteReal/Network/InteRealDataTypes.h"
 #include "HarnessPipelineManager.generated.h"
 
 class UHarnessSaveManagerComponent;
@@ -11,6 +12,7 @@ class UHarnessGeneratorComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPipelineLoadFinished);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWorldStateChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFloorPlanDataReady, const FHarnessFloorData&, FloorData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPipelineSaveFinished, bool, bSuccess, const FUnrealOkResponse&, Response);
 
 /**
  * 월드 액터 생성 및 배치를 담당하는 엔진 서브시스템
@@ -59,7 +61,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Harness|Pipeline")
 	FOnFloorPlanDataReady OnFloorPlanDataReady;
 
+	UPROPERTY(BlueprintAssignable, Category="Harness|Pipeline")
+	FOnPipelineSaveFinished OnPipelineSaveFinished;
+
 private:
+	UFUNCTION()
+	void HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response);
+
 	UPROPERTY()
 	TObjectPtr<UHarnessSaveManagerComponent> SaveManagerComp;
 

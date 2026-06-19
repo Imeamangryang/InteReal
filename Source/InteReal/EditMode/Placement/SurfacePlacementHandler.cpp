@@ -1,6 +1,6 @@
-#include "SurfacePlacementHandler.h"
+﻿#include "SurfacePlacementHandler.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 
 void USurfacePlacementHandler::Initialize(UInteriorPlacementSubsystem* InSubsystem)
@@ -83,27 +83,7 @@ void USurfacePlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResu
 	bool bOverlaps = false;
 	if (bWithinParent)
 	{
-		const FBox ShrunkBounds = PreviewBounds.ExpandBy(-1.0f);
-		for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
-		{
-			if (!IsValid(Placed) || Placed == Preview || Placed == HitFurniture)
-			{
-				continue;
-			}
-			if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Surface)
-			{
-				continue;
-			}
-			if (Placed->ParentFurniture != HitFurniture)
-			{
-				continue;
-			}
-			if (ShrunkBounds.Intersect(Placed->GetCollisionBounds()))
-			{
-				bOverlaps = true;
-				break;
-			}
-		}
+		bOverlaps = Subsystem->IsOverlappingPlacedFurniture(Preview, HitFurniture, HitFurniture);
 	}
 
 	const bool bValid = bWithinParent && !bOverlaps;
@@ -133,4 +113,100 @@ void USurfacePlacementHandler::OnRemove(AFurniture* Furniture)
 	}
 	Furniture->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Furniture->ParentFurniture = nullptr;
+}
+
+void USurfacePlacementHandler::BeginGizmoMove(AFurniture* Target)
+{
+	if (Target)
+	{
+		GizmoDragStartLocation = Target->GetActorLocation();
+		CurrentSurfaceParent = Target->ParentFurniture;
+	}
+}
+
+void USurfacePlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, EGizmoTransformAxis Axis)
+{
+	if (!Target || !Subsystem || !CurrentSurfaceParent)
+	{
+		return;
+	}
+
+	FVector NewLoc = Target->GetActorLocation();
+	if (Axis == EGizmoTransformAxis::MoveX)
+	{
+		NewLoc.X = Cursor.X;
+	}
+	else if (Axis == EGizmoTransformAxis::MoveY)
+	{
+		NewLoc.Y = Cursor.Y;
+	}
+	else if (Axis == EGizmoTransformAxis::MoveZ)
+	{
+		NewLoc.Z = FMath::Max(Cursor.Z, CurrentSurfaceParent->GetCollisionBounds().Max.Z);
+	}
+	else
+	{
+		NewLoc.X = Cursor.X;
+		NewLoc.Y = Cursor.Y;
+	}
+
+	if (Axis != EGizmoTransformAxis::MoveZ)
+	{
+		if (AGridSpaceManager* Grid = Subsystem->GetGrid())
+		{
+			const FVector2D GridPos = Grid->ToGridPosition(NewLoc);
+			const FVector WorldXY = Grid->ToWorldPosition(GridPos);
+			NewLoc.X = WorldXY.X;
+			NewLoc.Y = WorldXY.Y;
+		}
+	}
+
+	Target->SetActorLocation(NewLoc);
+
+	const FBox ParentBounds = CurrentSurfaceParent->GetCollisionBounds();
+	const FBox TargetBounds = Target->GetCollisionBounds();
+	const bool bWithinParent =
+		TargetBounds.Min.X >= ParentBounds.Min.X &&
+		TargetBounds.Max.X <= ParentBounds.Max.X &&
+		TargetBounds.Min.Y >= ParentBounds.Min.Y &&
+		TargetBounds.Max.Y <= ParentBounds.Max.Y &&
+		TargetBounds.Min.Z >= ParentBounds.Max.Z - 2.0f;
+
+	const bool bOverlapping = bWithinParent && Subsystem->IsOverlappingPlacedFurniture(Target, CurrentSurfaceParent, CurrentSurfaceParent);
+	const bool bValid = bWithinParent && !bOverlapping;
+
+	Subsystem->SetInvalidReason(bValid ? EPlacementInvalidReason::None : (bOverlapping ? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::OutsideFloor));
+	Target->SetPlacementState(bValid ? EPlacementState::Preview : EPlacementState::Invalid);
+}
+
+void USurfacePlacementHandler::UpdateGizmoMoveFree(AFurniture* Target, FVector TargetLoc)
+{
+	UpdateGizmoMove(Target, TargetLoc, EGizmoTransformAxis::None);
+}
+
+void USurfacePlacementHandler::FinalizeGizmoMove(AFurniture* Target)
+{
+	if (!Target || !Subsystem)
+	{
+		return;
+	}
+	if (Subsystem->InvalidReason != EPlacementInvalidReason::None)
+	{
+		Target->SetActorLocation(GizmoDragStartLocation);
+	}
+	Target->SetPlacementState(EPlacementState::Placed);
+	Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
+}
+
+void USurfacePlacementHandler::AbortGizmoMove(AFurniture* Target)
+{
+	if (Target)
+	{
+		Target->SetActorLocation(GizmoDragStartLocation);
+		Target->SetPlacementState(EPlacementState::Placed);
+	}
+	if (Subsystem)
+	{
+		Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
+	}
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "InteRealDataTypes.h"
@@ -8,6 +8,7 @@
 
 /** API 응답을 위한 델리게이트 정의 */
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnAssetsReceived, bool, bSuccess, const FUnrealAssetListResponse&, Response);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnProjectsReceived, bool, bSuccess, const FUnrealProjectListResponse&, Response);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnPlansReceived, bool, bSuccess, const FUnrealPlanListResponse&, Response);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDeltaVersionsReceived, bool, bSuccess, const FUnrealDeltaVersionListResponse&, Response);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTopologyReceived, bool, bSuccess, const FString&, TopologyJson);
@@ -16,7 +17,7 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDeltaSaved, bool, bSuccess, const FUnrealO
 
 /**
  * InteReal 프로젝트 전용 네트워크 서브시스템
- * 가이드 버전: 1.0 (7개 엔드포인트)
+ * 언리얼 API 연동 명세 기반 네트워크 서브시스템
  */
 UCLASS()
 class INTEREAL_API UInteRealNetworkSubsystem : public UGameInstanceSubsystem
@@ -42,7 +43,19 @@ public:
     FString PlansEndpoint = TEXT("/plans");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
+    FString ProjectsEndpoint = TEXT("/projects");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
+    FString ProjectPlansEndpointFormat = TEXT("/projects/{ProjectId}/plans");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
     FString UeTopologyEndpointFormat = TEXT("/plans/{PlanId}/base");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
+    FString UeTopologyGenerateEndpointFormat = TEXT("/plangraph/editable-floorplans/{PlanId}/exports/ue-topology-json");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
+    FString UeTopologyDownloadEndpointFormat = TEXT("/plangraph/editable-floorplans/{PlanId}/export/ue-json");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
     FString LatestDeltaEndpointFormat = TEXT("/plans/{PlanId}/delta");
@@ -51,7 +64,7 @@ public:
     FString DeltaVersionsEndpointFormat = TEXT("/plans/{PlanId}/delta/versions");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|Network|Endpoints")
-    FString DeltaVersionEndpointFormat = TEXT("/plans/{PlanId}/delta/versions/{Version}");
+    FString DeltaVersionEndpointFormat = TEXT("/plans/{PlanId}/delta?version={Version}");
 
     // --- 1. 에셋 API ---
 
@@ -76,12 +89,28 @@ public:
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchExecutablePlans(const FUnrealPlanSearchParams& Params, FOnPlansReceived OnComplete);
 
+    /** 프로젝트 목록 조회 (GET /api/unreal/projects) */
+    UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
+    void FetchProjects(FOnProjectsReceived OnComplete);
+
+    /** 프로젝트별 도면 목록 조회 (GET /api/unreal/projects/{project_id}/plans) */
+    UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
+    void FetchProjectPlans(const FString& ProjectId, FOnPlansReceived OnComplete);
+
     /** Base 토폴로지 JSON 반환 (GET /api/unreal/plans/{id}/base) */
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchBaseTopology(int32 PlanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete);
 
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchUeTopology(int32 PlanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete);
+
+    /** UE Topology JSON 생성 (POST /plangraph/editable-floorplans/{id}/exports/ue-topology-json) */
+    UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
+    void GenerateUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete);
+
+    /** UE Topology JSON 직접 다운로드 (GET /plangraph/editable-floorplans/{id}/export/ue-json) */
+    UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
+    void DownloadUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete);
 
     // --- 3. Delta API ---
 
@@ -92,7 +121,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchLatestDelta(int32 PlanId, FOnDeltaReceived OnComplete);
 
-    /** 특정 버전의 Delta JSON 반환 (GET /api/unreal/plans/{id}/delta/{version}) */
+    /** 특정 버전의 Delta JSON 반환 (GET /api/unreal/plans/{id}/delta?version={version}) */
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchDeltaByVersion(int32 PlanId, int32 Version, FOnDeltaReceived OnComplete);
 
@@ -106,4 +135,5 @@ private:
 
     FString GetBaseApiUrl() const { return ServerUrl + TEXT("/api/unreal"); }
     FString BuildEndpoint(FString EndpointFormat, int32 PlanId, int32 Version = INDEX_NONE) const;
+    FString BuildProjectEndpoint(FString EndpointFormat, const FString& ProjectId) const;
 };

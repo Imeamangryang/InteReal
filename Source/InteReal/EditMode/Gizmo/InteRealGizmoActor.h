@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -19,6 +19,7 @@ public:
 	AInteRealGizmoActor();
 	
 	void InitAxisMaterials();
+	static FString GetAxisTagFromComponent(const UPrimitiveComponent* Component);
 	
 	void UpdateHover(bool bIsHitting, const FHitResult& CursorHit);
 	
@@ -29,20 +30,42 @@ public:
 	
 	void EndDrag();
 	
-	void UpdateConstantScreenSize(const FVector& CameraLocation, float CameraFOVDegrees);
+	void UpdateConstantScreenSize(const FVector& CameraLocation, float CameraFOVDegrees, float ScaleMultiplier = 1.0f);
 	
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float ReferenceDistance = 1000.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Gizmo")
+	float MinScreenScale = 0.3f;
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo")
+	float MaxScreenScale = 4.0f;
+
 	bool IsDragging() const { return bIsDragging; }
 	EGizmoTransformAxis GetCurrentAxis() const { return CurrentDraggingAxis; }
 	const FString& GetCurrentAxisTag() const { return CurrentDraggingAxisTag; }
+	float GetCurrentRotationDeltaDegrees() const { return CurrentRotationDeltaDegrees; }
 
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float RotationSensitivity = 1.5f;
 
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
+	float CardinalSnapIntervalDegrees = 90.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
+	float CardinalSnapToleranceDegrees = 3.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	FName OpacityParamName = TEXT("Opacity");
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
+	FName RadialWipeParamName = TEXT("RadialWipe");
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
+	FName SnapHighlightParamName = TEXT("SnapHighlight");
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
+	FName RotationDirectionParamName = TEXT("RotationDirection");
 
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float DefaultOpacity = 0.3f;
@@ -55,8 +78,11 @@ public:
 
 private:
 	void SetAxisOpacity(const FString& Axis, float Opacity);
+	void SetAxisRotationVisuals(const FString& Axis, float DeltaAngle, bool bSnapped);
+	void ResetRotationVisuals();
 	FString GetAxisTagFromHit(const FHitResult& CursorHit) const;
 	EGizmoTransformAxis ParseAxisTag(const FString& AxisTag) const;
+	float ApplyCardinalSnap(float AngleDegrees) const;
 
 	bool bIsDragging = false;
 	EGizmoTransformAxis CurrentDraggingAxis = EGizmoTransformAxis::None;
@@ -64,6 +90,7 @@ private:
 
 	float DragStartAngleDeg = 0.0f;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
+	float CurrentRotationDeltaDegrees = 0.0f;
 	FVector DragStartLocation = FVector::ZeroVector;
 	FVector DragCursorOffset = FVector::ZeroVector;
 	FVector2D DragStartMousePos = FVector2D::ZeroVector;

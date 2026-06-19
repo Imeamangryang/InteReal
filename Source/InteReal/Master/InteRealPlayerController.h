@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InteReal/ViewMode/ViewModeData.h"
-#include "InteReal/EditMode/Furnitures/FFurnitureDataRow.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InputActionValue.h"
 #include "InteRealPlayerController.generated.h"
 
@@ -50,16 +50,16 @@ public:
 
 	UFUNCTION()
 	void HandleModeChanged(bool bIsEditMode);
-	
+
 	UFUNCTION()
 	void HandleIconClicked(FName command);
 
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
-	
+
 	UFUNCTION()
 	void HandleFloorPlan2DFurniturePlacementRequested(FVector2D DocumentPosition);
-	
+
 	UFUNCTION()
 	void HandleFloorPlan2DFurniturePreviewMoved(FVector2D DocumentPosition);
 
@@ -92,6 +92,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
 	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo|FirstPerson")
+	float FirstPersonGizmoScaleMultiplier = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
+	float GizmoTraceRadius = 12.0f;
 	
 protected:
 	void UpdateCursorHit();
@@ -204,9 +210,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Rotate15 = nullptr;
 
-	// 연속 배치 모디파이어 (Shift) — 누르고 있는 동안 배치 시 프리뷰가 즉시 재생성됨
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
-	TObjectPtr<UInputAction> IA_Shift = nullptr;
+	TObjectPtr<UInputAction> IA_Continuous = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "EditMode|Input")
 	TObjectPtr<UInputAction> IA_Undo = nullptr;
@@ -263,6 +268,10 @@ private:
 	FRotator CopiedFurnitureRotation = FRotator::ZeroRotator;
 
 	FVector DragStartFurnitureLocation = FVector::ZeroVector;
+
+	// 1인칭 포커스 보간
+	bool bIsFocusingFirstPerson = false;
+	FVector FirstPersonFocusTarget = FVector::ZeroVector;
 
 	// ===== View Mode State =====
 	UPROPERTY()

@@ -1,11 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "InteReal/ViewMode/ViewModeData.h"
 #include "InteReal/Network/ViewModel/InteRealPlanViewModel.h"
-#include "InteReal/Master/UI/Components/BaseComboBox.h"
+#include "InteReal/Master/UI/Controllers/SearchListControllers.h"
 #include "TopBarWidget.generated.h"
+
+class USearchListWidget;
 
 UCLASS()
 class INTEREAL_API UTopBarWidget : public UUserWidget
@@ -14,39 +16,57 @@ class INTEREAL_API UTopBarWidget : public UUserWidget
 	
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UFUNCTION(BlueprintCallable, Category = "ViewMode")
 	void ChangeViewMode(EHarnessViewMode NewMode);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseComboBox> ComboBox_PlanList;
+	TObjectPtr<USearchListWidget> SearchList_Project;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseComboBox> ComboBox_VersionList;
+	TObjectPtr<USearchListWidget> SearchList_Plan;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USearchListWidget> SearchList_Version;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UIconTextButtonWidget> IconTextButton_Capture;
 
-	UFUNCTION()
-	void OnPlanListUpdated(bool bSuccess, const FUnrealPlanListResponse& Response);
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> Btn_Save;
 
 	UFUNCTION()
-	void OnPlanSelected(FString SelectedItem, ESelectInfo::Type SelectionType);
+	void OnProjectSelected(const FUnrealProjectItem& ProjectItem);
 
 	UFUNCTION()
-	void OnVersionSelected(FString SelectedItem, ESelectInfo::Type SelectionType);
+	void OnPlanSelected(const FUnrealPlanItem& PlanItem);
+
+	UFUNCTION()
+	void OnVersionSelected(const FUnrealDeltaVersionItem& VersionItem);
 
 	UFUNCTION()
 	void HandleCaptureClicked(FName ButtonId, class UIconTextButtonWidget* ButtonWidget);
+
+	UFUNCTION()
+	void HandleSaveClicked();
+
+	UFUNCTION()
+	void HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkResponse& Response);
 
 private:
 	UPROPERTY()
 	TObjectPtr<class UInteRealPlanViewModel> PlanViewModel;
 
-	TMap<FString, FUnrealPlanItem> PlanMap;
-	int32 CurrentSelectedPlanId = 0;
+	UPROPERTY()
+	TObjectPtr<UInteRealProjectListController> ProjectController;
+
+	UPROPERTY()
+	TObjectPtr<UInteRealPlanListController> PlanController;
+
+	UPROPERTY()
+	TObjectPtr<UInteRealVersionListController> VersionController;
 
 	class UInteRealPlanViewModel* GetPlanViewModel();
-	void RefreshVersionList(int32 MaxVersion);
 };

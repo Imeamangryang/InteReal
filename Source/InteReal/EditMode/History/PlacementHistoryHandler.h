@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
@@ -23,8 +23,8 @@ public:
 
 	bool IsRestoringHistory() const { return bRestoringHistory; }
 
-	FString ExportPlacedFurnituresJson() const;
-	void ImportPlacedFurnituresJson(const FString& JsonString);
+	FString ExportPlacedFurnitureJson() const;
+	void ImportPlacedFurnitureJson(const FString& JsonString);
 	FString ExportEditStateJson() const;
 	void ImportEditStateJson(const FString& JsonString);
 

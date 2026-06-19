@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "InteReal/EditMode/UI/PlacementTooltipWidget.h"
 #include "InteReal/EditMode/UI/RotationGuideWidget.h"
-#include "Furnitures/FFurnitureDataRow.h"
-#include "Furnitures/Furniture.h"
+#include "Furniture/FFurnitureDataRow.h"
+#include "Furniture/Furniture.h"
 #include "EditModePlayerController.generated.h"
 
 class AInteriorPlacementManager;
@@ -76,6 +76,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "EditMode | Gizmo")
 	float GizmoRotationSensitivity = 1.5f;
 
+	UPROPERTY(EditAnywhere, Category = "EditMode | Gizmo")
+	float CardinalRotationSnapToleranceDegrees = 3.0f;
+
 	// BP_GizmoActor 클래스 — 에디터 디테일 패널에서 지정
 	UPROPERTY(EditAnywhere, Category = "EditMode | Gizmo")
 	TSubclassOf<AActor> GizmoActorClass;
@@ -109,6 +112,8 @@ private:
 
 	void UpdateCursorHit();
 	void UpdateTooltip();
+	void UpdateRotationGuide(bool bVisible, float DeltaAngle);
+	float ApplyCardinalRotationSnap(float AngleDegrees) const;
 	void ToggleGrid();
 
 	void OnPlace();

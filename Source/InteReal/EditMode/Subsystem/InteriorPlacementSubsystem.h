@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Engine/DataTable.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
-#include "InteReal/EditMode/Furnitures/FFurnitureDataRow.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal/EditMode/Placement/IPlacementHandler.h"
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "InteriorPlacementSubsystem.generated.h"
@@ -77,6 +77,9 @@ public:
 	const TArray<AFurniture*>& GetPlacedFurnitures() const { return PlacedFurnitures; }
 
 	const FFurnitureDataRow* FindFurnitureRowByID(int32 TargetID) const;
+	bool IsOverlappingPlacedFurniture(const AFurniture* Target,
+	                                  const AFurniture* IgnoredFurniture = nullptr,
+	                                  const AFurniture* RequiredParent = nullptr) const;
 
 	// ===== 기즈모 =====
 	UFUNCTION(BlueprintCallable, Category = "Placement|Gizmo")
@@ -142,6 +145,7 @@ public:
 	float GetWallThickness() const { return WallThickness; }
 	float GetFloorZ() const { return FloorZ; }
 	const TArray<FVector2D>& GetFloorPolygon() const { return FloorPolygon; }
+	const TArray<TArray<FVector2D>>& GetFloorRoomPolygons() const { return FloorRoomPolygons; }
 	const TArray<TPair<FVector2D, FVector2D>>& GetWallSegments() const { return WallSegments; }
 	TArray<AFurniture*>& GetPlacedFurnituresMutable() { return PlacedFurnitures; }
 	FVector2D& GetPreviewGridAnchor() { return PreviewGridAnchor; }
@@ -157,6 +161,7 @@ public:
 	void DestroyFurnitureRecursive(AFurniture* Target);
 
 	static bool IsPointInPolygon(FVector2D Point, const TArray<FVector2D>& Polygon);
+	bool IsPointInsideFloor(FVector2D Point) const;
 
 	FRotator GetPreviewRotation() const { return PreviewRotation; }
 
@@ -183,6 +188,7 @@ private:
 
 	// ===== 공유 기하 데이터 =====
 	TArray<FVector2D> FloorPolygon;
+	TArray<TArray<FVector2D>> FloorRoomPolygons;
 	TArray<TPair<FVector2D, FVector2D>> WallSegments;
 
 	// ===== 프리뷰 상태 =====

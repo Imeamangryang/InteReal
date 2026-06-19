@@ -1,29 +1,49 @@
-#include "TopBarWidget.h"
+﻿#include "TopBarWidget.h"
 #include "InteReal/Master/InteRealPlayerController.h"
 #include "InteReal/Master/UI/Components/BaseComboBox.h"
 #include "Components/ComboBoxString.h"
+#include "Components/Button.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformFileManager.h"
 #include "UObject/UObjectIterator.h"
 #include "UnrealClient.h"
 #include "InteReal/Master/UI/Components/IconTextButtonWidget.h"
+#include "InteReal/Harness/Public/HarnessPipelineManager.h"
+
+namespace
+{
+	FString GetMockTestDataFilePath(const FString& FileName)
+	{
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("TestData") / FileName);
+	}
+}
 
 void UTopBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] NativeConstruct: ComboBox_PlanList is %s"), ComboBox_PlanList ? TEXT("Valid") : TEXT("NULL"));
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] NativeConstruct: ComboBox_VersionList is %s"), ComboBox_VersionList ? TEXT("Valid") : TEXT("NULL"));
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] NativeConstruct: IconTextButton_Capture is %s"), IconTextButton_Capture ? TEXT("Valid") : TEXT("NULL"));
+	UInteRealPlanViewModel* VM = GetPlanViewModel();
+	if (!VM) return;
 
-	if (ComboBox_PlanList)
+	if (SearchList_Project)
 	{
-		ComboBox_PlanList->OnBaseSelectionChanged.AddUniqueDynamic(this, &UTopBarWidget::OnPlanSelected);
+		ProjectController = NewObject<UInteRealProjectListController>(this);
+		ProjectController->InitializeController(VM, SearchList_Project);
+		ProjectController->OnProjectSelected.AddUniqueDynamic(this, &UTopBarWidget::OnProjectSelected);
 	}
 
-	if (ComboBox_VersionList)
+	if (SearchList_Plan)
 	{
-		ComboBox_VersionList->OnBaseSelectionChanged.AddUniqueDynamic(this, &UTopBarWidget::OnVersionSelected);
+		PlanController = NewObject<UInteRealPlanListController>(this);
+		PlanController->InitializeController(VM, SearchList_Plan);
+		PlanController->OnPlanSelected.AddUniqueDynamic(this, &UTopBarWidget::OnPlanSelected);
+	}
+
+	if (SearchList_Version)
+	{
+		VersionController = NewObject<UInteRealVersionListController>(this);
+		VersionController->InitializeController(VM, SearchList_Version);
+		VersionController->OnVersionSelected.AddUniqueDynamic(this, &UTopBarWidget::OnVersionSelected);
 	}
 
 	if (IconTextButton_Capture)
@@ -31,18 +51,41 @@ void UTopBarWidget::NativeConstruct()
 		IconTextButton_Capture->OnIconTextButtonClicked.AddUniqueDynamic(this, &UTopBarWidget::HandleCaptureClicked);
 	}
 
-	if (UInteRealPlanViewModel* VM = GetPlanViewModel())
+	if (Btn_Save)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[TopBar] ViewModel found/created. Fetching plan list..."));
-		VM->OnPlanListUpdated.AddUniqueDynamic(this, &UTopBarWidget::OnPlanListUpdated);
-		
-		FUnrealPlanSearchParams Params;
-		VM->FetchPlanList(Params);
+		Btn_Save->OnClicked.AddUniqueDynamic(this, &UTopBarWidget::HandleSaveClicked);
 	}
-	else
+
+	if (GetWorld())
 	{
-		UE_LOG(LogTemp, Error, TEXT("[TopBar] Failed to get PlanViewModel!"));
+		if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+		{
+			Pipeline->OnPipelineSaveFinished.AddUniqueDynamic(this, &UTopBarWidget::HandlePipelineSaveFinished);
+		}
 	}
+
+	// Trigger initial fetch
+	if (ProjectController)
+	{
+		ProjectController->Refresh();
+	}
+}
+
+void UTopBarWidget::NativeDestruct()
+{
+	if (GetWorld())
+	{
+		if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+		{
+			Pipeline->OnPipelineSaveFinished.RemoveDynamic(this, &UTopBarWidget::HandlePipelineSaveFinished);
+		}
+	}
+
+	if (ProjectController) ProjectController->DeinitializeController();
+	if (PlanController) PlanController->DeinitializeController();
+	if (VersionController) VersionController->DeinitializeController();
+	
+	Super::NativeDestruct();
 }
 
 UInteRealPlanViewModel* UTopBarWidget::GetPlanViewModel()
@@ -75,94 +118,34 @@ void UTopBarWidget::ChangeViewMode(EHarnessViewMode NewMode)
 	}
 }
 
-void UTopBarWidget::OnPlanListUpdated(bool bSuccess, const FUnrealPlanListResponse& Response)
+void UTopBarWidget::OnProjectSelected(const FUnrealProjectItem& ProjectItem)
 {
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnPlanListUpdated: Success=%d, ItemCount=%d"), bSuccess, Response.items.Num());
-
-	if (!bSuccess || !ComboBox_PlanList || !ComboBox_PlanList->ComboBox_Main) 
+	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnProjectSelected: %s"), *ProjectItem.name);
+	
+	if (PlanController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[TopBar] OnPlanListUpdated failed: Success=%d, ComboBox_PlanList=%s"), bSuccess, ComboBox_PlanList ? TEXT("Valid") : TEXT("NULL"));
-		return;
+		PlanController->SetProjectIdFilter(ProjectItem.id);
 	}
 
-	ComboBox_PlanList->ComboBox_Main->ClearOptions();
-	PlanMap.Empty();
-
-	for (const FUnrealPlanItem& Plan : Response.items)
+	if (VersionController)
 	{
-		ComboBox_PlanList->ComboBox_Main->AddOption(Plan.name);
-		PlanMap.Add(Plan.name, Plan);
-	}
-
-	if (Response.items.Num() > 0)
-	{
-		ComboBox_PlanList->ComboBox_Main->SetSelectedIndex(0);
+		VersionController->SetPlanIdFilter(0);
 	}
 }
 
-void UTopBarWidget::OnPlanSelected(FString SelectedItem, ESelectInfo::Type SelectionType)
+void UTopBarWidget::OnPlanSelected(const FUnrealPlanItem& PlanItem)
 {
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnPlanSelected: %s"), *SelectedItem);
-	if (UInteRealPlanViewModel* VM = GetPlanViewModel())
+	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnPlanSelected: %s"), *PlanItem.name);
+	
+	if (VersionController)
 	{
-		if (FUnrealPlanItem* FoundPlan = PlanMap.Find(SelectedItem))
-		{
-			CurrentSelectedPlanId = FoundPlan->id;
-			VM->LoadPlanProject(*FoundPlan);
-
-			// Count local mock versions
-			int32 MaxVersion = 0;
-			while (true)
-			{
-				FString VersionPath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta_v%d.json"), CurrentSelectedPlanId, MaxVersion + 1);
-				if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*VersionPath))
-				{
-					MaxVersion++;
-				}
-				else
-				{
-					break;
-				}
-			}
-			UE_LOG(LogTemp, Log, TEXT("[TopBar] Found %d mock versions for Plan %d"), MaxVersion, CurrentSelectedPlanId);
-			RefreshVersionList(MaxVersion);
-		}
+		VersionController->SetPlanIdFilter(PlanItem.id);
 	}
 }
 
-void UTopBarWidget::RefreshVersionList(int32 MaxVersion)
+void UTopBarWidget::OnVersionSelected(const FUnrealDeltaVersionItem& VersionItem)
 {
-	if (!ComboBox_VersionList || !ComboBox_VersionList->ComboBox_Main) return;
-
-	ComboBox_VersionList->ComboBox_Main->ClearOptions();
-	ComboBox_VersionList->ComboBox_Main->AddOption(TEXT("Latest"));
-
-	for (int32 i = 1; i <= MaxVersion; ++i)
-	{
-		ComboBox_VersionList->ComboBox_Main->AddOption(FString::Printf(TEXT("Version %d"), i));
-	}
-
-	ComboBox_VersionList->ComboBox_Main->SetSelectedIndex(0);
-}
-
-void UTopBarWidget::OnVersionSelected(FString SelectedItem, ESelectInfo::Type SelectionType)
-{
-	if (UInteRealPlanViewModel* VM = GetPlanViewModel())
-	{
-		if (SelectedItem == TEXT("Latest"))
-		{
-			VM->RefreshLatestDelta();
-		}
-		else if (SelectedItem.StartsWith(TEXT("Version ")))
-		{
-			FString NumStr = SelectedItem.RightChop(8);
-			int32 Version = FCString::Atoi(*NumStr);
-			if (Version > 0)
-			{
-				VM->LoadDeltaByVersion(Version);
-			}
-		}
-	}
+	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnVersionSelected: Version %d"), VersionItem.version);
 }
 
 void UTopBarWidget::HandleCaptureClicked(FName ButtonId, UIconTextButtonWidget* ButtonWidget)
@@ -171,4 +154,28 @@ void UTopBarWidget::HandleCaptureClicked(FName ButtonId, UIconTextButtonWidget* 
 	FScreenshotRequest::RequestScreenshot(FileName, false, false);
 	
 	UE_LOG(LogTemp, Log, TEXT("[TopBar] Screenshot requested: %s"), *FileName);
+}
+
+void UTopBarWidget::HandleSaveClicked()
+{
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		Pipeline->SaveCurrentProject();
+	}
+}
+
+void UTopBarWidget::HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkResponse& Response)
+{
+	if (!bSuccess)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[TopBar] Save failed."));
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[TopBar] Save finished. Refreshing versions. Version: %d"), Response.version);
+
+	if (VersionController)
+	{
+		VersionController->RefreshAndSelectLatest();
+	}
 }

@@ -1,9 +1,6 @@
-#include "InteReal2DFloorPlanCreator.h"
+﻿#include "InteReal2DFloorPlanCreator.h"
 
-#include "Dom/JsonObject.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
-#include "JsonObjectConverter.h"
+#include "InteReal/Harness/Public/HarnessJsonParser.h"
 #include "InteReal2DFloorPlanConverter.h"
 
 bool UInteReal2DFloorPlanCreator::BuildFromJson(const FString& JsonData)
@@ -33,5 +30,12 @@ void UInteReal2DFloorPlanCreator::Clear()
 
 bool UInteReal2DFloorPlanCreator::ParseHarnessFloorDataFromJson(const FString& JsonData, FHarnessFloorData& OutFloorData) const
 {
-	return FJsonObjectConverter::JsonObjectStringToUStruct<FHarnessFloorData>(JsonData, &OutFloorData, 0, 0);
+	FString Error;
+	const bool bParsed = FHarnessJsonParser::ParseFloorDataFromJsonString(JsonData, OutFloorData, Error);
+	if (!bParsed)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InteReal2D] Failed to parse harness floor data: %s"), *Error);
+	}
+
+	return bParsed;
 }

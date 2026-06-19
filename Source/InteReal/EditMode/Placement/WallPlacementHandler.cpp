@@ -1,6 +1,6 @@
-#include "WallPlacementHandler.h"
+﻿#include "WallPlacementHandler.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 
 void UWallPlacementHandler::Initialize(UInteriorPlacementSubsystem* InSubsystem)
@@ -59,9 +59,6 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 		return;
 	}
 
-	// 먼저 회전 적용 — 이후 GetCollisionBounds가 올바른 회전 기준으로 계산됨
-	Preview->SetActorRotation(Subsystem->GetPreviewRotation());
-
 	const FVector2D HitXY(Hit.ImpactPoint.X, Hit.ImpactPoint.Y);
 	FVector2D SegStart, SegEnd;
 	if (!FindNearestWallSegment(HitXY, SegStart, SegEnd))
@@ -70,6 +67,13 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 		Subsystem->SetInvalidReason(EPlacementInvalidReason::OutsideFloor);
 		return;
 	}
+
+	FVector2D HitWallNormal(Hit.ImpactNormal.X, Hit.ImpactNormal.Y);
+	if (!HitWallNormal.Normalize())
+	{
+		HitWallNormal = FVector2D::ZeroVector;
+	}
+	ApplyWallAlignedRotation(Preview, HitWallNormal);
 
 	// Z 스냅 (그리드 셀 단위, 최소 FloorZ)
 	const float GridCell = Subsystem->GetGridCellSize();
@@ -80,7 +84,12 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 	);
 
 	// ComputeWallSnappedLocation 내부에서 CurrentWallNormal도 갱신됨
-	const FVector SnappedLoc = ComputeWallSnappedLocation(Preview, HitXY, SegStart, SegEnd, SnappedZ);
+	const FVector SnappedLoc = ComputeWallSnappedLocation(Preview,
+	                                                      HitXY,
+	                                                      SegStart,
+	                                                      SegEnd,
+	                                                      SnappedZ,
+	                                                      HitWallNormal.IsNearlyZero() ? nullptr : &HitWallNormal);
 	Preview->SetActorLocation(SnappedLoc);
 
 	bool bValid = true;
@@ -121,7 +130,7 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 
 	if (APlacementVisualizerActor* Visualizer = Subsystem->GetVisualizer())
 	{
-		Visualizer->RefreshPlacementCellViz(Preview->GetCollisionBounds(), bValid, Subsystem->GetFloorZ());
+		Visualizer->RefreshPlacementWallViz(Preview->GetCollisionBounds(), CurrentWallNormal, !bValid);
 	}
 }
 
@@ -149,6 +158,7 @@ void UWallPlacementHandler::BeginGizmoMove(AFurniture* Target)
 	GizmoDragStartLocation = Target->GetActorLocation();
 	const FVector2D Loc2D(Target->GetActorLocation().X, Target->GetActorLocation().Y);
 	FindNearestWallSegment(Loc2D, GizmoWallSegStart, GizmoWallSegEnd);
+	CurrentWallNormal = Target->WallNormalAtPlacement;
 }
 
 void UWallPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, EGizmoTransformAxis Axis)
@@ -159,30 +169,44 @@ void UWallPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, 
 	}
 
 	FVector NewLoc = Target->GetActorLocation();
-	if (Axis == EGizmoTransformAxis::MoveX)
+	if (Axis == EGizmoTransformAxis::MoveZ)
 	{
-		NewLoc.X = Cursor.X;
-	}
-	else if (Axis == EGizmoTransformAxis::MoveY)
-	{
-		NewLoc.Y = Cursor.Y;
-	}
-	else
-	{
-		NewLoc = FVector(Cursor.X, Cursor.Y, NewLoc.Z);
+		NewLoc.Z = FMath::Max(Cursor.Z, Subsystem->GetFloorZ());
+		Target->SetActorLocation(NewLoc);
+
+		const bool bOverlapping = Subsystem->IsOverlappingPlacedFurniture(Target);
+		Subsystem->SetInvalidReason(bOverlapping ? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None);
+		Target->SetPlacementState(bOverlapping ? EPlacementState::Invalid : EPlacementState::Preview);
+
+		if (APlacementVisualizerActor* Visualizer = Subsystem->GetVisualizer())
+		{
+			Visualizer->RefreshPlacementWallViz(Target->GetCollisionBounds(), CurrentWallNormal, bOverlapping);
+		}
+		return;
 	}
 
-	const FVector2D CursorXY(NewLoc.X, NewLoc.Y);
+	const FVector2D CursorXY(Cursor.X, Cursor.Y);
+	FVector2D FixedNormal2D(CurrentWallNormal.X, CurrentWallNormal.Y);
+	if (FixedNormal2D.IsNearlyZero())
+	{
+		FixedNormal2D = FVector2D(Target->WallNormalAtPlacement.X, Target->WallNormalAtPlacement.Y);
+	}
+
 	const FVector SnappedLoc = ComputeWallSnappedLocation(Target,
 	                                                      CursorXY,
 	                                                      GizmoWallSegStart,
 	                                                      GizmoWallSegEnd,
-	                                                      NewLoc.Z);
+	                                                      Target->GetActorLocation().Z,
+	                                                      FixedNormal2D.IsNearlyZero() ? nullptr : &FixedNormal2D);
 	Target->SetActorLocation(SnappedLoc);
+
+	const bool bOverlapping = Subsystem->IsOverlappingPlacedFurniture(Target);
+	Subsystem->SetInvalidReason(bOverlapping ? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None);
+	Target->SetPlacementState(bOverlapping ? EPlacementState::Invalid : EPlacementState::Preview);
 
 	if (APlacementVisualizerActor* Visualizer = Subsystem->GetVisualizer())
 	{
-		Visualizer->RefreshPlacementCellViz(Target->GetCollisionBounds(), true, Subsystem->GetFloorZ());
+		Visualizer->RefreshPlacementWallViz(Target->GetCollisionBounds(), CurrentWallNormal, bOverlapping);
 	}
 }
 
@@ -193,6 +217,19 @@ void UWallPlacementHandler::UpdateGizmoMoveFree(AFurniture* Target, FVector Targ
 
 void UWallPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 {
+	if (Target && Subsystem && Subsystem->InvalidReason != EPlacementInvalidReason::None)
+	{
+		Target->SetActorLocation(GizmoDragStartLocation);
+	}
+	if (Target)
+	{
+		Target->WallNormalAtPlacement = CurrentWallNormal;
+		Target->SetPlacementState(EPlacementState::Placed);
+	}
+	if (Subsystem)
+	{
+		Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
+	}
 	if (APlacementVisualizerActor* Visualizer = Subsystem ? Subsystem->GetVisualizer() : nullptr)
 	{
 		Visualizer->ClearPlacementCellViz();
@@ -204,6 +241,11 @@ void UWallPlacementHandler::AbortGizmoMove(AFurniture* Target)
 	if (Target)
 	{
 		Target->SetActorLocation(GizmoDragStartLocation);
+		Target->SetPlacementState(EPlacementState::Placed);
+	}
+	if (Subsystem)
+	{
+		Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
 	}
 	if (APlacementVisualizerActor* Visualizer = Subsystem ? Subsystem->GetVisualizer() : nullptr)
 	{
@@ -248,11 +290,34 @@ bool UWallPlacementHandler::FindNearestWallSegment(const FVector2D& Point2D,
 	return true;
 }
 
+void UWallPlacementHandler::ApplyWallAlignedRotation(AFurniture* Target, FVector2D WallNormal) const
+{
+	if (!Target || !Subsystem)
+	{
+		return;
+	}
+
+	if (WallNormal.IsNearlyZero())
+	{
+		WallNormal = FVector2D(CurrentWallNormal.X, CurrentWallNormal.Y);
+	}
+	if (WallNormal.IsNearlyZero())
+	{
+		return;
+	}
+
+	const float WallYaw = FMath::RadiansToDegrees(FMath::Atan2(WallNormal.Y, WallNormal.X));
+	FRotator Rotation = Subsystem->GetPreviewRotation();
+	Rotation.Yaw = FRotator::NormalizeAxis(WallYaw + Rotation.Yaw);
+	Target->SetActorRotation(Rotation);
+}
+
 FVector UWallPlacementHandler::ComputeWallSnappedLocation(AFurniture* Target,
                                                           const FVector2D& CursorXY,
                                                           const FVector2D& SegStart,
                                                           const FVector2D& SegEnd,
-                                                          float Z)
+                                                          float Z,
+                                                          const FVector2D* FixedWallNormal)
 {
 	if (!Target || !Subsystem)
 	{
@@ -281,10 +346,17 @@ FVector UWallPlacementHandler::ComputeWallSnappedLocation(AFurniture* Target,
 
 	// 벽 법선 방향 결정 (커서가 있는 쪽 = 실내 방향)
 	FVector2D WallNormal(-SegDirN.Y, SegDirN.X);
-	const FVector2D ToCursor = CursorXY - ClosestPt;
-	if (FVector2D::DotProduct(WallNormal, ToCursor) < 0.0f)
+	if (FixedWallNormal && !FixedWallNormal->IsNearlyZero())
 	{
-		WallNormal = -WallNormal;
+		WallNormal = FixedWallNormal->GetSafeNormal();
+	}
+	else
+	{
+		const FVector2D ToCursor = CursorXY - ClosestPt;
+		if (FVector2D::DotProduct(WallNormal, ToCursor) < 0.0f)
+		{
+			WallNormal = -WallNormal;
+		}
 	}
 
 	// 가구를 벽 표면 밖으로 밀어내는 오프셋

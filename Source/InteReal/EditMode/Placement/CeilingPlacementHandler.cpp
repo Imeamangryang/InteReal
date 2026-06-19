@@ -1,6 +1,6 @@
-#include "CeilingPlacementHandler.h"
+﻿#include "CeilingPlacementHandler.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 

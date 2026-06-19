@@ -1,4 +1,4 @@
-#include "Public/HarnessSaveManagerComponent.h"
+﻿#include "Public/HarnessSaveManagerComponent.h"
 
 #include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessGeneratorComponent.h"
@@ -8,7 +8,7 @@
 #include "JsonObjectConverter.h"
 #include "Engine/StaticMeshActor.h"
 #include "Engine/DataTable.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 
 namespace

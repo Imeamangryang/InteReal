@@ -1,11 +1,12 @@
-#include "EditModePlayerController.h"
+﻿#include "EditModePlayerController.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
 #include "Dom/JsonObject.h"
+#include "Engine/Engine.h"
 #include "Serialization/JsonSerializer.h"
 
 AEditModePlayerController::AEditModePlayerController()
@@ -70,6 +71,16 @@ void AEditModePlayerController::BeginPlay()
 			TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+
+	if (RotationGuideWidgetClass)
+	{
+		RotationGuideInstance = CreateWidget<URotationGuideWidget>(this, RotationGuideWidgetClass);
+		if (RotationGuideInstance)
+		{
+			RotationGuideInstance->AddToViewport(10);
+			RotationGuideInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 }
 
 void AEditModePlayerController::SetupInputComponent()
@@ -113,12 +124,25 @@ void AEditModePlayerController::Tick(float DeltaTime)
 			}
 
 			FRotator NewRot = DragStartFurnitureRot;
-			if      (CurrentDraggingAxis == TEXT("RotateYaw"))   NewRot.Yaw   = FRotator::NormalizeAxis(NewRot.Yaw   + DeltaAngle);
-			else if (CurrentDraggingAxis == TEXT("RotatePitch")) NewRot.Pitch = FRotator::NormalizeAxis(NewRot.Pitch + DeltaAngle);
-			else if (CurrentDraggingAxis == TEXT("RotateRoll"))  NewRot.Roll  = FRotator::NormalizeAxis(NewRot.Roll  + DeltaAngle);
+			if (CurrentDraggingAxis == TEXT("RotateYaw"))
+			{
+				NewRot.Yaw = ApplyCardinalRotationSnap(NewRot.Yaw + DeltaAngle);
+				DeltaAngle = FRotator::NormalizeAxis(NewRot.Yaw - DragStartFurnitureRot.Yaw);
+			}
+			else if (CurrentDraggingAxis == TEXT("RotatePitch"))
+			{
+				NewRot.Pitch = ApplyCardinalRotationSnap(NewRot.Pitch + DeltaAngle);
+				DeltaAngle = FRotator::NormalizeAxis(NewRot.Pitch - DragStartFurnitureRot.Pitch);
+			}
+			else if (CurrentDraggingAxis == TEXT("RotateRoll"))
+			{
+				NewRot.Roll = ApplyCardinalRotationSnap(NewRot.Roll + DeltaAngle);
+				DeltaAngle = FRotator::NormalizeAxis(NewRot.Roll - DragStartFurnitureRot.Roll);
+			}
 
 			SelectedFurniture->SetActorRotation(NewRot);
 			ActiveGizmoActor->SetActorRotation(NewRot);
+			UpdateRotationGuide(true, DeltaAngle);
 
 			// 드래그 중인 링 머티리얼의 RadialWipe 파라미터 실시간 갱신
 			float WipeValue = FMath::Clamp(FMath::Abs(DeltaAngle) / 360.0f, 0.0f, 1.0f);
@@ -164,6 +188,8 @@ void AEditModePlayerController::Tick(float DeltaTime)
 
 		return;
 	}
+
+	UpdateRotationGuide(false, 0.0f);
 
 	// 프리뷰 가구 이동
 	if (!PlacementManager || !bIsHitting) return;
@@ -270,6 +296,7 @@ void AEditModePlayerController::OnPlace()
 void AEditModePlayerController::OnPlaceReleased()
 {
 	bool bWasGridMoveDrag = (CurrentDraggingAxis == TEXT("MoveX") || CurrentDraggingAxis == TEXT("MoveY"));
+	UpdateRotationGuide(false, 0.0f);
 
 	if (bIsDraggingGizmo && ActiveGizmoActor)
 	{
@@ -406,6 +433,55 @@ void AEditModePlayerController::UpdateTooltip()
 	GetMousePosition(MouseX, MouseY);
 	TooltipInstance->SetPositionInViewport(FVector2D(MouseX + 16.f, MouseY + 16.f), false);
 	TooltipInstance->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void AEditModePlayerController::UpdateRotationGuide(bool bVisible, float DeltaAngle)
+{
+	if (!RotationGuideInstance) return;
+
+	if (!bVisible)
+	{
+		RotationGuideInstance->HideGuide();
+		return;
+	}
+
+	FVector2D ViewportSize = FVector2D::ZeroVector;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D AnchorScreenPos = FVector2D::ZeroVector;
+	const FVector AnchorWorldPos = ActiveGizmoActor
+		? ActiveGizmoActor->GetActorLocation()
+		: (SelectedFurniture ? SelectedFurniture->GetActorLocation() : FVector::ZeroVector);
+	if (!ProjectWorldLocationToScreen(AnchorWorldPos, AnchorScreenPos))
+	{
+		RotationGuideInstance->HideGuide();
+		return;
+	}
+
+	FVector2D Pos = AnchorScreenPos + FVector2D(56.0f, -24.0f);
+	if (ViewportSize.X > 0.0f) Pos.X = FMath::Clamp(Pos.X, 0.0f, ViewportSize.X - 120.0f);
+	if (ViewportSize.Y > 0.0f) Pos.Y = FMath::Clamp(Pos.Y, 0.0f, ViewportSize.Y - 64.0f);
+
+	RotationGuideInstance->UpdateRotation(DeltaAngle);
+	RotationGuideInstance->SetPositionInViewport(Pos, true);
+	RotationGuideInstance->ShowGuide();
+}
+
+float AEditModePlayerController::ApplyCardinalRotationSnap(float AngleDegrees) const
+{
+	if (CardinalRotationSnapToleranceDegrees <= 0.0f)
+	{
+		return FRotator::NormalizeAxis(AngleDegrees);
+	}
+
+	const float Snapped = FMath::GridSnap(AngleDegrees, 90.0f);
+	const float DeltaToSnap = FMath::Abs(FRotator::NormalizeAxis(AngleDegrees - Snapped));
+	return DeltaToSnap <= CardinalRotationSnapToleranceDegrees
+		? FRotator::NormalizeAxis(Snapped)
+		: FRotator::NormalizeAxis(AngleDegrees);
 }
 
 void AEditModePlayerController::ReceiveWebCommand(const FString& JsonString)

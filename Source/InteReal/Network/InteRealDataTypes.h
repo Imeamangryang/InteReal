@@ -1,7 +1,16 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "InteRealDataTypes.generated.h"
+
+/** 검색 리스트 모드 (Project -> Plan -> Version) */
+UENUM(BlueprintType)
+enum class EInteRealSearchListMode : uint8
+{
+    Project,
+    Plan,
+    Version
+};
 
 /** 에셋 개별 데이터 */
 USTRUCT(BlueprintType)
@@ -79,6 +88,9 @@ struct FUnrealPlanSearchParams
     FString q;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString project_id;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     bool executable_only = true;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
@@ -140,10 +152,40 @@ struct FUnrealPlanItem
     bool can_open_unreal = false;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString preview_api_url;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 project_id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString project_name;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 source_floorplan_id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString file_name;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString mime_type;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int64 file_size = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString preview_url;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString memo;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     FString status;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString metadata_json;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 version = 0;
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     int32 registered_project_count = 0;
@@ -176,6 +218,27 @@ struct FUnrealPlanItem
     }
 };
 
+/** 도면 등록 상태 요약 */
+USTRUCT(BlueprintType)
+struct FFloorplanRegistrationSummary
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 all = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 registered = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 unregistered = 0;
+
+    bool operator==(const FFloorplanRegistrationSummary& Other) const
+    {
+        return all == Other.all && registered == Other.registered && unregistered == Other.unregistered;
+    }
+};
+
 /** 도면 리스트 응답 */
 USTRUCT(BlueprintType)
 struct FUnrealPlanListResponse
@@ -188,9 +251,54 @@ struct FUnrealPlanListResponse
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     int32 total = 0;
 
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FFloorplanRegistrationSummary summary;
+
     bool operator==(const FUnrealPlanListResponse& Other) const 
     { 
-        return items == Other.items && total == Other.total; 
+        return items == Other.items && total == Other.total && summary == Other.summary; 
+    }
+};
+
+/** 프로젝트별 도면 목록 필터에 사용하는 프로젝트 항목 */
+USTRUCT(BlueprintType)
+struct FUnrealProjectItem
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString name;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 plan_count = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString latest_updated_at;
+
+    bool operator==(const FUnrealProjectItem& Other) const
+    {
+        return id == Other.id;
+    }
+};
+
+/** 프로젝트 목록 응답 */
+USTRUCT(BlueprintType)
+struct FUnrealProjectListResponse
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    TArray<FUnrealProjectItem> items;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 total = 0;
+
+    bool operator==(const FUnrealProjectListResponse& Other) const
+    {
+        return items == Other.items && total == Other.total;
     }
 };
 
@@ -277,6 +385,24 @@ struct FUnrealDeltaVersionListResponse
     }
 };
 
+/** 저장된 Delta 조회 응답 */
+USTRUCT(BlueprintType)
+struct FUnrealDeltaResponse
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 version = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString delta_json;
+
+    bool operator==(const FUnrealDeltaResponse& Other) const
+    {
+        return version == Other.version && delta_json == Other.delta_json;
+    }
+};
+
 /** Base Topology 내보내기 요청 파라미터 */
 USTRUCT(BlueprintType)
 struct FUeTopologyExportRequest
@@ -312,6 +438,30 @@ struct FUeTopologyExportRequest
 
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
     float vertex_merge_tolerance_cm = 0.001f;
+};
+
+/** UE Topology export artifact 응답 */
+USTRUCT(BlueprintType)
+struct FUeTopologyExportArtifactResponse
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    int32 artifact_id = 0;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString format;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString download_url;
+
+    UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
+    FString content_json;
+
+    bool operator==(const FUeTopologyExportArtifactResponse& Other) const
+    {
+        return artifact_id == Other.artifact_id && format == Other.format && download_url == Other.download_url && content_json == Other.content_json;
+    }
 };
 
 /** 일반적인 성공 응답 */

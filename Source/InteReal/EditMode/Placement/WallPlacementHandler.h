@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
@@ -40,10 +40,12 @@ private:
 	FVector2D GizmoWallSegEnd = FVector2D::ZeroVector;
 
 	bool FindNearestWallSegment(const FVector2D& Point2D, FVector2D& OutSegStart, FVector2D& OutSegEnd) const;
+	void ApplyWallAlignedRotation(AFurniture* Target, FVector2D WallNormal) const;
 	FVector ComputeWallSnappedLocation(AFurniture* Target,
 	                                   const FVector2D& CursorXY,
 	                                   const FVector2D& SegStart,
 	                                   const FVector2D& SegEnd,
-	                                   float Z);
+	                                   float Z,
+	                                   const FVector2D* FixedWallNormal = nullptr);
 	static FVector2D ProjectPointOnSegment(FVector2D Point, FVector2D SegStart, FVector2D SegEnd, float& OutT);
 };

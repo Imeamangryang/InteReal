@@ -1,4 +1,4 @@
-#include "InteriorPlacementSubsystem.h"
+﻿#include "InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Placement/FloorPlacementHandler.h"
@@ -112,7 +112,9 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 
 	if (Visualizer)
 	{
-		Visualizer->RebuildGridMesh(FloorPolygon, GridCellSize, FloorZ);
+		Visualizer->RebuildGridMesh(FloorRoomPolygons.IsEmpty() ? TArray<TArray<FVector2D>>{FloorPolygon} : FloorRoomPolygons,
+		                            GridCellSize,
+		                            FloorZ);
 	}
 
 	ApplyWallTraceCollision();
@@ -438,6 +440,34 @@ const FFurnitureDataRow* UInteriorPlacementSubsystem::FindFurnitureRowByID(int32
 	return nullptr;
 }
 
+bool UInteriorPlacementSubsystem::IsOverlappingPlacedFurniture(const AFurniture* Target,
+                                                               const AFurniture* IgnoredFurniture,
+                                                               const AFurniture* RequiredParent) const
+{
+	if (!Target)
+	{
+		return false;
+	}
+
+	const FBox TargetBounds = Target->GetCollisionBounds().ExpandBy(-1.0f);
+	for (const AFurniture* Placed : PlacedFurnitures)
+	{
+		if (!IsValid(Placed) || Placed == Target || Placed == IgnoredFurniture)
+		{
+			continue;
+		}
+		if (RequiredParent && Placed->ParentFurniture != RequiredParent)
+		{
+			continue;
+		}
+		if (TargetBounds.Intersect(Placed->GetCollisionBounds()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 // ===== 기즈모 =====
 
 void UInteriorPlacementSubsystem::BeginGizmoMove(AFurniture* Target)
@@ -543,14 +573,14 @@ bool UInteriorPlacementSubsystem::CanRedo() const
 
 FString UInteriorPlacementSubsystem::ExportPlacedFurnituresJson() const
 {
-	return HistoryHandler ? HistoryHandler->ExportPlacedFurnituresJson() : FString();
+	return HistoryHandler ? HistoryHandler->ExportPlacedFurnitureJson() : FString();
 }
 
 void UInteriorPlacementSubsystem::ImportPlacedFurnituresJson(const FString& Json)
 {
 	if (HistoryHandler)
 	{
-		HistoryHandler->ImportPlacedFurnituresJson(Json);
+		HistoryHandler->ImportPlacedFurnitureJson(Json);
 	}
 }
 
@@ -810,7 +840,7 @@ void UInteriorPlacementSubsystem::ApplyWallTraceCollision()
 
 void UInteriorPlacementSubsystem::MarkOutOfBoundsTiles()
 {
-	if (!Grid || FloorPolygon.Num() < 3)
+	if (!Grid || (FloorPolygon.Num() < 3 && FloorRoomPolygons.IsEmpty()))
 	{
 		return;
 	}
@@ -820,7 +850,7 @@ void UInteriorPlacementSubsystem::MarkOutOfBoundsTiles()
 		{
 			FVector WorldPos = Grid->ToWorldPosition(FVector2D(x, y));
 			Grid->SetTileState(FVector2D(x, y),
-			                   IsPointInPolygon(FVector2D(WorldPos.X, WorldPos.Y), FloorPolygon)
+			                   IsPointInsideFloor(FVector2D(WorldPos.X, WorldPos.Y))
 				                   ? EGridTileState::Walkable
 				                   : EGridTileState::None);
 		}
@@ -847,9 +877,50 @@ bool UInteriorPlacementSubsystem::IsPointInPolygon(FVector2D Point, const TArray
 	return bInside;
 }
 
+bool UInteriorPlacementSubsystem::IsPointInsideFloor(FVector2D Point) const
+{
+	if (!FloorRoomPolygons.IsEmpty())
+	{
+		for (const TArray<FVector2D>& RoomPolygon : FloorRoomPolygons)
+		{
+			if (IsPointInPolygon(Point, RoomPolygon))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	return IsPointInPolygon(Point, FloorPolygon);
+}
+
 void UInteriorPlacementSubsystem::BuildFloorPolygon(const FHarnessFloorData& FloorData)
 {
 	FloorPolygon.Empty();
+	FloorRoomPolygons.Empty();
+
+	TMap<FString, FVector2D> VMap;
+	for (const FTopologyVertex& V : FloorData.vertices)
+	{
+		VMap.Add(V.id, FVector2D(V.y, V.x));
+	}
+
+	for (const FTopologyFace& Face : FloorData.faces)
+	{
+		TArray<FVector2D> RoomPolygon;
+		for (const FString& VertexId : Face.contour_vertex_ids)
+		{
+			if (const FVector2D* Pos = VMap.Find(VertexId))
+			{
+				RoomPolygon.Add(*Pos);
+			}
+		}
+		if (RoomPolygon.Num() >= 3)
+		{
+			FloorRoomPolygons.Add(RoomPolygon);
+		}
+	}
+
 	TSet<FString> OuterIds;
 	for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
 	{
@@ -865,12 +936,6 @@ void UInteriorPlacementSubsystem::BuildFloorPolygon(const FHarnessFloorData& Flo
 		{
 			OuterIds.Add(V.id);
 		}
-	}
-
-	TMap<FString, FVector2D> VMap;
-	for (const FTopologyVertex& V : FloorData.vertices)
-	{
-		VMap.Add(V.id, FVector2D(V.y, V.x));
 	}
 
 	TArray<FVector2D> Points;

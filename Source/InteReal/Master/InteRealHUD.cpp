@@ -1,13 +1,24 @@
-#include "InteRealHUD.h"
+﻿#include "InteRealHUD.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Public/HarnessCaptureMinimapWidget.h"
 #include "Components/Overlay.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
+#include "InteReal/Master/UI/SubWidgets/EditModeLayoutWidget.h"
+#include "InteReal/Master/UI/SubWidgets/TopBarWidget.h"
+#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "UI/ViewModeWidgets/EnvironmentPanel.h"
 #include "UI/ViewModeWidgets/InteRealMinimap.h"
+
+namespace
+{
+	constexpr int32 ViewLayerZOrder = 0;
+	constexpr int32 EditLayerZOrder = 5;
+	constexpr int32 ToolOverlayZOrder = 10;
+	constexpr int32 TopBarZOrder = 20;
+	const TCHAR* DefaultTopBarWidgetPath = TEXT("/Game/UI/Widgets/WBP_TopBar.WBP_TopBar_C");
+}
 
 void AInteRealHUD::BeginPlay()
 {
@@ -22,12 +33,26 @@ void AInteRealHUD::BeginPlay()
 
 void AInteRealHUD::InitializeHUDWidgets()
 {
+	if (!TopBarWidgetClass)
+	{
+		TopBarWidgetClass = LoadClass<UTopBarWidget>(nullptr, DefaultTopBarWidgetPath);
+	}
+
+	if (TopBarWidgetClass)
+	{
+		TopBarWidgetInstance = CreateWidget<UTopBarWidget>(GetOwningPlayerController(), TopBarWidgetClass);
+		if (TopBarWidgetInstance)
+		{
+			TopBarWidgetInstance->AddToViewport(TopBarZOrder);
+		}
+	}
+
 	if (PlacementTabWidget)
 	{
 		PlacementTabInstance = CreateWidget<UUserWidget>(GetOwningPlayerController(), PlacementTabWidget);
 		if (PlacementTabInstance)
 		{
-			PlacementTabInstance->AddToViewport();
+			PlacementTabInstance->AddToViewport(EditLayerZOrder);
 		}
 	}
 
@@ -36,7 +61,7 @@ void AInteRealHUD::InitializeHUDWidgets()
 		TooltipInstance = CreateWidget<UPlacementTooltipWidget>(GetOwningPlayerController(), TooltipWidgetClass);
 		if (TooltipInstance)
 		{
-			TooltipInstance->AddToViewport(10);
+			TooltipInstance->AddToViewport(ToolOverlayZOrder);
 			TooltipInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
@@ -46,7 +71,7 @@ void AInteRealHUD::InitializeHUDWidgets()
 		RotationGuideInstance = CreateWidget<URotationGuideWidget>(GetOwningPlayerController(), RotationGuideWidgetClass);
 		if (RotationGuideInstance)
 		{
-			RotationGuideInstance->AddToViewport();
+			RotationGuideInstance->AddToViewport(ToolOverlayZOrder);
 			RotationGuideInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
@@ -56,31 +81,48 @@ void AInteRealHUD::InitializeHUDWidgets()
 		UserGuideInstance = CreateWidget<UUserGuideWidget>(GetOwningPlayerController(), UserGuideWidgetClass);
 		if (UserGuideInstance)
 		{
-			UserGuideInstance->AddToViewport(10);
+			UserGuideInstance->AddToViewport(ToolOverlayZOrder);
 			UserGuideInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
-	if (FloorPlan2DWidgetClass)
+	if (EditModeLayoutWidgetClass)
 	{
-		FloorPlan2DWidgetInstance = CreateWidget<UInteReal2DFloorPlanViewportWidget>(
+		EditModeLayoutWidgetInstance = CreateWidget<UEditModeLayoutWidget>(
 			GetOwningPlayerController(),
-			FloorPlan2DWidgetClass
+			EditModeLayoutWidgetClass
 		);
 
-		if (FloorPlan2DWidgetInstance)
+		if (EditModeLayoutWidgetInstance)
 		{
-			FloorPlan2DWidgetInstance->AddToViewport(5);
-			FloorPlan2DWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+			EditModeLayoutWidgetInstance->SetFloorPlan2DWidgetClass(FloorPlan2DWidgetClass);
+			EditModeLayoutWidgetInstance->AddToViewport(EditLayerZOrder);
+			EditModeLayoutWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+
+			if (UWorld* World = GetWorld())
+			{
+				if (UHarnessPipelineManager* Pipeline = World->GetSubsystem<UHarnessPipelineManager>())
+				{
+					if (UHarnessGeneratorComponent* GeneratorComp = Pipeline->GetGeneratorComp())
+					{
+						const FHarnessFloorData& CachedFloorData = GeneratorComp->GetCachedFloorData();
+						if (CachedFloorData.vertices.Num() > 0 || CachedFloorData.faces.Num() > 0)
+						{
+							LoadFloorPlan2DFromHarnessData(CachedFloorData);
+						}
+					}
+				}
+			}
 		}
 	}
+
 
 	if (EnvironmentPanelClass)
 	{
 		EnvironmentPanelInstance = CreateWidget<UEnvironmentPanel>(GetOwningPlayerController(), EnvironmentPanelClass);
 		if (EnvironmentPanelInstance)
 		{
-			EnvironmentPanelInstance->AddToViewport(); 
+			EnvironmentPanelInstance->AddToViewport(ViewLayerZOrder); 
 		}
 	}
 }
@@ -111,11 +153,9 @@ void AInteRealHUD::UpdateModeUIVisibility(EInteRealControlMode CurrentMode)
 		UserGuideInstance->SetVisibility(ESlateVisibility::Hidden);
 	}
 
-	if (FloorPlan2DWidgetInstance)
+	if (EditModeLayoutWidgetInstance)
 	{
-		FloorPlan2DWidgetInstance->SetVisibility(
-			bIsEdit ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden
-		);
+		EditModeLayoutWidgetInstance->SetVisibility(EditVisibility);
 	}
 
 	if (EnvironmentPanelInstance)
@@ -179,7 +219,7 @@ void AInteRealHUD::SetupMinimapHUD(
 	if (MinimapWidgetInstance)
 	{
 		MinimapWidgetInstance->InjectMinimapData(InCaptureComp, InRT);
-		MinimapWidgetInstance->AddToViewport();
+		MinimapWidgetInstance->AddToViewport(ViewLayerZOrder);
 		MinimapWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 
 		UpdateMinimapIconVisibility(CurrentViewMode);
@@ -213,6 +253,31 @@ void AInteRealHUD::UpdateUserGuide(bool bVisible, EPlacementInvalidReason Reason
 	}
 }
 
+void AInteRealHUD::UpdateRotationGuide(bool bVisible, float DeltaAngle, const FVector2D& AnchorScreenPosition)
+{
+	if (!RotationGuideInstance) return;
+
+	if (!bVisible)
+	{
+		RotationGuideInstance->HideGuide();
+		return;
+	}
+
+	FVector2D ViewportSize = FVector2D::ZeroVector;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D Pos = AnchorScreenPosition + FVector2D(56.f, -24.f);
+	if (ViewportSize.X > 0.f) Pos.X = FMath::Clamp(Pos.X, 0.f, ViewportSize.X - 120.f);
+	if (ViewportSize.Y > 0.f) Pos.Y = FMath::Clamp(Pos.Y, 0.f, ViewportSize.Y - 64.f);
+
+	RotationGuideInstance->UpdateRotation(DeltaAngle);
+	RotationGuideInstance->SetPositionInViewport(Pos, true);
+	RotationGuideInstance->ShowGuide();
+}
+
 void AInteRealHUD::ShowMinimap(EInteRealControlMode CurrentMode)
 {
 	if (MinimapWidgetInstance && CurrentMode == EInteRealControlMode::View)
@@ -236,24 +301,24 @@ void AInteRealHUD::UpdateMinimapIconVisibility(EHarnessViewMode NewMode)
 
 void AInteRealHUD::ShowFloorPlan2D(bool bVisible)
 {
-	if (!FloorPlan2DWidgetInstance)
+	if (!EditModeLayoutWidgetInstance)
 	{
 		return;
 	}
 
-	FloorPlan2DWidgetInstance->SetVisibility(
+	EditModeLayoutWidgetInstance->SetVisibility(
 		bVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden
 	);
+
+	EditModeLayoutWidgetInstance->SetFloorPlanPanelOpen(bVisible);
 }
 
 void AInteRealHUD::LoadFloorPlan2DFromHarnessData(const FHarnessFloorData& InFloorData)
 {
-	if (!FloorPlan2DWidgetInstance)
+	if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = GetFloorPlan2DWidget())
 	{
-		return;
+		FloorPlan2DWidget->LoadFromHarnessFloorData(InFloorData);
 	}
-
-	FloorPlan2DWidgetInstance->LoadFromHarnessFloorData(InFloorData);
 }
 
 void AInteRealHUD::BindHarnessPipeline(UHarnessPipelineManager* InPipelineManager)
@@ -264,9 +329,26 @@ void AInteRealHUD::BindHarnessPipeline(UHarnessPipelineManager* InPipelineManage
 	}
 
 	InPipelineManager->OnFloorPlanDataReady.AddDynamic(this, &AInteRealHUD::OnFloorPlanDataReady);
+	
+	if (UHarnessGeneratorComponent* GeneratorComp = InPipelineManager->GetGeneratorComp())
+	{
+		const FHarnessFloorData& CachedFloorData = GeneratorComp->GetCachedFloorData();
+		if (CachedFloorData.vertices.Num() > 0 || CachedFloorData.faces.Num() > 0)
+		{
+			LoadFloorPlan2DFromHarnessData(CachedFloorData);
+		}
+	}
 }
 
 void AInteRealHUD::OnFloorPlanDataReady(const FHarnessFloorData& InFloorData)
 {
 	LoadFloorPlan2DFromHarnessData(InFloorData);
+}
+
+
+UInteReal2DFloorPlanViewportWidget* AInteRealHUD::GetFloorPlan2DWidget() const
+{
+	return EditModeLayoutWidgetInstance
+		? EditModeLayoutWidgetInstance->GetFloorPlan2DWidget()
+		: nullptr;
 }

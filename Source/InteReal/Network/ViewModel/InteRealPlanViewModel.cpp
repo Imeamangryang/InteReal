@@ -1,4 +1,4 @@
-#include "InteRealPlanViewModel.h"
+﻿#include "InteRealPlanViewModel.h"
 
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,6 +10,7 @@ void UInteRealPlanViewModel::SetActiveVersion(int32 InVersion) { UE_MVVM_SET_PRO
 void UInteRealPlanViewModel::SetIsBusy(bool bInBusy) { UE_MVVM_SET_PROPERTY_VALUE(bIsBusy, bInBusy); }
 void UInteRealPlanViewModel::SetAssetList(FUnrealAssetListResponse InRes) { UE_MVVM_SET_PROPERTY_VALUE(AssetList, InRes); }
 void UInteRealPlanViewModel::SetPlanList(FUnrealPlanListResponse InRes) { UE_MVVM_SET_PROPERTY_VALUE(PlanList, InRes); }
+void UInteRealPlanViewModel::SetProjectList(FUnrealProjectListResponse InRes) { UE_MVVM_SET_PROPERTY_VALUE(ProjectList, InRes); }
 void UInteRealPlanViewModel::SetDeltaVersionList(FUnrealDeltaVersionListResponse InRes) { UE_MVVM_SET_PROPERTY_VALUE(DeltaVersionList, InRes); }
 
 UInteRealNetworkSubsystem* UInteRealPlanViewModel::GetNetworkSubsystem() const
@@ -33,6 +34,28 @@ void UInteRealPlanViewModel::FetchExecutablePlanList(const FUnrealPlanSearchPara
     FOnPlansReceived Delegate;
     Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnPlansReceived);
     Network->FetchExecutablePlans(Params, Delegate);
+}
+
+void UInteRealPlanViewModel::FetchProjectList()
+{
+    UInteRealNetworkSubsystem* Network = GetNetworkSubsystem();
+    if (!Network) return;
+
+    SetIsBusy(true);
+    FOnProjectsReceived Delegate;
+    Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnProjectsReceived);
+    Network->FetchProjects(Delegate);
+}
+
+void UInteRealPlanViewModel::FetchProjectPlanList(const FString& ProjectId)
+{
+    UInteRealNetworkSubsystem* Network = GetNetworkSubsystem();
+    if (!Network) return;
+
+    SetIsBusy(true);
+    FOnPlansReceived Delegate;
+    Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnPlansReceived);
+    Network->FetchProjectPlans(ProjectId, Delegate);
 }
 
 void UInteRealPlanViewModel::LoadPlanProject(const FUnrealPlanItem& PlanItem)
@@ -61,6 +84,28 @@ void UInteRealPlanViewModel::LoadPlanTopology(const FUnrealPlanItem& PlanItem)
         bLoadLatestDeltaAfterTopology = false;
         SetIsBusy(false);
     }
+}
+
+void UInteRealPlanViewModel::GenerateUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams)
+{
+    UInteRealNetworkSubsystem* Network = GetNetworkSubsystem();
+    if (!Network || EditableFloorplanId == 0) return;
+
+    SetIsBusy(true);
+    FOnTopologyReceived Delegate;
+    Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnBaseTopologyReceived);
+    Network->GenerateUeTopologyJson(EditableFloorplanId, ExportParams, Delegate);
+}
+
+void UInteRealPlanViewModel::DownloadUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams)
+{
+    UInteRealNetworkSubsystem* Network = GetNetworkSubsystem();
+    if (!Network || EditableFloorplanId == 0) return;
+
+    SetIsBusy(true);
+    FOnTopologyReceived Delegate;
+    Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnBaseTopologyReceived);
+    Network->DownloadUeTopologyJson(EditableFloorplanId, ExportParams, Delegate);
 }
 
 void UInteRealPlanViewModel::RefreshLatestDelta()
@@ -158,6 +203,22 @@ void UInteRealPlanViewModel::OnPlansReceived(bool bSuccess, const FUnrealPlanLis
 
     // C++ 리스너(HUD 등)에게 데이터 도착 알림
     OnPlanListUpdated.Broadcast(bSuccess, Response);
+}
+
+void UInteRealPlanViewModel::OnProjectsReceived(bool bSuccess, const FUnrealProjectListResponse& Response)
+{
+    SetIsBusy(false);
+    if (bSuccess)
+    {
+        SetProjectList(Response);
+        UE_LOG(LogTemp, Log, TEXT("[InteReal] ViewModel: Successfully received %d projects."), Response.items.Num());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("[InteReal] ViewModel: Failed to fetch project list."));
+    }
+
+    OnProjectListUpdated.Broadcast(bSuccess, Response);
 }
 
 void UInteRealPlanViewModel::OnDeltaVersionsReceived(bool bSuccess, const FUnrealDeltaVersionListResponse& Response)

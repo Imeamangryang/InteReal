@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -51,6 +51,10 @@ public:
 	// 타겟 위치로 즉시 카메라를 스냅시키는 함수
 	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
 	void SnapToTarget();
+
+	// 지정한 월드 위치로 카메라를 부드럽게 이동 (XY만 변경, Z 유지)
+	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
+	void FocusOnLocation(FVector WorldLocation);
 	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "ViewMode|Components")

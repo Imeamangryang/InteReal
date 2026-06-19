@@ -1,4 +1,4 @@
-#include "WeatherUISubsystem.h"
+﻿#include "WeatherUISubsystem.h"
 
 void UWeatherUISubsystem::Initialize(FSubsystemCollectionBase& Collection) {
     Super::Initialize(Collection);
@@ -17,14 +17,18 @@ FName UWeatherUISubsystem::GetSolarRowName(FString NameKR) {
 }
 
 TArray<FString> UWeatherUISubsystem::GetCityDetails(FName ParentCityName) {
-    TArray<FString> Results;
-    auto* MainData = CityMainTable->FindRow<FCityMainData>(ParentCityName, TEXT(""));
-    if (!MainData) return Results;
-    for (auto RowName : CityDetailTable->GetRowNames()) {
-       auto* Data = CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
-       if (Data && Data->Parent_CityID == MainData->CityID) Results.Add(RowName.ToString()); 
-    }
-    return Results;
+	TArray<FString> Results;
+	auto* MainData = CityMainTable->FindRow<FCityMainData>(ParentCityName, TEXT(""));
+	if (!MainData) return Results;
+
+	for (auto RowName : CityDetailTable->GetRowNames()) {
+		auto* Data = CityDetailTable->FindRow<FCityDetailData>(RowName, TEXT(""));
+		// 이제 RowName.ToString() 대신 Name_KR을 담습니다.
+		if (Data && Data->Parent_CityID == MainData->CityID) {
+			Results.Add(Data->Name_KR); 
+		}
+	}
+	return Results;
 }
 
 TArray<FString> UWeatherUISubsystem::GetSolarTermsBySeason(FString Season) {

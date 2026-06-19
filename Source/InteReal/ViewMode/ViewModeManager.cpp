@@ -1,4 +1,4 @@
-#include "ViewModeManager.h"
+﻿#include "ViewModeManager.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -211,4 +211,10 @@ void AViewModeManager::SnapToTarget()
     SpringArm->SetRelativeRotation(TargetRotation);
     SpringArm->TargetArmLength = TargetArmLength;
     Camera->FieldOfView = TargetFOV;
+}
+
+void AViewModeManager::FocusOnLocation(FVector WorldLocation)
+{
+	TargetLocation.X = WorldLocation.X;
+	TargetLocation.Y = WorldLocation.Y;
 }

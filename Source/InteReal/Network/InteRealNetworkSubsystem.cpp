@@ -1,8 +1,9 @@
-#include "InteRealNetworkSubsystem.h"
+﻿#include "InteRealNetworkSubsystem.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Dom/JsonObject.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
+#include "HAL/FileManager.h"
 #include "HAL/PlatformFileManager.h"
 #include "JsonObjectConverter.h"
 #include "Misc/FileHelper.h"
@@ -24,6 +25,63 @@ namespace
         Query += Key;
         Query += TEXT("=");
         Query += FGenericPlatformHttp::UrlEncode(Value);
+    }
+
+    FString GetNetworkMockTestDataDir()
+    {
+        return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("TestData"));
+    }
+
+    FString GetNetworkMockTestDataFilePath(const FString& FileName)
+    {
+        return GetNetworkMockTestDataDir() / FileName;
+    }
+
+    bool EnsureNetworkMockTestDataDir()
+    {
+        return FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*GetNetworkMockTestDataDir());
+    }
+
+    bool TryParseMockPlanIdFromFileName(const FString& FileName, int32& OutPlanId)
+    {
+        const FString BaseName = FPaths::GetBaseFilename(FileName);
+        if (!BaseName.StartsWith(TEXT("test")) || BaseName.Contains(TEXT("_delta")))
+        {
+            return false;
+        }
+
+        const FString PlanIdString = BaseName.RightChop(4);
+        if (PlanIdString.IsEmpty() || !PlanIdString.IsNumeric())
+        {
+            return false;
+        }
+
+        OutPlanId = FCString::Atoi(*PlanIdString);
+        return OutPlanId > 0;
+    }
+
+    TArray<int32> GetMockPlanIds()
+    {
+        TArray<FString> FileNames;
+        IFileManager::Get().FindFiles(FileNames, *(GetNetworkMockTestDataDir() / TEXT("test*.json")), true, false);
+
+        TSet<int32> UniquePlanIds;
+        for (const FString& FileName : FileNames)
+        {
+            int32 PlanId = 0;
+            if (TryParseMockPlanIdFromFileName(FileName, PlanId))
+            {
+                UniquePlanIds.Add(PlanId);
+            }
+        }
+
+        TArray<int32> PlanIds = UniquePlanIds.Array();
+        PlanIds.Sort([](int32 A, int32 B)
+        {
+            return A > B;
+        });
+
+        return PlanIds;
     }
 
     bool TryDeserializeObject(const FString& Json, TSharedPtr<FJsonObject>& OutObject)
@@ -116,9 +174,54 @@ namespace
         return false;
     }
 
+    bool TryGetObjectInt64(const TSharedPtr<FJsonObject>& Object, const FString& FieldName, int64& OutValue)
+    {
+        double NumberValue = 0.0;
+        if (Object.IsValid() && Object->TryGetNumberField(FieldName, NumberValue))
+        {
+            OutValue = static_cast<int64>(NumberValue);
+            return true;
+        }
+
+        return false;
+    }
+
     bool TryGetObjectString(const TSharedPtr<FJsonObject>& Object, const FString& FieldName, FString& OutValue)
     {
         return Object.IsValid() && Object->TryGetStringField(FieldName, OutValue) && !OutValue.IsEmpty();
+    }
+
+    void LogResponse(FHttpResponsePtr Response, bool bSucceeded)
+    {
+        const int32 StatusCode = (Response.IsValid()) ? Response->GetResponseCode() : 0;
+        UE_LOG(LogTemp, Log, TEXT("[Network] Response Received - Success: %s, Status: %d"), 
+            bSucceeded ? TEXT("TRUE") : TEXT("FALSE"), StatusCode);
+    }
+
+    void TryReadRegistrationSummary(const TSharedPtr<FJsonObject>& Object, FUnrealPlanListResponse& OutResponse)
+    {
+        const TSharedPtr<FJsonObject>* SummaryObject = nullptr;
+        if (Object.IsValid() && Object->TryGetObjectField(TEXT("summary"), SummaryObject) && SummaryObject && SummaryObject->IsValid())
+        {
+            FJsonObjectConverter::JsonObjectToUStruct((*SummaryObject).ToSharedRef(), FFloorplanRegistrationSummary::StaticStruct(), &OutResponse.summary, 0, 0);
+        }
+    }
+
+    void TryReadMetadataJson(const TSharedPtr<FJsonObject>& Object, FUnrealPlanItem& Item)
+    {
+        if (!Object.IsValid())
+        {
+            return;
+        }
+
+        if (const TSharedPtr<FJsonValue>* MetadataValue = Object->Values.Find(TEXT("metadata")))
+        {
+            FString MetadataJson;
+            if (TrySerializeJsonValue(*MetadataValue, MetadataJson))
+            {
+                Item.metadata_json = MetadataJson;
+            }
+        }
     }
 
     FUnrealPlanItem MakePlanItemFromObject(const TSharedPtr<FJsonObject>& Object)
@@ -135,6 +238,23 @@ namespace
         {
             TryGetObjectInt(Object, TEXT("plan_id"), Item.id);
         }
+
+        if (Item.project_id == 0)
+        {
+            TryGetObjectInt(Object, TEXT("projectId"), Item.project_id);
+        }
+
+        if (Item.source_floorplan_id == 0)
+        {
+            TryGetObjectInt(Object, TEXT("floorplan_id"), Item.source_floorplan_id);
+        }
+
+        if (Item.file_size == 0)
+        {
+            TryGetObjectInt64(Object, TEXT("fileSize"), Item.file_size);
+        }
+
+        TryReadMetadataJson(Object, Item);
 
         FString StringValue;
         if (Item.title.IsEmpty() && TryGetObjectString(Object, TEXT("title"), StringValue))
@@ -182,15 +302,7 @@ namespace
 
     bool ParsePlanListResponse(const FString& Body, FUnrealPlanListResponse& OutResponse)
     {
-        FJsonObjectConverter::JsonObjectStringToUStruct(Body, &OutResponse);
-        if (OutResponse.items.Num() > 0)
-        {
-            if (OutResponse.total == 0)
-            {
-                OutResponse.total = OutResponse.items.Num();
-            }
-            return true;
-        }
+        OutResponse = FUnrealPlanListResponse();
 
         TArray<TSharedPtr<FJsonValue>> RootArray;
         if (TryDeserializeArray(Body, RootArray))
@@ -207,6 +319,7 @@ namespace
         }
 
         TryGetObjectInt(Root, TEXT("total"), OutResponse.total);
+        TryReadRegistrationSummary(Root, OutResponse);
 
         const TArray<FString> ArrayFields = { TEXT("items"), TEXT("plans"), TEXT("results") };
         for (const FString& Field : ArrayFields)
@@ -227,6 +340,7 @@ namespace
         if (Root->TryGetObjectField(TEXT("data"), DataObject) && DataObject && DataObject->IsValid())
         {
             TryGetObjectInt(*DataObject, TEXT("total"), OutResponse.total);
+            TryReadRegistrationSummary(*DataObject, OutResponse);
             for (const FString& Field : ArrayFields)
             {
                 const TArray<TSharedPtr<FJsonValue>>* Array = nullptr;
@@ -413,12 +527,129 @@ namespace
         return false;
     }
 
+    FUnrealProjectItem MakeProjectItemFromObject(const TSharedPtr<FJsonObject>& Object)
+    {
+        FUnrealProjectItem Item;
+        if (!Object.IsValid())
+        {
+            return Item;
+        }
+
+        FJsonObjectConverter::JsonObjectToUStruct(Object.ToSharedRef(), FUnrealProjectItem::StaticStruct(), &Item, 0, 0);
+        return Item;
+    }
+
+    void AppendProjectArray(const TArray<TSharedPtr<FJsonValue>>& Array, FUnrealProjectListResponse& OutResponse)
+    {
+        for (const TSharedPtr<FJsonValue>& Value : Array)
+        {
+            if (Value.IsValid() && Value->Type == EJson::Object)
+            {
+                OutResponse.items.Add(MakeProjectItemFromObject(Value->AsObject()));
+            }
+        }
+    }
+
+    bool ParseProjectListResponse(const FString& Body, FUnrealProjectListResponse& OutResponse)
+    {
+        OutResponse = FUnrealProjectListResponse();
+
+        TArray<TSharedPtr<FJsonValue>> RootArray;
+        if (TryDeserializeArray(Body, RootArray))
+        {
+            AppendProjectArray(RootArray, OutResponse);
+            OutResponse.total = OutResponse.items.Num();
+            return true;
+        }
+
+        TSharedPtr<FJsonObject> Root;
+        if (!TryDeserializeObject(Body, Root))
+        {
+            return false;
+        }
+
+        TryGetObjectInt(Root, TEXT("total"), OutResponse.total);
+
+        const TArray<FString> ArrayFields = { TEXT("items"), TEXT("projects"), TEXT("results") };
+        for (const FString& Field : ArrayFields)
+        {
+            const TArray<TSharedPtr<FJsonValue>>* Array = nullptr;
+            if (Root->TryGetArrayField(Field, Array))
+            {
+                AppendProjectArray(*Array, OutResponse);
+                if (OutResponse.total == 0)
+                {
+                    OutResponse.total = OutResponse.items.Num();
+                }
+                return true;
+            }
+        }
+
+        const TSharedPtr<FJsonObject>* DataObject = nullptr;
+        if (Root->TryGetObjectField(TEXT("data"), DataObject) && DataObject && DataObject->IsValid())
+        {
+            TryGetObjectInt(*DataObject, TEXT("total"), OutResponse.total);
+            for (const FString& Field : ArrayFields)
+            {
+                const TArray<TSharedPtr<FJsonValue>>* Array = nullptr;
+                if ((*DataObject)->TryGetArrayField(Field, Array))
+                {
+                    AppendProjectArray(*Array, OutResponse);
+                    if (OutResponse.total == 0)
+                    {
+                        OutResponse.total = OutResponse.items.Num();
+                    }
+                    return true;
+                }
+            }
+        }
+
+        const TArray<TSharedPtr<FJsonValue>>* DataArray = nullptr;
+        if (Root->TryGetArrayField(TEXT("data"), DataArray))
+        {
+            AppendProjectArray(*DataArray, OutResponse);
+            if (OutResponse.total == 0)
+            {
+                OutResponse.total = OutResponse.items.Num();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    void AppendTopologyExportQueryParams(FString& Query, const FUeTopologyExportRequest& ExportParams)
+    {
+        if (!ExportParams.layout_type.IsEmpty())
+        {
+            AppendQueryParam(Query, TEXT("layout_type"), ExportParams.layout_type);
+        }
+        if (!ExportParams.scale_unit.IsEmpty())
+        {
+            AppendQueryParam(Query, TEXT("scale_unit"), ExportParams.scale_unit);
+        }
+        if (!ExportParams.reference_coordinate_system.IsEmpty())
+        {
+            AppendQueryParam(Query, TEXT("reference_coordinate_system"), ExportParams.reference_coordinate_system);
+        }
+        if (!ExportParams.coordinate_policy.IsEmpty())
+        {
+            AppendQueryParam(Query, TEXT("coordinate_policy"), ExportParams.coordinate_policy);
+        }
+        AppendQueryParam(Query, TEXT("default_wall_height_cm"), FString::SanitizeFloat(ExportParams.default_wall_height_cm));
+        AppendQueryParam(Query, TEXT("default_door_height_cm"), FString::SanitizeFloat(ExportParams.default_door_height_cm));
+        AppendQueryParam(Query, TEXT("default_window_height_cm"), FString::SanitizeFloat(ExportParams.default_window_height_cm));
+        AppendQueryParam(Query, TEXT("default_window_sill_height_cm"), FString::SanitizeFloat(ExportParams.default_window_sill_height_cm));
+        AppendQueryParam(Query, TEXT("visual_scale_factor_cm_per_px"), FString::SanitizeFloat(ExportParams.visual_scale_factor_cm_per_px));
+        AppendQueryParam(Query, TEXT("vertex_merge_tolerance_cm"), FString::SanitizeFloat(ExportParams.vertex_merge_tolerance_cm));
+    }
+
     FUnrealPlanListResponse BuildMockPlanList(const FUnrealPlanSearchParams& Params)
     {
         FUnrealPlanListResponse Response;
-        const TArray<int32> RecentOrder = { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11 };
+        const TArray<int32> MockPlanIds = GetMockPlanIds();
 
-        for (int32 PlanId : RecentOrder)
+        for (int32 PlanId : MockPlanIds)
         {
             FUnrealPlanItem Plan;
             Plan.id = PlanId;
@@ -427,8 +658,18 @@ namespace
             Plan.file_name = FString::Printf(TEXT("test%d.json"), PlanId);
             Plan.status = TEXT("saved");
             Plan.can_open_unreal = true;
+            Plan.project_id = 1;
+            Plan.project_name = TEXT("Mock Project");
 
             if (!Params.q.IsEmpty() && !Plan.GetDisplayTitle().Contains(Params.q, ESearchCase::IgnoreCase))
+            {
+                continue;
+            }
+
+            if (!Params.project_id.IsEmpty() &&
+                !Params.project_id.Equals(TEXT("all"), ESearchCase::IgnoreCase) &&
+                !Params.project_id.Equals(TEXT("0"), ESearchCase::IgnoreCase) &&
+                !Params.project_id.Equals(FString::FromInt(Plan.project_id), ESearchCase::IgnoreCase))
             {
                 continue;
             }
@@ -452,6 +693,9 @@ namespace
         }
 
         Response.total = Response.items.Num();
+        Response.summary.all = Response.total;
+        Response.summary.registered = Response.total;
+        Response.summary.unregistered = 0;
 
         if (Params.skip > 0 || Params.limit > 0)
         {
@@ -468,6 +712,18 @@ namespace
         return Response;
     }
 
+    FUnrealProjectListResponse BuildMockProjectList()
+    {
+        FUnrealProjectListResponse Response;
+        FUnrealProjectItem Project;
+        Project.id = 1;
+        Project.name = TEXT("Mock Project");
+        Project.plan_count = GetMockPlanIds().Num();
+        Response.items.Add(Project);
+        Response.total = Response.items.Num();
+        return Response;
+    }
+
     FUnrealDeltaVersionListResponse BuildMockDeltaVersionList(int32 PlanId)
     {
         FUnrealDeltaVersionListResponse Response;
@@ -475,7 +731,7 @@ namespace
         int32 Version = 1;
         while (true)
         {
-            const FString FilePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version);
+            const FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
             if (!FPaths::FileExists(FilePath))
             {
                 break;
@@ -494,7 +750,7 @@ namespace
 
         if (Response.items.Num() == 0)
         {
-            const FString LatestPath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta.json"), PlanId);
+            const FString LatestPath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
             if (FPaths::FileExists(LatestPath))
             {
                 FUnrealDeltaVersionItem Latest;
@@ -531,11 +787,41 @@ FString UInteRealNetworkSubsystem::BuildEndpoint(FString EndpointFormat, int32 P
     return EndpointFormat;
 }
 
+FString UInteRealNetworkSubsystem::BuildProjectEndpoint(FString EndpointFormat, const FString& ProjectId) const
+{
+    EndpointFormat.ReplaceInline(TEXT("{ProjectId}"), *ProjectId);
+    EndpointFormat.ReplaceInline(TEXT("{projectId}"), *ProjectId);
+    EndpointFormat.ReplaceInline(TEXT("{project_id}"), *ProjectId);
+    EndpointFormat.ReplaceInline(TEXT("{id}"), *ProjectId);
+    return EndpointFormat;
+}
+
 TSharedRef<IHttpRequest, ESPMode::ThreadSafe> UInteRealNetworkSubsystem::CreateRequest(const FString& Verb, const FString& Endpoint)
 {
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
     Request->SetVerb(Verb);
-    Request->SetURL(GetBaseApiUrl() + Endpoint);
+
+    FString ServerRoot = ServerUrl;
+    while (ServerRoot.EndsWith(TEXT("/")))
+    {
+        ServerRoot.LeftChopInline(1);
+    }
+
+    FString Url;
+    if (Endpoint.StartsWith(TEXT("http://")) || Endpoint.StartsWith(TEXT("https://")))
+    {
+        Url = Endpoint;
+    }
+    else if (Endpoint.StartsWith(TEXT("/api/")) || Endpoint.StartsWith(TEXT("/plangraph/")))
+    {
+        Url = ServerRoot + Endpoint;
+    }
+    else
+    {
+        Url = ServerRoot + TEXT("/api/unreal") + Endpoint;
+    }
+
+    Request->SetURL(Url);
     Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
     
     // 가이드 필수 사항: 모든 엔드포인트 JWT 인증
@@ -543,6 +829,8 @@ TSharedRef<IHttpRequest, ESPMode::ThreadSafe> UInteRealNetworkSubsystem::CreateR
     {
         Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *AuthToken));
     }
+
+    UE_LOG(LogTemp, Log, TEXT("[Network] Outgoing Request: %s %s"), *Verb, *Url);
     
     return Request;
 }
@@ -562,6 +850,7 @@ void UInteRealNetworkSubsystem::FetchAllAssets(int32 Skip, int32 Limit, FOnAsset
 
     auto Req = CreateRequest(TEXT("GET"), FString::Printf(TEXT("/assets?skip=%d&limit=%d"), Skip, Limit));
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         FUnrealAssetListResponse Res;
         if (S && R.IsValid() && EHttpResponseCodes::IsOk(R->GetResponseCode())) {
             FJsonObjectConverter::JsonObjectStringToUStruct(R->GetContentAsString(), &Res);
@@ -581,6 +870,7 @@ void UInteRealNetworkSubsystem::FetchAssetsByEstimate(int32 EstimateId, int32 Sk
 
     auto Req = CreateRequest(TEXT("GET"), FString::Printf(TEXT("/estimates/%d/assets?skip=%d&limit=%d"), EstimateId, Skip, Limit));
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         FUnrealAssetListResponse Res;
         if (S && R.IsValid() && EHttpResponseCodes::IsOk(R->GetResponseCode())) {
             FJsonObjectConverter::JsonObjectStringToUStruct(R->GetContentAsString(), &Res);
@@ -600,6 +890,7 @@ void UInteRealNetworkSubsystem::FetchAssetsByUser(int32 UserId, int32 Skip, int3
 
     auto Req = CreateRequest(TEXT("GET"), FString::Printf(TEXT("/users/%d/assets?skip=%d&limit=%d"), UserId, Skip, Limit));
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         FUnrealAssetListResponse Res;
         if (S && R.IsValid() && EHttpResponseCodes::IsOk(R->GetResponseCode())) {
             FJsonObjectConverter::JsonObjectStringToUStruct(R->GetContentAsString(), &Res);
@@ -614,37 +905,6 @@ void UInteRealNetworkSubsystem::FetchAssetsByUser(int32 UserId, int32 Skip, int3
 void UInteRealNetworkSubsystem::FetchPlans(const FUnrealPlanSearchParams& Params, FOnPlansReceived OnComplete)
 {
     FetchExecutablePlans(Params, OnComplete);
-    return;
-
-    if (bUseMockData)
-    {
-        FUnrealPlanListResponse Res;
-        // 기존 Harness 테스트용 데이터 매핑 (test1 ~ test11)
-        for (int32 i = 1; i <= 11; ++i)
-        {
-            FUnrealPlanItem P;
-            P.id = i;
-            P.name = FString::Printf(TEXT("Mock Plan %d"), i);
-            P.file_name = FString::Printf(TEXT("test%d.json"), i);
-            P.can_open_unreal = true;
-            Res.items.Add(P);
-        }
-        OnComplete.ExecuteIfBound(true, Res); return;
-    }
-
-    FString Query = FString::Printf(TEXT("/plans?skip=%d&limit=%d&sort=%s&registration_status=%s"), 
-        Params.skip, Params.limit, *Params.sort, *Params.registration_status);
-    if (!Params.q.IsEmpty()) Query += FString::Printf(TEXT("&q=%s"), *Params.q);
-
-    auto Req = CreateRequest(TEXT("GET"), Query);
-    Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
-        FUnrealPlanListResponse Res;
-        if (S && R.IsValid() && EHttpResponseCodes::IsOk(R->GetResponseCode())) {
-            FJsonObjectConverter::JsonObjectStringToUStruct(R->GetContentAsString(), &Res);
-            OnComplete.ExecuteIfBound(true, Res);
-        } else OnComplete.ExecuteIfBound(false, Res);
-    });
-    Req->ProcessRequest();
 }
 
 void UInteRealNetworkSubsystem::FetchExecutablePlans(const FUnrealPlanSearchParams& Params, FOnPlansReceived OnComplete)
@@ -669,6 +929,11 @@ void UInteRealNetworkSubsystem::FetchExecutablePlans(const FUnrealPlanSearchPara
         AppendQueryParam(Query, TEXT("registration_status"), Params.registration_status);
     }
 
+    if (!Params.project_id.IsEmpty())
+    {
+        AppendQueryParam(Query, TEXT("project_id"), Params.project_id);
+    }
+
     if (!Params.q.IsEmpty())
     {
         AppendQueryParam(Query, TEXT("q"), Params.q);
@@ -691,6 +956,7 @@ void UInteRealNetworkSubsystem::FetchExecutablePlans(const FUnrealPlanSearchPara
 
     auto Req = CreateRequest(TEXT("GET"), Query);
     Req->OnProcessRequestComplete().BindLambda([OnComplete, bExecutableOnly = Params.executable_only](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         FUnrealPlanListResponse Res;
         if (IsSuccessfulResponse(R, S)) {
             ParsePlanListResponse(R->GetContentAsString(), Res);
@@ -710,46 +976,62 @@ void UInteRealNetworkSubsystem::FetchExecutablePlans(const FUnrealPlanSearchPara
     Req->ProcessRequest();
 }
 
-void UInteRealNetworkSubsystem::FetchBaseTopology(int32 PlanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete)
+void UInteRealNetworkSubsystem::FetchProjects(FOnProjectsReceived OnComplete)
 {
-    FetchUeTopology(PlanId, ExportParams, OnComplete);
-    return;
-
     if (bUseMockData)
     {
-        // 💡 [Harness 이관] Content/TestData/test{id}.json 로드
-        FString FilePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d.json"), PlanId);
-        FString JsonContent;
-        if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
-        {
-            OnComplete.ExecuteIfBound(true, JsonContent);
-        }
-        else
-        {
-            OnComplete.ExecuteIfBound(false, TEXT("{}"));
-        }
+        OnComplete.ExecuteIfBound(true, BuildMockProjectList());
         return;
     }
 
-    FString Query = FString::Printf(TEXT("/plans/%d/base?layout_type=%s&scale_unit=%s"), 
-        PlanId, *ExportParams.layout_type, *ExportParams.scale_unit);
-
-    auto Req = CreateRequest(TEXT("GET"), Query);
+    auto Req = CreateRequest(TEXT("GET"), ProjectsEndpoint);
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
-        if (S && R.IsValid() && EHttpResponseCodes::IsOk(R->GetResponseCode())) {
-            OnComplete.ExecuteIfBound(true, R->GetContentAsString());
-        } else OnComplete.ExecuteIfBound(false, TEXT(""));
+        LogResponse(R, S);
+        FUnrealProjectListResponse Res;
+        if (IsSuccessfulResponse(R, S)) {
+            ParseProjectListResponse(R->GetContentAsString(), Res);
+            OnComplete.ExecuteIfBound(true, Res);
+        } else OnComplete.ExecuteIfBound(false, Res);
     });
     Req->ProcessRequest();
+}
+
+void UInteRealNetworkSubsystem::FetchProjectPlans(const FString& ProjectId, FOnPlansReceived OnComplete)
+{
+    if (bUseMockData)
+    {
+        FUnrealPlanSearchParams Params;
+        Params.project_id = ProjectId;
+        OnComplete.ExecuteIfBound(true, BuildMockPlanList(Params));
+        return;
+    }
+
+    auto Req = CreateRequest(TEXT("GET"), BuildProjectEndpoint(ProjectPlansEndpointFormat, ProjectId));
+    Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
+        FUnrealPlanListResponse Res;
+        if (IsSuccessfulResponse(R, S)) {
+            ParsePlanListResponse(R->GetContentAsString(), Res);
+            OnComplete.ExecuteIfBound(true, Res);
+        } else OnComplete.ExecuteIfBound(false, Res);
+    });
+    Req->ProcessRequest();
+}
+
+void UInteRealNetworkSubsystem::FetchBaseTopology(int32 PlanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete)
+{
+    FetchUeTopology(PlanId, ExportParams, OnComplete);
 }
 
 // --- 3. Delta API 구현 ---
 
 void UInteRealNetworkSubsystem::FetchUeTopology(int32 PlanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete)
 {
+    (void)ExportParams;
+
     if (bUseMockData)
     {
-        const FString FilePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d.json"), PlanId);
+        const FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d.json"), PlanId));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -764,38 +1046,81 @@ void UInteRealNetworkSubsystem::FetchUeTopology(int32 PlanId, const FUeTopologyE
     }
 
     FString Query = BuildEndpoint(UeTopologyEndpointFormat, PlanId);
-    if (!ExportParams.layout_type.IsEmpty())
-    {
-        AppendQueryParam(Query, TEXT("layout_type"), ExportParams.layout_type);
-    }
-    if (!ExportParams.scale_unit.IsEmpty())
-    {
-        AppendQueryParam(Query, TEXT("scale_unit"), ExportParams.scale_unit);
-    }
-    if (!ExportParams.reference_coordinate_system.IsEmpty())
-    {
-        AppendQueryParam(Query, TEXT("reference_coordinate_system"), ExportParams.reference_coordinate_system);
-    }
-    if (!ExportParams.coordinate_policy.IsEmpty())
-    {
-        AppendQueryParam(Query, TEXT("coordinate_policy"), ExportParams.coordinate_policy);
-    }
-    AppendQueryParam(Query, TEXT("default_wall_height_cm"), FString::SanitizeFloat(ExportParams.default_wall_height_cm));
-    AppendQueryParam(Query, TEXT("default_door_height_cm"), FString::SanitizeFloat(ExportParams.default_door_height_cm));
-    AppendQueryParam(Query, TEXT("default_window_height_cm"), FString::SanitizeFloat(ExportParams.default_window_height_cm));
-    AppendQueryParam(Query, TEXT("default_window_sill_height_cm"), FString::SanitizeFloat(ExportParams.default_window_sill_height_cm));
-    AppendQueryParam(Query, TEXT("visual_scale_factor_cm_per_px"), FString::SanitizeFloat(ExportParams.visual_scale_factor_cm_per_px));
-    AppendQueryParam(Query, TEXT("vertex_merge_tolerance_cm"), FString::SanitizeFloat(ExportParams.vertex_merge_tolerance_cm));
 
     auto Req = CreateRequest(TEXT("GET"), Query);
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         if (IsSuccessfulResponse(R, S)) {
             const FString Payload = ExtractJsonPayload(R->GetContentAsString(), {
+                TEXT("content_json"),
                 TEXT("ue_topology_json"),
                 TEXT("topology_json"),
                 TEXT("topology"),
                 TEXT("base_json"),
                 TEXT("base"),
+                TEXT("json"),
+                TEXT("data")
+            });
+            OnComplete.ExecuteIfBound(true, Payload);
+        } else OnComplete.ExecuteIfBound(false, TEXT(""));
+    });
+    Req->ProcessRequest();
+}
+
+void UInteRealNetworkSubsystem::GenerateUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete)
+{
+    if (bUseMockData)
+    {
+        FetchUeTopology(EditableFloorplanId, ExportParams, OnComplete);
+        return;
+    }
+
+    FString Body;
+    if (!FJsonObjectConverter::UStructToJsonObjectString(ExportParams, Body))
+    {
+        OnComplete.ExecuteIfBound(false, TEXT(""));
+        return;
+    }
+
+    auto Req = CreateRequest(TEXT("POST"), BuildEndpoint(UeTopologyGenerateEndpointFormat, EditableFloorplanId));
+    Req->SetContentAsString(Body);
+    Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
+        if (IsSuccessfulResponse(R, S)) {
+            const FString Payload = ExtractJsonPayload(R->GetContentAsString(), {
+                TEXT("content_json"),
+                TEXT("ue_topology_json"),
+                TEXT("topology_json"),
+                TEXT("topology"),
+                TEXT("json"),
+                TEXT("data")
+            });
+            OnComplete.ExecuteIfBound(true, Payload);
+        } else OnComplete.ExecuteIfBound(false, TEXT(""));
+    });
+    Req->ProcessRequest();
+}
+
+void UInteRealNetworkSubsystem::DownloadUeTopologyJson(int32 EditableFloorplanId, const FUeTopologyExportRequest& ExportParams, FOnTopologyReceived OnComplete)
+{
+    if (bUseMockData)
+    {
+        FetchUeTopology(EditableFloorplanId, ExportParams, OnComplete);
+        return;
+    }
+
+    FString Query = BuildEndpoint(UeTopologyDownloadEndpointFormat, EditableFloorplanId);
+    AppendTopologyExportQueryParams(Query, ExportParams);
+
+    auto Req = CreateRequest(TEXT("GET"), Query);
+    Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
+        if (IsSuccessfulResponse(R, S)) {
+            const FString Payload = ExtractJsonPayload(R->GetContentAsString(), {
+                TEXT("content_json"),
+                TEXT("ue_topology_json"),
+                TEXT("topology_json"),
+                TEXT("topology"),
                 TEXT("json"),
                 TEXT("data")
             });
@@ -815,6 +1140,7 @@ void UInteRealNetworkSubsystem::FetchDeltaVersions(int32 PlanId, FOnDeltaVersion
 
     auto Req = CreateRequest(TEXT("GET"), BuildEndpoint(DeltaVersionsEndpointFormat, PlanId));
     Req->OnProcessRequestComplete().BindLambda([OnComplete, PlanId](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         FUnrealDeltaVersionListResponse Res;
         if (IsSuccessfulResponse(R, S)) {
             ParseDeltaVersionListResponse(R->GetContentAsString(), PlanId, Res);
@@ -828,8 +1154,7 @@ void UInteRealNetworkSubsystem::FetchLatestDelta(int32 PlanId, FOnDeltaReceived 
 {
     if (bUseMockData)
     {
-        // 💡 [Harness 이관] Content/TestData/test{id}_delta.json 로드
-        FString FilePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta.json"), PlanId);
+        FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -844,6 +1169,7 @@ void UInteRealNetworkSubsystem::FetchLatestDelta(int32 PlanId, FOnDeltaReceived 
 
     auto Req = CreateRequest(TEXT("GET"), BuildEndpoint(LatestDeltaEndpointFormat, PlanId));
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         if (IsSuccessfulResponse(R, S)) {
             const FString Payload = ExtractJsonPayload(R->GetContentAsString(), {
                 TEXT("delta_json"),
@@ -864,7 +1190,7 @@ void UInteRealNetworkSubsystem::FetchDeltaByVersion(int32 PlanId, int32 Version,
     if (bUseMockData)
     {
         // 로컬 버전 파일 로드 시도
-        FString FilePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version);
+        FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -880,6 +1206,7 @@ void UInteRealNetworkSubsystem::FetchDeltaByVersion(int32 PlanId, int32 Version,
 
     auto Req = CreateRequest(TEXT("GET"), BuildEndpoint(DeltaVersionEndpointFormat, PlanId, Version));
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr, FHttpResponsePtr R, bool S) {
+        LogResponse(R, S);
         if (IsSuccessfulResponse(R, S)) {
             const FString Payload = ExtractJsonPayload(R->GetContentAsString(), {
                 TEXT("delta_json"),
@@ -902,9 +1229,17 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
 
     if (bUseMockData)
     {
+        if (!EnsureNetworkMockTestDataDir())
+        {
+            UE_LOG(LogTemp, Error, TEXT("[Network] FAILED to create mock test data dir: %s"), *GetNetworkMockTestDataDir());
+            FUnrealOkResponse Res;
+            Res.ok = false;
+            OnComplete.ExecuteIfBound(false, Res);
+            return;
+        }
+
         // 1. 최신 상태 유지를 위해 기본 delta.json 덮어쓰기
-        FString BaseRelativePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta.json"), PlanId);
-        FString BaseAbsolutePath = FPaths::ConvertRelativePathToFull(BaseRelativePath);
+        FString BaseAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
         bool bSavedBase = FFileHelper::SaveStringToFile(DeltaJson, *BaseAbsolutePath);
 
         // 2. 로컬 버전 관리를 위해 비어있는 v{번호} 파일 찾아서 생성
@@ -912,8 +1247,7 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
         FString VersionAbsolutePath;
         while (true)
         {
-            FString VersionRelativePath = FPaths::ProjectContentDir() / TEXT("TestData") / FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version);
-            VersionAbsolutePath = FPaths::ConvertRelativePathToFull(VersionRelativePath);
+            VersionAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
             if (!FPaths::FileExists(VersionAbsolutePath))
             {
                 break;
@@ -933,7 +1267,7 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
             UE_LOG(LogTemp, Error, TEXT("[Network] FAILED to save mock delta. Check path or permissions."));
         }
         
-        FUnrealOkResponse Res; Res.ok = bSaved;
+        FUnrealOkResponse Res; Res.ok = bSaved; Res.version = Version;
         OnComplete.ExecuteIfBound(bSaved, Res);
         return;
     }
@@ -941,7 +1275,9 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
     auto Req = CreateRequest(TEXT("POST"), BuildEndpoint(LatestDeltaEndpointFormat, PlanId));
     Req->SetContentAsString(DeltaJson);
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr Request, FHttpResponsePtr Res, bool bSucceeded) {
+        LogResponse(Res, bSucceeded);
         FUnrealOkResponse Response;
+
         if (bSucceeded && Res.IsValid() && (Res->GetResponseCode() == 200 || Res->GetResponseCode() == 201)) {
             FJsonObjectConverter::JsonObjectStringToUStruct(Res->GetContentAsString(), &Response);
             OnComplete.ExecuteIfBound(true, Response);

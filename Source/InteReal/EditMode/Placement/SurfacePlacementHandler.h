@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
@@ -20,6 +20,11 @@ public:
 	virtual void UpdatePreview(AFurniture* Preview, const FHitResult& Hit) override;
 	virtual void OnConfirm(AFurniture* Furniture) override;
 	virtual void OnRemove(AFurniture* Furniture) override;
+	virtual void BeginGizmoMove(AFurniture* Target) override;
+	virtual void UpdateGizmoMove(AFurniture* Target, FVector Cursor, EGizmoTransformAxis Axis) override;
+	virtual void UpdateGizmoMoveFree(AFurniture* Target, FVector TargetLoc) override;
+	virtual void FinalizeGizmoMove(AFurniture* Target) override;
+	virtual void AbortGizmoMove(AFurniture* Target) override;
 
 private:
 	UPROPERTY()
@@ -27,4 +32,6 @@ private:
 	
 	UPROPERTY()
 	AFurniture* CurrentSurfaceParent = nullptr;
+
+	FVector GizmoDragStartLocation = FVector::ZeroVector;
 };

@@ -1,8 +1,48 @@
-#include "FloorPlacementHandler.h"
+﻿#include "FloorPlacementHandler.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
+
+static bool SegmentIntersectsAABB(FVector2D P1, FVector2D P2, FVector2D BoxMin, FVector2D BoxMax)
+{
+	float TMin = 0.0f;
+	float TMax = 1.0f;
+	const float DX = P2.X - P1.X;
+	const float DY = P2.Y - P1.Y;
+
+	auto Clip = [&](float P, float Q) -> bool
+	{
+		if (FMath::Abs(P) < KINDA_SMALL_NUMBER)
+		{
+			return Q >= 0.0f;
+		}
+
+		const float R = Q / P;
+		if (P < 0.0f)
+		{
+			if (R > TMax)
+			{
+				return false;
+			}
+			TMin = FMath::Max(TMin, R);
+		}
+		else
+		{
+			if (R < TMin)
+			{
+				return false;
+			}
+			TMax = FMath::Min(TMax, R);
+		}
+		return true;
+	};
+
+	return Clip(-DX, P1.X - BoxMin.X) &&
+	       Clip(DX, BoxMax.X - P1.X) &&
+	       Clip(-DY, P1.Y - BoxMin.Y) &&
+	       Clip(DY, BoxMax.Y - P1.Y);
+}
 
 void UFloorPlacementHandler::Initialize(UInteriorPlacementSubsystem* InSubsystem)
 {
@@ -132,7 +172,7 @@ void UFloorPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult
 	Preview->SetPlacementState(bValid ? EPlacementState::Preview : EPlacementState::Invalid);
 
 	const FBox PreviewBounds = Preview->GetCollisionBounds();
-	Visualizer->RefreshPlacementCellViz(PreviewBounds, bValid, Subsystem->GetFloorZ());
+	Visualizer->RefreshPlacementCellViz(PreviewBounds, !bValid, Subsystem->GetFloorZ());
 }
 
 void UFloorPlacementHandler::OnConfirm(AFurniture* Furniture)
@@ -251,6 +291,10 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 	{
 		NewLoc.Y = Cursor.Y;
 	}
+	else if (Axis == EGizmoTransformAxis::MoveZ)
+	{
+		NewLoc.Z = Cursor.Z;
+	}
 	else
 	{
 		NewLoc = FVector(Cursor.X, Cursor.Y, NewLoc.Z);
@@ -261,6 +305,7 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 	const int32 AnchorY = FMath::RoundToInt(GridPos.Y) - (B / 2);
 
 	bool bValid = true;
+	EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
 	for (int32 i = 0; i < L && bValid; i++)
 	{
 		for (int32 j = 0; j < B && bValid; j++)
@@ -269,27 +314,55 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 			if (Grid->GetTileState(Cell) == EGridTileState::None)
 			{
 				bValid = false;
+				Reason = EPlacementInvalidReason::OutsideFloor;
 			}
 			AActor* Occ = Grid->GetFurniture(Cell);
 			if (Occ && Occ != Target)
 			{
 				bValid = false;
+				Reason = EPlacementInvalidReason::Overlapping;
 			}
 		}
 	}
 
+	const FVector WorldCenter = Grid->ToWorldPosition(
+		FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
+	Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, NewLoc.Z));
+
+	if (bValid && !IsCornersInsideFloor(Target))
+	{
+		bValid = false;
+		Reason = EPlacementInvalidReason::OutsideFloor;
+	}
+
+	if (bValid && IntersectsWalls(Target))
+	{
+		bValid = false;
+		Reason = EPlacementInvalidReason::IntersectsWall;
+	}
+
+	if (bValid && Subsystem->IsOverlappingPlacedFurniture(Target))
+	{
+		bValid = false;
+		Reason = EPlacementInvalidReason::Overlapping;
+	}
+
 	if (bValid)
 	{
-		const FVector WorldCenter = Grid->ToWorldPosition(
-			FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
-		Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, Subsystem->GetFloorZ()));
 		Subsystem->GetPreviewGridAnchor() = FVector2D(AnchorX, AnchorY);
+	}
+	else
+	{
+		Subsystem->GetPreviewGridAnchor() = GizmoDragOriginalAnchor;
+	}
 
-		if (Visualizer)
-		{
-			const FBox Bounds = Target->GetCollisionBounds();
-			Visualizer->RefreshPlacementCellViz(Bounds, true, Subsystem->GetFloorZ());
-		}
+	Subsystem->SetInvalidReason(Reason);
+	Target->SetPlacementState(bValid ? EPlacementState::Preview : EPlacementState::Invalid);
+
+	if (Visualizer)
+	{
+		const FBox Bounds = Target->GetCollisionBounds();
+		Visualizer->RefreshPlacementCellViz(Bounds, !bValid, Subsystem->GetFloorZ());
 	}
 }
 
@@ -316,7 +389,7 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	const int32 L = (int32)Target->PlacedDimensions.X;
 	const int32 B = (int32)Target->PlacedDimensions.Y;
 
-	bool bValid = true;
+	bool bValid = Subsystem->InvalidReason == EPlacementInvalidReason::None;
 	for (int32 i = 0; i < L && bValid; i++)
 	{
 		for (int32 j = 0; j < B && bValid; j++)
@@ -332,6 +405,11 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 				bValid = false;
 			}
 		}
+	}
+
+	if (bValid && (!IsCornersInsideFloor(Target) || IntersectsWalls(Target) || Subsystem->IsOverlappingPlacedFurniture(Target)))
+	{
+		bValid = false;
 	}
 
 	if (bValid)
@@ -353,7 +431,7 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 		const FVector WorldCenter = Grid->ToWorldPosition(FVector2D(
 			GizmoDragOriginalAnchor.X + OL * 0.5f - 0.5f,
 			GizmoDragOriginalAnchor.Y + OB * 0.5f - 0.5f));
-		Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, Subsystem->GetFloorZ()));
+		Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, GizmoDragStartLocation.Z));
 		Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
 		for (int32 i = 0; i < OL; i++)
 		{
@@ -368,6 +446,8 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	{
 		Visualizer->ClearPlacementCellViz();
 	}
+	Target->SetPlacementState(EPlacementState::Placed);
+	Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
 }
 
 void UFloorPlacementHandler::AbortGizmoMove(AFurniture* Target)
@@ -388,7 +468,7 @@ void UFloorPlacementHandler::AbortGizmoMove(AFurniture* Target)
 	const FVector WorldCenter = Grid->ToWorldPosition(FVector2D(
 		GizmoDragOriginalAnchor.X + L * 0.5f - 0.5f,
 		GizmoDragOriginalAnchor.Y + B * 0.5f - 0.5f));
-	Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, Subsystem->GetFloorZ()));
+	Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, GizmoDragStartLocation.Z));
 	Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
 	for (int32 i = 0; i < L; i++)
 	{
@@ -402,6 +482,8 @@ void UFloorPlacementHandler::AbortGizmoMove(AFurniture* Target)
 	{
 		Visualizer->ClearPlacementCellViz();
 	}
+	Target->SetPlacementState(EPlacementState::Placed);
+	Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
 }
 
 // ─────────────────────────────────────────────
@@ -414,13 +496,14 @@ bool UFloorPlacementHandler::IsCornersInsideFloor(const AFurniture* Furniture) c
 	{
 		return true;
 	}
+	const bool bHasRoomPolygons = !Subsystem->GetFloorRoomPolygons().IsEmpty();
 	const TArray<FVector2D>& Polygon = Subsystem->GetFloorPolygon();
-	if (Polygon.Num() < 3)
+	if (!bHasRoomPolygons && Polygon.Num() < 3)
 	{
 		return true;
 	}
 
-	const FBox Bounds = Furniture->GetCollisionBounds();
+	const FBox Bounds = Furniture->GetCollisionBounds().ExpandBy(-1.0f);
 	const TArray<FVector2D> Corners = {
 		FVector2D(Bounds.Min.X, Bounds.Min.Y),
 		FVector2D(Bounds.Max.X, Bounds.Min.Y),
@@ -429,7 +512,7 @@ bool UFloorPlacementHandler::IsCornersInsideFloor(const AFurniture* Furniture) c
 	};
 	for (const FVector2D& C : Corners)
 	{
-		if (!UInteriorPlacementSubsystem::IsPointInPolygon(C, Polygon))
+		if (!Subsystem->IsPointInsideFloor(C))
 		{
 			return false;
 		}
@@ -449,12 +532,17 @@ bool UFloorPlacementHandler::IntersectsWalls(const AFurniture* Furniture) const
 		return false;
 	}
 
-	const FBox Bounds = Furniture->GetCollisionBounds();
+	const FBox Bounds = Furniture->GetCollisionBounds().ExpandBy(-1.0f);
 	const FBox2D Bounds2D(FVector2D(Bounds.Min.X, Bounds.Min.Y), FVector2D(Bounds.Max.X, Bounds.Max.Y));
 
 	const float Thickness = Subsystem->GetWallThickness() * 0.5f;
 	for (const TPair<FVector2D, FVector2D>& Wall : Walls)
 	{
+		if (SegmentIntersectsAABB(Wall.Key, Wall.Value, Bounds2D.Min, Bounds2D.Max))
+		{
+			return true;
+		}
+
 		const FVector2D Dir = (Wall.Value - Wall.Key).GetSafeNormal();
 		const FVector2D Perp(-Dir.Y, Dir.X);
 		const float Len = (Wall.Value - Wall.Key).Size();

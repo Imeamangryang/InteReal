@@ -1,4 +1,4 @@
-#include "PlacementHistoryHandler.h"
+﻿#include "PlacementHistoryHandler.h"
 #include "PlacementSerializer.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "Dom/JsonObject.h"
@@ -91,12 +91,12 @@ void UPlacementHistoryHandler::DiscardGizmoSnapshot()
 	PendingGizmoSnapshot.Empty();
 }
 
-FString UPlacementHistoryHandler::ExportPlacedFurnituresJson() const
+FString UPlacementHistoryHandler::ExportPlacedFurnitureJson() const
 {
 	return Serializer ? Serializer->ExportPlacedFurnituresJson() : FString();
 }
 
-void UPlacementHistoryHandler::ImportPlacedFurnituresJson(const FString& JsonString)
+void UPlacementHistoryHandler::ImportPlacedFurnitureJson(const FString& JsonString)
 {
 	if (!bRestoringHistory)
 	{
@@ -141,7 +141,7 @@ void UPlacementHistoryHandler::ReceiveWebCommand(const FString& JsonString)
 		FString Payload;
 		if (Root->TryGetStringField(TEXT("data"), Payload))
 		{
-			ImportPlacedFurnituresJson(Payload);
+			ImportPlacedFurnitureJson(Payload);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// DEPRECATED: 모든 로직은 UInteriorPlacementSubsystem으로 이전되었습니다.
+﻿// DEPRECATED: 모든 로직은 UInteriorPlacementSubsystem으로 이전되었습니다.
 // Harness 등 외부 코드 호환성을 위해 thin facade로만 유지합니다.
 
 #pragma once
@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
-#include "InteReal/EditMode/Furnitures/FFurnitureDataRow.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "InteriorPlacementManager.generated.h"

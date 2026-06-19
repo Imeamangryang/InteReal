@@ -41,6 +41,8 @@ public:
     
     TMap<FString, FVector2D> VertexCache;
     TMap<FString, FTopologyHalfEdge> EdgeCache;
+    TArray<FTopologyWallSideMeasurement> WallSideMeasurementCache;
+    TArray<FTopologySurfaceMeasurement> SurfaceMeasurementCache;
 
 private:
     void BuildTopologyCaches(const FHarnessFloorData& FloorData);

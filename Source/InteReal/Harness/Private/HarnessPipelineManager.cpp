@@ -1,9 +1,9 @@
-#include "Public/HarnessPipelineManager.h"
+﻿#include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessGeneratorComponent.h"
 #include "Public/HarnessJsonParser.h"
 #include "Public/HarnessSaveManagerComponent.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
-#include "InteReal/EditMode/Furnitures/Furniture.h"
+#include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -54,9 +54,23 @@ void UHarnessPipelineManager::SaveCurrentProject()
 	FString DeltaJson = SaveManagerComp->SaveInteriorState();
 	
 	FOnDeltaSaved Delegate;
+	Delegate.BindDynamic(this, &UHarnessPipelineManager::HandleDeltaSaved);
 	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate);
 	
 	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d"), CurrentPlanId);
+}
+
+void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response)
+{
+	OnPipelineSaveFinished.Broadcast(bSuccess && Response.ok, Response);
+
+	if (bSuccess && Response.ok)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Save complete. Version: %d"), Response.version);
+		return;
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("[Harness] PipelineManager: Save failed."));
 }
 
 void UHarnessPipelineManager::AssembleBase(const FString& BaseJson)

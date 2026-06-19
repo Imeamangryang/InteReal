@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "InteReal/Harness/Public/HarnessData.h"
@@ -10,6 +10,6 @@ public:
 	static FInteReal2DFloorPlanDocument ConvertFromHarness(const FHarnessFloorData& FloorData);
 
 private:
-	static FVector2D ConvertTopologyVertexToEditorPoint(const FTopologyVertex& Vertex);
+	static FVector2D ConvertTopologyVertexToEditorPoint(const FHarnessFloorData& FloorData, const FTopologyVertex& Vertex);
 	static void ComputeBounds(FInteReal2DFloorPlanDocument& Document);
 };

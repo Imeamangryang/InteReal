@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "InteReal/Harness/Public/HarnessData.h"
-#include "InteReal/EditMode/Furnitures/FFurnitureDataRow.h"
+#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal2DFloorPlanTypes.h"
 #include "InteReal2DFloorPlanViewportWidget.generated.h"
 
