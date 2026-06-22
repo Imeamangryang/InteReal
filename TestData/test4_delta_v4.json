@@ -1,0 +1,2138 @@
+﻿{
+	"furnitureItems": [
+		{
+			"furnitureId": "207",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1584.5135498046875,
+					"y": 552.229248046875,
+					"z": 34.055259704589844
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 152,
+				"y": 44
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "216",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1464.5135498046875,
+					"y": 352.229248046875,
+					"z": 44.125923156738281
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 140,
+				"y": 24
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "213",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1458.0545654296875,
+					"y": 310.82293701171875,
+					"z": 120
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1.2246468525851679e-16,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "210",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1414.5135498046875,
+					"y": 312.229248046875,
+					"z": 135.44798278808594
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 2
+		},
+		{
+			"furnitureId": "205",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70537141730499475,
+					"w": 0.70883789659494312
+				},
+				"translation":
+				{
+					"x": 1579.756103515625,
+					"y": 661.62200927734375,
+					"z": 20
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": -0.99998795986175537,
+				"y": 0.0049024112522602081,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "206",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1594.5135498046875,
+					"y": 512.229248046875,
+					"z": 77.598304748535156
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 0
+		},
+		{
+			"furnitureId": "214",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1584.5135498046875,
+					"y": 592.229248046875,
+					"z": 83.759468078613281
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 0
+		},
+		{
+			"furnitureId": "219",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70537141730499475,
+					"w": 0.70883789659494312
+				},
+				"translation":
+				{
+					"x": 1606.751953125,
+					"y": 551.48834228515625,
+					"z": 150
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": -0.99998795986175537,
+				"y": 0.0049024112522602081,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "204",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.99999293377167731,
+					"w": 0.0037593093400180456
+				},
+				"translation":
+				{
+					"x": 1562.0225830078125,
+					"y": 707.39239501953125,
+					"z": 50
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0.0075185340829193592,
+				"y": -0.99997174739837646,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "201",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.0024631278937709208,
+					"w": 0.99999696649588843
+				},
+				"translation":
+				{
+					"x": 1357.0164794921875,
+					"y": 609.69439697265625,
+					"z": 140
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0.99998784065246582,
+				"y": 0.0049262405373156071,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "201",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.0049262408437246554,
+					"w": 0.99998786600195788
+				},
+				"translation":
+				{
+					"x": 1356.9627685546875,
+					"y": 639.6944580078125,
+					"z": 140
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0.99998784065246582,
+				"y": 0.0049262405373156071,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "182",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 674.2060546875,
+					"y": 119.59491729736328,
+					"z": 150
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1.2246468525851679e-16,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "193",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1495.756103515625,
+					"y": 1082.229248046875,
+					"z": 0
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 143,
+				"y": 97
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "232",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 524.32073974609375,
+					"y": 261.95596313476562,
+					"z": 3.1767026484885719e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 46,
+				"y": 15
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "231",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": 1384.49658203125,
+					"y": 1121.8126220703125,
+					"z": 1.9160083866154309e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 132,
+				"y": 101
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "233",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1134.45703125,
+					"y": 157.31809997558594,
+					"z": -1.3347878393688006e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 107,
+				"y": 5
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "139",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1134.5135498046875,
+					"y": 212.229248046875,
+					"z": 0
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 107,
+				"y": 10
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "235",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.92185580346578133,
+					"w": 0.38753306648137598
+				},
+				"translation":
+				{
+					"x": 1204.9239501953125,
+					"y": 617.5474853515625,
+					"z": 2.0000007152557373
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 114,
+				"y": 50
+			},
+			"dimensions":
+			{
+				"x": 2,
+				"y": 2
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "236",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": 1032.3692626953125,
+					"y": 1090.145751953125,
+					"z": 1.52587890625e-05
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 97,
+				"y": 117
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "131",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0.020614412812540211,
+					"y": -0.020614412812540214,
+					"z": 0.70680622944651128,
+					"w": 0.70680622944651139
+				},
+				"translation":
+				{
+					"x": 954.5130615234375,
+					"y": 1074.00390625,
+					"z": 8.6023616790771484
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 89,
+				"y": 96
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "123",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 877.994140625,
+					"y": 1122.2542724609375,
+					"z": 1.6951846646406921e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 81,
+				"y": 101
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "123",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1031.032958984375,
+					"y": 1042.2042236328125,
+					"z": 1.6951846646406921e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 97,
+				"y": 93
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "123",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1031.032958984375,
+					"y": 1122.2042236328125,
+					"z": 1.6951846646406921e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 97,
+				"y": 101
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "123",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 877.994140625,
+					"y": 1042.2542724609375,
+					"z": 1.6951846646406921e-06
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 81,
+				"y": 93
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "181",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 1024.5135498046875,
+					"y": 1252.229248046875,
+					"z": 255.39682006835938
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 8,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "198",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1224.5135498046875,
+					"y": 1022.229248046875,
+					"z": 97.080345153808594
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 116,
+				"y": 91
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "198",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1224.5135498046875,
+					"y": 1122.229248046875,
+					"z": 97.080345153808594
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 116,
+				"y": 101
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "238",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 374.5135498046875,
+					"y": 1102.229248046875,
+					"z": 237.99569702148438
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 8,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "239",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": 298.26498413085938,
+					"y": 1101.704833984375,
+					"z": 0.00012281379895284772
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 27,
+				"y": 98
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "240",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 402.9871826171875,
+					"y": 768.7117919921875,
+					"z": 2.3401777744293213
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 22,
+				"y": 63
+			},
+			"dimensions":
+			{
+				"x": 24,
+				"y": 6
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "242",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999947272292367,
+					"w": 0.0010269147358449326
+				},
+				"translation":
+				{
+					"x": 531.8521728515625,
+					"y": 710.63671875,
+					"z": 150
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": -0.0020538012031465769,
+				"y": -0.99999791383743286,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "242",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 391.88351440429688,
+					"y": 740.79638671875,
+					"z": 130
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1.2246468525851679e-16,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "49",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 394.5135498046875,
+					"y": 762.229248046875,
+					"z": 72.700363159179688
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 29
+		},
+		{
+			"furnitureId": "45",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 1.7347234759768071e-18,
+					"z": 0,
+					"w": 1.0000000000000004
+				},
+				"translation":
+				{
+					"x": 954.5135498046875,
+					"y": 1132.229248046875,
+					"z": 76.428634643554702
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 19
+		},
+		{
+			"furnitureId": "35",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 629.51348876953125,
+					"y": 1267.23291015625,
+					"z": 0.099808134138584137
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 54,
+				"y": 113
+			},
+			"dimensions":
+			{
+				"x": 6,
+				"y": 6
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "17",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1631.883544921875,
+					"y": 736.0018310546875,
+					"z": 170
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1.2246468525851679e-16,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "129",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1629.5135498046875,
+					"y": 762.229248046875,
+					"z": 0.041422870010137558
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 149,
+				"y": 63
+			},
+			"dimensions":
+			{
+				"x": 16,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "179",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 194.5135498046875,
+					"y": 432.229248046875,
+					"z": 0.10000097006559372
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 11,
+				"y": 30
+			},
+			"dimensions":
+			{
+				"x": 5,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "134",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.38268343236509,
+					"w": 0.92387953251128652
+				},
+				"translation":
+				{
+					"x": 218.00575256347656,
+					"y": 358.51898193359375,
+					"z": 0.00094803271349519491
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 12,
+				"y": 20
+			},
+			"dimensions":
+			{
+				"x": 9,
+				"y": 9
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "134",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.92387953251128663,
+					"w": 0.38268343236508984
+				},
+				"translation":
+				{
+					"x": 208.22383117675781,
+					"y": 505.72146606445312,
+					"z": 0.00094803271349519491
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 11,
+				"y": 36
+			},
+			"dimensions":
+			{
+				"x": 9,
+				"y": 9
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "217",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1134.5135498046875,
+					"y": 292.229248046875,
+					"z": 0.65294802188873291
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 97,
+				"y": 13
+			},
+			"dimensions":
+			{
+				"x": 21,
+				"y": 11
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "245",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": 374.5130615234375,
+					"y": 181.31356811523438,
+					"z": 27.100002288818359
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 29,
+				"y": 5
+			},
+			"dimensions":
+			{
+				"x": 5,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "245",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": 684.5130615234375,
+					"y": 161.31356811523438,
+					"z": 27.100002288818359
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 60,
+				"y": 3
+			},
+			"dimensions":
+			{
+				"x": 5,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "29",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 0.99999999999999989
+				},
+				"translation":
+				{
+					"x": 684.53900146484375,
+					"y": 162.23674011230469,
+					"z": 56.163051605224609
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 42
+		},
+		{
+			"furnitureId": "244",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 174.5135498046875,
+					"y": 782.229248046875,
+					"z": 0.10000000149011612
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 9,
+				"y": 65
+			},
+			"dimensions":
+			{
+				"x": 5,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "246",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1254.983154296875,
+					"y": 161.11039733886719,
+					"z": 0.10000187903642654
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 116,
+				"y": 2
+			},
+			"dimensions":
+			{
+				"x": 7,
+				"y": 6
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "246",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1024.983154296875,
+					"y": 161.11039733886719,
+					"z": 0.10000187903642654
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 93,
+				"y": 2
+			},
+			"dimensions":
+			{
+				"x": 7,
+				"y": 6
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "247",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": 1634.5135498046875,
+					"y": 762.229248046875,
+					"z": 90.282821655273438
+				},
+				"scale3D":
+				{
+					"x": 1,
+					"y": 1,
+					"z": 1
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 36
+		}
+	],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_in_split_weld_1781521132139_1781606564844_start_a_0_0_he_in_split_weld_1781521132139_1781606564844_start_a_0_2_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_in_split_weld_1781521207074_a_0_0_0_he_in_split_weld_1781521207074_b_0_0_0_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_out_split_split_ws_wc_16_b_0_b_0_0_0_twin_he_out_split_split_ws_wc_16_b_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin_he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin_he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_in_split_weld_1781521171020_b_0_0_2_twin_he_in_split_weld_1781521171020_b_0_0_0_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_in_split_weld_1781521207074_b_0_0_2_twin_he_in_split_weld_1781521207074_a_0_0_0_twin_6",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_in_split_weld_1781521132139_1781606564844_start_b_0_0_he_in_split_weld_1781521132139_1781606564844_start_b_0_2_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_out_split_ws_wc_10_1781521314021_end_a_0_0_he_out_split_ws_wc_10_1781521314021_end_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_out_split_ws_wc_10_1781521314021_end_a_0_0_he_out_split_ws_wc_10_1781521314021_end_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_he_in_ws_wc_1_0_0_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_Merge_he_out_split_split_ws_wc_16_b_0_a_0_0_0_he_out_split_split_ws_wc_16_b_0_b_0_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_Merge_he_lintel_door_1781521393816_he_in_split_weld_1781521207074_b_0_0_2_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_he_in_ws_wc_13_0_0_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781848977332",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781849018348",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781849053414",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		}
+	]
+}

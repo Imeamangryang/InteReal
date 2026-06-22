@@ -115,6 +115,7 @@ public:
 
     void SetPlanIdFilter(int32 InPlanId);
     void RefreshAndSelectLatest();
+    void RefreshAndSelectVersion(int32 Version);
 
 protected:
     virtual void OnItemClicked(int32 ItemId) override;
@@ -128,7 +129,9 @@ private:
     TArray<FUnrealDeltaVersionItem> CachedItems;
     bool bHasLoaded = false;
     bool bAutoSelectLatestOnNextUpdate = false;
+    int32 PendingSelectVersionOnNextUpdate = INDEX_NONE;
     void SelectVersionItem(const FUnrealDeltaVersionItem& Item);
+    bool TrySelectVersion(int32 Version);
     bool TryAutoSelectLatestVersion();
     void UpdateWidget();
 };

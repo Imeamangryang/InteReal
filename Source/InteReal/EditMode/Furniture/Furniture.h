@@ -38,6 +38,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
 
+	// Full local-space bounds used by placement. Prefer authored simple collision
+	// over render bounds so build scale and stray render vertices do not move surfaces.
+	FBox PlacementLocalBounds = FBox(EForceInit::ForceInit);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Furniture|Outline")
 	UMaterialInterface* ValidOutlineMat;
 
@@ -95,11 +99,30 @@ public:
 	{
 		return GetComponentsBoundingBox(true);
 	}
+
+	FBox GetMeshBounds() const
+	{
+		return MeshComponent ? MeshComponent->Bounds.GetBox() : GetVisualBounds();
+	}
+
+	FBox GetPlacementGeometryBounds() const
+	{
+		if (MeshComponent && PlacementLocalBounds.IsValid)
+		{
+			return PlacementLocalBounds.TransformBy(MeshComponent->GetComponentTransform());
+		}
+		return GetMeshBounds();
+	}
 	
 	float GetPivotToBottomOffsetZ() const
 	{
 		return CollisionBoxComponent ? CollisionBoxComponent->GetRelativeLocation().Z : 0.0f;
 	}
+
+	void AlignMeshBottomToZ(float SurfaceZ);
+	void AlignMeshBottomCenterTo(const FVector& TargetCenter, float SurfaceZ);
+	void AlignPlacementBottomCenterTo(const FVector& TargetCenter, float SurfaceZ);
+	void SetRotationPreservingPlacement(const FRotator& NewRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	void SetPlacementState(EPlacementState NewState);

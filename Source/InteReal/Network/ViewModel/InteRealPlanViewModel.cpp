@@ -175,7 +175,18 @@ void UInteRealPlanViewModel::SaveCurrentState(const FString& DeltaJson)
     SetIsBusy(true);
     FOnDeltaSaved Delegate;
     Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnDeltaSaved);
-    Network->SaveDelta(CurrentPlan.id, DeltaJson, Delegate);
+    Network->SaveDelta(CurrentPlan.id, DeltaJson, Delegate, FMath::Max(GetActiveVersion(), 1), false);
+}
+
+void UInteRealPlanViewModel::SaveCurrentStateAsNewVersion(const FString& DeltaJson)
+{
+    UInteRealNetworkSubsystem* Network = GetNetworkSubsystem();
+    if (!Network || CurrentPlan.id == 0) return;
+
+    SetIsBusy(true);
+    FOnDeltaSaved Delegate;
+    Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnDeltaSaved);
+    Network->SaveDeltaAsNewVersion(CurrentPlan.id, DeltaJson, Delegate, FMath::Max(GetActiveVersion(), 1));
 }
 
 void UInteRealPlanViewModel::CompareVersions()
@@ -268,7 +279,10 @@ void UInteRealPlanViewModel::OnDeltaReceived(bool bSuccess, const FString& Delta
 void UInteRealPlanViewModel::OnDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response)
 {
     SetIsBusy(false);
-    if (bSuccess && Response.ok) SetActiveVersion(GetActiveVersion() + 1);
+    if (bSuccess && Response.ok)
+    {
+        SetActiveVersion(Response.version > 0 ? Response.version : GetActiveVersion() + 1);
+    }
 }
 
 // (나머지 에셋 API들도 동일하게 Subsystem 호출하도록 구현됨)

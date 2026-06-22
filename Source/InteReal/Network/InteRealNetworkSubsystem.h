@@ -125,9 +125,13 @@ public:
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
     void FetchDeltaByVersion(int32 PlanId, int32 Version, FOnDeltaReceived OnComplete);
 
-    /** Delta JSON 저장 (POST /api/unreal/plans/{id}/delta) */
+    /** Delta JSON 저장 (POST /api/unreal/plans/{id}/delta?version={version}) */
     UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
-    void SaveDelta(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete);
+    void SaveDelta(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete, int32 Version = 1, bool bCreateNewVersion = false);
+
+    /** 현재 Delta를 기반으로 새 버전 저장 (POST /api/unreal/plans/{id}/delta?version={version}&create_new_version=true) */
+    UFUNCTION(BlueprintCallable, Category = "InteReal|Network")
+    void SaveDeltaAsNewVersion(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete, int32 BaseVersion = 1);
 
 private:
     /** 공통 HTTP 요청 생성 로직 */

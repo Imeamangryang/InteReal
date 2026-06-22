@@ -58,7 +58,6 @@ public:
 		}
 	}
 
-	// ===== EditModePlayerController가 사용하는 API =====
 
 	bool HasActivePreview() const
 	{
@@ -75,6 +74,14 @@ public:
 		{
 			PS->UpdatePreviewLocation(CursorHit);
 			InvalidReason = PS->InvalidReason;
+		}
+	}
+
+	void SetPreviewHidden(bool bShouldHide)
+	{
+		if (UInteriorPlacementSubsystem* PS = GetPS())
+		{
+			PS->SetPreviewHidden(bShouldHide);
 		}
 	}
 

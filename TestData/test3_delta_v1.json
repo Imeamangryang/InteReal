@@ -1,0 +1,289 @@
+﻿{
+	"furnitureItems": [],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallSurface_room_bedroom_1_top_left_Merge_he_partition_balcony1_bedroom1_l_he_partition_balcony1_bedroom1_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_1_top_left_Merge_he_partition_bedroom1_kitchen_top_he_door_bedroom1_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_1_top_left_Merge_he_bedroom1_bottom_hall_twin_he_bath1_top_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_1_top_left_he_outer_left_bedroom1_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_left_bedroom1_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_2_bottom_left_Merge_he_bedroom2_top_left_he_bedroom2_top_right_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_2_bottom_left_he_bedroom2_living_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_2_bottom_left_Merge_he_outer_bottom_bedroom2_solid_r_he_outer_bottom_bedroom2_solid_l_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_bottom_bedroom2_solid_r_he_outer_bottom_bedroom2_solid_l_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_2_bottom_left_he_outer_left_bedroom2_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_left_bedroom2_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_3_right_Merge_he_bedroom3_left_door_he_bedroom3_left_solid_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_3_right_Merge_he_outer_bottom_bedroom3_solid_r_twin_he_outer_bottom_bedroom3_solid_l_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_bottom_bedroom3_solid_r_twin_he_outer_bottom_bedroom3_solid_l_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_3_right_he_outer_bedroom3_right_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_bedroom3_right_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bedroom_3_right_Merge_he_outer_bedroom3_top_twin_he_bedroom3_top_shared_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_1_left_he_bath1_top",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_1_left_Merge_he_bath1_living_solid_he_door_bath1_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_1_left_he_bedroom2_top_left_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_1_left_he_outer_left_bath_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_left_bath_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_2_top_right_he_balcony2_bath2_top",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_2_top_right_he_outer_right_bath2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_right_bath2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_2_top_right_Merge_he_bath2_living_bottom_twin_he_door_bath2_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_bathroom_2_top_right_he_bath2_kitchen_living_left_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_kitchen_dining_Merge_he_kitchen_balcony2_bottom_l_he_kitchen_balcony2_bottom_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_kitchen_dining_Merge_he_kitchen_bath2_left_he_bath2_kitchen_living_left_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_kitchen_dining_Merge_he_door_bedroom1_twin_he_partition_bedroom1_kitchen_top_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_he_bedroom1_bottom_hall",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_Merge_he_door_bath2_he_bath2_living_bottom_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_Merge_he_bedroom3_left_door_he_bedroom3_left_solid_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_Merge_he_outer_bottom_living_solid_r_he_outer_bottom_living_solid_l_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_bottom_living_solid_r_he_outer_bottom_living_solid_l_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_he_bedroom2_living_right_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_Merge_he_bedroom2_top_right_twin_he_bedroom2_top_left_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_living_Merge_he_door_bath1_twin_he_bath1_living_solid_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_1_left_Merge_he_outer_top_balcony1_solid_l_he_outer_top_balcony1_solid_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_top_balcony1_solid_l_he_outer_top_balcony1_solid_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_1_left_he_partition_left_balcony_split",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_1_left_Merge_he_partition_balcony1_bedroom1_r_twin_he_partition_balcony1_bedroom1_l_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_1_left_he_outer_left_top_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_left_top_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_Merge_he_outer_top_balcony2_solid_l_he_outer_top_balcony2_solid_mid_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_top_balcony2_solid_l_he_outer_top_balcony2_solid_mid_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_he_outer_step_balcony2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_step_balcony2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_Merge_he_outer_top_balcony2_solid_b_l_he_outer_top_balcony2_solid_b_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_top_balcony2_solid_b_l_he_outer_top_balcony2_solid_b_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_he_outer_right_balcony2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_right_balcony2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_he_balcony2_bath2_top_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_he_kitchen_bath2_left_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_Merge_he_kitchen_balcony2_bottom_r_twin_he_kitchen_balcony2_bottom_l_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_balcony_2_top_right_he_partition_left_balcony_split_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_entry_Merge_he_outer_entry_top_l_he_outer_entry_top_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_outer_entry_top_l_he_outer_entry_top_r_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_entry_he_outer_entry_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_he_outer_entry_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_entry_he_bedroom3_top_shared_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_bedroom_1_top_left",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_bedroom_2_bottom_left",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_bedroom_3_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_bathroom_1_left",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_bathroom_2_top_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_kitchen_dining",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_living",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_balcony_1_left",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_balcony_2_top_right",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_entry",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		}
+	]
+}

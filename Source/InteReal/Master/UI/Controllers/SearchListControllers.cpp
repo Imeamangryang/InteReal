@@ -292,12 +292,35 @@ void UInteRealVersionListController::RefreshAndSelectLatest()
     Refresh();
 }
 
+void UInteRealVersionListController::RefreshAndSelectVersion(int32 Version)
+{
+    if (PlanIdFilter == 0)
+    {
+        return;
+    }
+
+    bHasLoaded = false;
+    bAutoSelectLatestOnNextUpdate = false;
+    PendingSelectVersionOnNextUpdate = FMath::Max(Version, 1);
+    Refresh();
+}
+
 void UInteRealVersionListController::HandleVersionListUpdated(bool bSuccess, const FUnrealDeltaVersionListResponse& Response)
 {
     if (bSuccess)
     {
         CachedItems = Response.items;
         bHasLoaded = true;
+
+        if (PendingSelectVersionOnNextUpdate != INDEX_NONE)
+        {
+            const int32 TargetVersion = PendingSelectVersionOnNextUpdate;
+            PendingSelectVersionOnNextUpdate = INDEX_NONE;
+            if (TrySelectVersion(TargetVersion))
+            {
+                return;
+            }
+        }
 
         if (bAutoSelectLatestOnNextUpdate)
         {
@@ -310,6 +333,22 @@ void UInteRealVersionListController::HandleVersionListUpdated(bool bSuccess, con
 
         UpdateWidget();
     }
+}
+
+bool UInteRealVersionListController::TrySelectVersion(int32 Version)
+{
+    for (const FUnrealDeltaVersionItem& Item : CachedItems)
+    {
+        if (Item.version == Version)
+        {
+            SelectVersionItem(Item);
+            UpdateWidget();
+            return true;
+        }
+    }
+
+    UpdateWidget();
+    return false;
 }
 
 void UInteRealVersionListController::OnItemClicked(int32 ItemId)

@@ -1222,10 +1222,15 @@ void UInteRealNetworkSubsystem::FetchDeltaByVersion(int32 PlanId, int32 Version,
     Req->ProcessRequest();
 }
 
-void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete)
+void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete, int32 Version, bool bCreateNewVersion)
 {
-    UE_LOG(LogTemp, Log, TEXT("[Network] SaveDelta Request - Plan: %d, MockMode: %s, DataSize: %d"), 
-        PlanId, bUseMockData ? TEXT("TRUE") : TEXT("FALSE"), DeltaJson.Len());
+    const int32 RequestVersion = FMath::Max(Version, 1);
+    UE_LOG(LogTemp, Log, TEXT("[Network] SaveDelta Request - Plan: %d, Version: %d, CreateNewVersion: %s, MockMode: %s, DataSize: %d"),
+        PlanId,
+        RequestVersion,
+        bCreateNewVersion ? TEXT("TRUE") : TEXT("FALSE"),
+        bUseMockData ? TEXT("TRUE") : TEXT("FALSE"),
+        DeltaJson.Len());
 
     if (bUseMockData)
     {
@@ -1242,37 +1247,48 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
         FString BaseAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
         bool bSavedBase = FFileHelper::SaveStringToFile(DeltaJson, *BaseAbsolutePath);
 
-        // 2. 로컬 버전 관리를 위해 비어있는 v{번호} 파일 찾아서 생성
-        int32 Version = 1;
-        FString VersionAbsolutePath;
-        while (true)
+        int32 TargetMockVersion = RequestVersion;
+        if (bCreateNewVersion)
         {
-            VersionAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
-            if (!FPaths::FileExists(VersionAbsolutePath))
+            TargetMockVersion = 1;
+            while (true)
             {
-                break;
+                const FString CandidatePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, TargetMockVersion));
+                if (!FPaths::FileExists(CandidatePath))
+                {
+                    break;
+                }
+                TargetMockVersion++;
             }
-            Version++;
         }
+
+        FString VersionAbsolutePath;
+        VersionAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, TargetMockVersion));
         
         bool bSavedVersion = FFileHelper::SaveStringToFile(DeltaJson, *VersionAbsolutePath);
         bool bSaved = bSavedBase && bSavedVersion;
 
         if (bSaved)
         {
-            UE_LOG(LogTemp, Log, TEXT("[Network] Successfully saved mock delta to: %s (Version: %d)"), *VersionAbsolutePath, Version);
+            UE_LOG(LogTemp, Log, TEXT("[Network] Successfully saved mock delta to: %s (Version: %d)"), *VersionAbsolutePath, TargetMockVersion);
         }
         else
         {
             UE_LOG(LogTemp, Error, TEXT("[Network] FAILED to save mock delta. Check path or permissions."));
         }
         
-        FUnrealOkResponse Res; Res.ok = bSaved; Res.version = Version;
+        FUnrealOkResponse Res; Res.ok = bSaved; Res.version = TargetMockVersion;
         OnComplete.ExecuteIfBound(bSaved, Res);
         return;
     }
 
-    auto Req = CreateRequest(TEXT("POST"), BuildEndpoint(LatestDeltaEndpointFormat, PlanId));
+    FString Endpoint = BuildEndpoint(DeltaVersionEndpointFormat, PlanId, RequestVersion);
+    if (bCreateNewVersion)
+    {
+        AppendQueryParam(Endpoint, TEXT("create_new_version"), TEXT("true"));
+    }
+
+    auto Req = CreateRequest(TEXT("POST"), Endpoint);
     Req->SetContentAsString(DeltaJson);
     Req->OnProcessRequestComplete().BindLambda([OnComplete](FHttpRequestPtr Request, FHttpResponsePtr Res, bool bSucceeded) {
         LogResponse(Res, bSucceeded);
@@ -1286,4 +1302,9 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
         }
     });
     Req->ProcessRequest();
+}
+
+void UInteRealNetworkSubsystem::SaveDeltaAsNewVersion(int32 PlanId, const FString& DeltaJson, FOnDeltaSaved OnComplete, int32 BaseVersion)
+{
+    SaveDelta(PlanId, DeltaJson, OnComplete, BaseVersion, true);
 }

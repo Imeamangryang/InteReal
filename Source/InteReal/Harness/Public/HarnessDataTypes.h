@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "HarnessDataTypes.generated.h"
@@ -13,6 +13,21 @@ struct FFurnitureDelta
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
     FTransform Transform;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	uint8 SurfaceType = 1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	FVector2D GridAnchor = FVector2D::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	FVector2D Dimensions = FVector2D::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	FVector WallNormal = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	int32 ParentIndex = INDEX_NONE;
 };
 
 USTRUCT(BlueprintType)

@@ -72,26 +72,40 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 	const float CenterX = (MinX + MaxX) * 0.5f;
 	const float CenterY = (MinY + MaxY) * 0.5f;
 
-	// 바닥 Z 라인트레이스
+	// FloorData is authoritative. A top-down single trace hits the ceiling first.
+	if (!FloorData.faces.IsEmpty())
 	{
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		if (GetWorld()->LineTraceSingleByChannel(Hit,
-		                                         FVector(CenterX, CenterY, 100000.0f),
-		                                         FVector(CenterX, CenterY, -100000.0f),
-		                                         ECC_WorldStatic,
-		                                         Params))
+		FloorZ = FloorData.faces[0].z_offset;
+		for (const FTopologyFace& Face : FloorData.faces)
 		{
-			FloorZ = Hit.ImpactPoint.Z;
+			FloorZ = FMath::Min(FloorZ, Face.z_offset);
 		}
-		else if (!FloorData.faces.IsEmpty())
+	}
+	else
+	{
+		TArray<FHitResult> Hits;
+		FCollisionQueryParams Params;
+		GetWorld()->LineTraceMultiByChannel(
+			Hits,
+			FVector(CenterX, CenterY, 100000.0f),
+			FVector(CenterX, CenterY, -100000.0f),
+			ECC_WorldStatic,
+			Params);
+		for (const FHitResult& Hit : Hits)
 		{
-			FloorZ = FloorData.faces[0].z_offset;
+			const UPrimitiveComponent* Component = Hit.GetComponent();
+			if (Component &&
+				(Component->ComponentHasTag(TEXT("Floor")) || Component->ComponentHasTag(TEXT("EditableFloor"))))
+			{
+				FloorZ = Hit.ImpactPoint.Z;
+				break;
+			}
 		}
 	}
 
-	const int32 Length  = FMath::CeilToInt((MaxX - MinX) / Cell);
-	const int32 Breadth = FMath::CeilToInt((MaxY - MinY) / Cell);
+	Cell = FMath::Max(Cell, 1.0f);
+	const int32 Length  = FMath::Max(1, FMath::CeilToInt((MaxX - MinX) / Cell));
+	const int32 Breadth = FMath::Max(1, FMath::CeilToInt((MaxY - MinY) / Cell));
 	InitializeGrid(Length, Breadth, Cell);
 
 	if (Grid)
@@ -171,6 +185,19 @@ void UInteriorPlacementSubsystem::CreatePreviewFurnitureFromRow(FVector RayPosit
 	ActivePlacementHandler = nullptr;
 	RebuildCurrentDimensionsFromPreviewRotation();
 
+	const auto SupportsType = [&InFurnitureRow](EPlacementSurfaceType Type)
+	{
+		return (InFurnitureRow.AllowedPlacementTypes & static_cast<uint8>(Type)) != 0;
+	};
+	const bool bNeedsInitialFloorFallback =
+		SupportsType(EPlacementSurfaceType::Floor);
+	if (bNeedsInitialFloorFallback)
+	{
+		// The spawn API only receives a position, so a stale ceiling/wall hit has no
+		// component or normal metadata. Use the floor until the next real cursor hit.
+		RayPosition.Z = FloorZ;
+	}
+
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(Visualizer->FurnitureClass, RayPosition, Rotation, Params);
@@ -180,6 +207,7 @@ void UInteriorPlacementSubsystem::CreatePreviewFurnitureFromRow(FVector RayPosit
 	}
 
 	PreviewFurniture->ApplyFurnitureRow(InFurnitureRow);
+	RebuildCurrentDimensionsFromPreviewRotation();
 
 	FHitResult InitHit;
 	InitHit.Location     = RayPosition;
@@ -190,6 +218,16 @@ void UInteriorPlacementSubsystem::CreatePreviewFurnitureFromRow(FVector RayPosit
 	LineFillAnchor = PreviewGridAnchor;
 }
 
+void UInteriorPlacementSubsystem::SetPreviewHidden(bool bHidden)
+{
+	if (!PreviewFurniture)
+	{
+		return;
+	}
+	PreviewFurniture->SetActorHiddenInGame(bHidden);
+	PreviewFurniture->SetActorEnableCollision(!bHidden);
+}
+
 void UInteriorPlacementSubsystem::UpdatePreviewLocation(const FHitResult& CursorHit)
 {
 	if (!PreviewFurniture || !Grid)
@@ -198,6 +236,7 @@ void UInteriorPlacementSubsystem::UpdatePreviewLocation(const FHitResult& Cursor
 	}
 
 	LastRayPosition = CursorHit.ImpactPoint;
+	LastPlacementHit = CursorHit;
 
 	IPlacementHandler* Handler = FindHandlerForHit(CursorHit);
 	if (!Handler)
@@ -249,14 +288,9 @@ void UInteriorPlacementSubsystem::RotatePreview(float AngleDeg)
 	PreviewFurniture->SetActorRotation(PreviewRotation);
 	RebuildCurrentDimensionsFromPreviewRotation();
 
-	FHitResult RotHit;
-	RotHit.Location     = LastRayPosition;
-	RotHit.ImpactPoint  = LastRayPosition;
-	RotHit.ImpactNormal = FVector::UpVector;
-
 	if (IPlacementHandler* Handler = GetActiveHandler())
 	{
-		Handler->UpdatePreview(PreviewFurniture, RotHit);
+		Handler->UpdatePreview(PreviewFurniture, LastPlacementHit);
 	}
 }
 
@@ -281,20 +315,32 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 {
 	if (!PreviewFurniture || !Grid)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[Placement] Confirm rejected: preview=%s grid=%s"),
+			PreviewFurniture ? TEXT("valid") : TEXT("null"), Grid ? TEXT("valid") : TEXT("null"));
 		return;
 	}
 	if (PreviewFurniture->GetPlacementState() == EPlacementState::Invalid)
 	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[Placement] Confirm rejected: id=%d state=Invalid reason=%s surface=%d dims=%s bounds=%s anchor=%s"),
+			PreviewFurniture->FurnitureID, *UEnum::GetValueAsString(InvalidReason),
+			static_cast<int32>(CurrentPreviewSurfaceType), *CurrentDimensions.ToString(),
+			*PreviewFurniture->GetCollisionBounds().GetSize().ToCompactString(), *PreviewGridAnchor.ToString());
 		return;
 	}
 	if (InvalidReason != EPlacementInvalidReason::None)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[Placement] Confirm rejected: id=%d reason=%s"),
+			PreviewFurniture->FurnitureID, *UEnum::GetValueAsString(InvalidReason));
 		return;
 	}
 
 	const bool bIsFloor = (CurrentPreviewSurfaceType == EPlacementSurfaceType::Floor);
 	if (bIsFloor && !IsPreviewLotEmpty())
 	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[Placement] Confirm rejected: grid occupancy changed id=%d dims=%s anchor=%s"),
+			PreviewFurniture->FurnitureID, *CurrentDimensions.ToString(), *PreviewGridAnchor.ToString());
 		return;
 	}
 
@@ -303,6 +349,8 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 	IPlacementHandler* Handler = GetActiveHandler();
 	if (!Handler)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[Placement] Confirm rejected: no active handler id=%d surface=%d"),
+			PreviewFurniture->FurnitureID, static_cast<int32>(CurrentPreviewSurfaceType));
 		return;
 	}
 
@@ -351,7 +399,9 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 
 	if (bContinuePlacement)
 	{
+		const FHitResult ContinueHit = LastPlacementHit;
 		CreatePreviewFurnitureFromRow(LastRayPosition, PreviewRotation, CurrentFurnitureRow);
+		UpdatePreviewLocation(ContinueHit);
 	}
 }
 
@@ -625,17 +675,6 @@ EPlacementSurfaceType UInteriorPlacementSubsystem::DetermineHitSurfaceType(const
 		return EPlacementSurfaceType::Ceiling;
 	}
 
-	const float FloorThresholdZ = FloorZ + 5.0f;
-
-	// 천장 지원 + Wall 미지원 가구: Z 높이로 천장 판단 (Floor 지원 여부 무관)
-	if (PreviewFurniture
-		&& PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Ceiling)
-		&& !PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Wall)
-		&& Hit.Location.Z > FloorThresholdZ)
-	{
-		return EPlacementSurfaceType::Ceiling;
-	}
-
 	if (const AFurniture* HitFurniture = Cast<AFurniture>(Hit.GetActor()))
 	{
 		if (HitFurniture->GetPlacementState() == EPlacementState::Placed)
@@ -645,11 +684,6 @@ EPlacementSurfaceType UInteriorPlacementSubsystem::DetermineHitSurfaceType(const
 	}
 
 	if (HitComp && HitComp->ComponentHasTag(TEXT("EditableWall")))
-	{
-		return EPlacementSurfaceType::Wall;
-	}
-
-	if (Hit.Location.Z > FloorThresholdZ)
 	{
 		return EPlacementSurfaceType::Wall;
 	}
@@ -722,6 +756,15 @@ IPlacementHandler* UInteriorPlacementSubsystem::GetActiveHandler() const
 
 void UInteriorPlacementSubsystem::RebuildCurrentDimensionsFromPreviewRotation()
 {
+	if (PreviewFurniture && GridCellSize > KINDA_SMALL_NUMBER)
+	{
+		const FVector Size = PreviewFurniture->GetCollisionBounds().GetSize();
+		CurrentDimensions = FVector2D(
+			FMath::Max(1, FMath::CeilToInt(Size.X / GridCellSize)),
+			FMath::Max(1, FMath::CeilToInt(Size.Y / GridCellSize)));
+		return;
+	}
+
 	CurrentDimensions = FVector2D(CurrentFurnitureRow.Dimensions.X, CurrentFurnitureRow.Dimensions.Y);
 
 	const float NormalizedYaw = FRotator::NormalizeAxis(PreviewRotation.Yaw);
@@ -779,6 +822,7 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 	}
 
 	NewFurniture->ApplyFurnitureRow(Row);
+	NewFurniture->AlignPlacementBottomCenterTo(World, FloorZ);
 
 	// 도면 외부/벽 관통 체크는 FloorPlacementHandler의 유효성 검사 함수 재활용
 	UFloorPlacementHandler* FloorHandler = Cast<UFloorPlacementHandler>(PlacementHandlers.Last());
@@ -837,12 +881,46 @@ void UInteriorPlacementSubsystem::ApplyWallTraceCollision()
 				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 				Comp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			}
-			else
-			{
-				Comp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
-			}
 		}
 	}
+}
+
+void UInteriorPlacementSubsystem::UpdateGizmoRotation(AFurniture* Target)
+{
+	if (!Target || Target->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor)
+	{
+		return;
+	}
+
+	IPlacementHandler* Handler = FindHandlerForFurniture(Target);
+	if (!Handler || GridCellSize <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	const FVector Size = Target->GetCollisionBounds().GetSize();
+	Target->PlacedDimensions = FVector2D(
+		FMath::Max(1, FMath::CeilToInt(Size.X / GridCellSize)),
+		FMath::Max(1, FMath::CeilToInt(Size.Y / GridCellSize)));
+	Handler->UpdateGizmoMove(Target, Target->GetMeshBounds().GetCenter(), EGizmoTransformAxis::None);
+}
+
+void UInteriorPlacementSubsystem::ClearAllFurniture()
+{
+	CancelPreview();
+	for (AFurniture* Furniture : PlacedFurnitures)
+	{
+		if (IsValid(Furniture))
+		{
+			Furniture->Destroy();
+		}
+	}
+	PlacedFurnitures.Empty();
+	if (Grid)
+	{
+		Grid->ClearFurnitureOccupancy();
+	}
+	InvalidReason = EPlacementInvalidReason::None;
 }
 
 void UInteriorPlacementSubsystem::MarkOutOfBoundsTiles()
@@ -990,6 +1068,16 @@ void UInteriorPlacementSubsystem::BuildWallSegments(const FHarnessFloorData& Flo
 		VMap.Add(V.id, FloorData.ToHarnessPoint(V));
 	}
 
+	// 1. Gather raw wall segments from half edges (deduplicating twins)
+	struct FRawSeg
+	{
+		FVector2D Start;
+		FVector2D End;
+		FVector2D Dir;
+		bool bMerged = false;
+	};
+	TArray<FRawSeg> RawSegs;
+
 	TSet<FString> ProcessedTwinIds;
 	for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
 	{
@@ -1009,6 +1097,88 @@ void UInteriorPlacementSubsystem::BuildWallSegments(const FHarnessFloorData& Flo
 		{
 			continue;
 		}
-		WallSegments.Add(TPair<FVector2D, FVector2D>(*S, *E));
+
+		FRawSeg Seg;
+		Seg.Start = *S;
+		Seg.End = *E;
+		Seg.Dir = (*E - *S).GetSafeNormal();
+		RawSegs.Add(Seg);
+	}
+
+	// 2. Perform collinear and adjacent segment merging
+	bool bMergedAny = true;
+	const float CollinearTolerance = 0.02f; // cross product tolerance for parallel lines
+	const float DistTolerance = 5.0f;       // vertical line distance tolerance in cm (5cm)
+	const float MaxGapToBridge = 300.0f;    // max door/window span to bridge in cm (3m)
+
+	while (bMergedAny)
+	{
+		bMergedAny = false;
+		for (int32 i = 0; i < RawSegs.Num(); ++i)
+		{
+			if (RawSegs[i].bMerged) continue;
+
+			for (int32 j = i + 1; j < RawSegs.Num(); ++j)
+			{
+				if (RawSegs[j].bMerged) continue;
+
+				// A. Check direction collinearity
+				float Cross = FMath::Abs(RawSegs[i].Dir.X * RawSegs[j].Dir.Y - RawSegs[i].Dir.Y * RawSegs[j].Dir.X);
+				if (Cross > CollinearTolerance) continue;
+
+				// B. Check perpendicular distance from raw line i to segment j endpoints
+				FVector2D Normal(-RawSegs[i].Dir.Y, RawSegs[i].Dir.X);
+				float DistS = FMath::Abs(FVector2D::DotProduct(RawSegs[j].Start - RawSegs[i].Start, Normal));
+				float DistE = FMath::Abs(FVector2D::DotProduct(RawSegs[j].End - RawSegs[i].Start, Normal));
+				if (DistS > DistTolerance || DistE > DistTolerance) continue;
+
+				// C. Project segment j onto raw line i to check gap/overlap
+				float MinI = 0.0f;
+				float MaxI = FVector2D::Distance(RawSegs[i].Start, RawSegs[i].End);
+
+				float ProjectS = FVector2D::DotProduct(RawSegs[j].Start - RawSegs[i].Start, RawSegs[i].Dir);
+				float ProjectE = FVector2D::DotProduct(RawSegs[j].End - RawSegs[i].Start, RawSegs[i].Dir);
+
+				float MinJ = FMath::Min(ProjectS, ProjectE);
+				float MaxJ = FMath::Max(ProjectS, ProjectE);
+
+				// Calculate gap between segments
+				float Gap = 0.0f;
+				if (MinJ > MaxI)
+				{
+					Gap = MinJ - MaxI;
+				}
+				else if (MinI > MaxJ)
+				{
+					Gap = MinI - MaxJ;
+				}
+
+				// If the gap is too wide (e.g. they belong to completely different wall sections), skip merging
+				if (Gap > MaxGapToBridge)
+				{
+					continue;
+				}
+
+				// Merge the segments by spanning the outermost endpoints
+				float NewMin = FMath::Min(MinI, MinJ);
+				float NewMax = FMath::Max(MaxI, MaxJ);
+
+				RawSegs[i].Start = RawSegs[i].Start + RawSegs[i].Dir * NewMin;
+				RawSegs[i].End = RawSegs[i].Start + RawSegs[i].Dir * (NewMax - NewMin);
+				RawSegs[i].Dir = (RawSegs[i].End - RawSegs[i].Start).GetSafeNormal();
+
+				RawSegs[j].bMerged = true;
+				bMergedAny = true;
+			}
+		}
+	}
+
+	// 3. Register final merged segments
+	for (const FRawSeg& Seg : RawSegs)
+	{
+		if (!Seg.bMerged)
+		{
+			WallSegments.Add(TPair<FVector2D, FVector2D>(Seg.Start, Seg.End));
+		}
 	}
 }

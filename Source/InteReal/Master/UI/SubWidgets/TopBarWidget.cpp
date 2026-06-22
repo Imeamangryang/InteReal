@@ -56,6 +56,11 @@ void UTopBarWidget::NativeConstruct()
 		Btn_Save->OnClicked.AddUniqueDynamic(this, &UTopBarWidget::HandleSaveClicked);
 	}
 
+	if (Btn_SaveAsNewVersion)
+	{
+		Btn_SaveAsNewVersion->OnClicked.AddUniqueDynamic(this, &UTopBarWidget::HandleSaveAsNewVersionClicked);
+	}
+
 	if (GetWorld())
 	{
 		if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
@@ -146,6 +151,11 @@ void UTopBarWidget::OnPlanSelected(const FUnrealPlanItem& PlanItem)
 void UTopBarWidget::OnVersionSelected(const FUnrealDeltaVersionItem& VersionItem)
 {
 	UE_LOG(LogTemp, Log, TEXT("[TopBar] OnVersionSelected: Version %d"), VersionItem.version);
+
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		Pipeline->SetCurrentDeltaVersion(FMath::Max(VersionItem.version, 1));
+	}
 }
 
 void UTopBarWidget::HandleCaptureClicked(FName ButtonId, UIconTextButtonWidget* ButtonWidget)
@@ -160,7 +170,17 @@ void UTopBarWidget::HandleSaveClicked()
 {
 	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
 	{
+		bLastSaveRequestedNewVersion = false;
 		Pipeline->SaveCurrentProject();
+	}
+}
+
+void UTopBarWidget::HandleSaveAsNewVersionClicked()
+{
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		bLastSaveRequestedNewVersion = true;
+		Pipeline->SaveCurrentProjectAsNewVersion();
 	}
 }
 
@@ -176,6 +196,19 @@ void UTopBarWidget::HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkRes
 
 	if (VersionController)
 	{
-		VersionController->RefreshAndSelectLatest();
+		if (bLastSaveRequestedNewVersion)
+		{
+			VersionController->RefreshAndSelectLatest();
+		}
+		else if (Response.version > 0)
+		{
+			VersionController->RefreshAndSelectVersion(Response.version);
+		}
+		else
+		{
+			VersionController->Refresh();
+		}
 	}
+
+	bLastSaveRequestedNewVersion = false;
 }

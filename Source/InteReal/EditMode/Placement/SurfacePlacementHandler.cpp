@@ -50,29 +50,15 @@ void USurfacePlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResu
 		SnappedImpact.Y = WorldXY.Y;
 	}
 
-	// 가구 상단 Z 찾기 (아래방향 라인트레이스)
-	float TopZ = SnappedImpact.Z;
-	{
-		FHitResult TopHit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(Preview);
-		if (Subsystem->GetWorld()->LineTraceSingleByChannel(TopHit,
-			FVector(SnappedImpact.X, SnappedImpact.Y, HitFurniture->GetActorLocation().Z + 500.0f),
-			FVector(SnappedImpact.X, SnappedImpact.Y, HitFurniture->GetActorLocation().Z - 500.0f),
-			ECC_Visibility, Params))
-		{
-			if (Cast<AFurniture>(TopHit.GetActor()) == HitFurniture)
-			{
-				TopZ = TopHit.ImpactPoint.Z;
-			}
-		}
-	}
+	const FBox ParentPlacementBounds = HitFurniture->GetPlacementGeometryBounds();
+	const float TopZ = ParentPlacementBounds.Max.Z;
 
 	Preview->SetActorLocation(FVector(SnappedImpact.X, SnappedImpact.Y, TopZ));
+	Preview->AlignPlacementBottomCenterTo(SnappedImpact, TopZ);
 
 	// 부모 가구 바운드 안에 있는지 체크 (AABB 기준)
-	const FBox ParentBounds  = HitFurniture->GetCollisionBounds();
-	const FBox PreviewBounds = Preview->GetCollisionBounds();
+	const FBox ParentBounds  = ParentPlacementBounds;
+	const FBox PreviewBounds = Preview->GetPlacementGeometryBounds();
 	const bool bWithinParent =
 		PreviewBounds.Min.X >= ParentBounds.Min.X &&
 		PreviewBounds.Max.X <= ParentBounds.Max.X &&
@@ -142,7 +128,9 @@ void USurfacePlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Curso
 	}
 	else if (Axis == EGizmoTransformAxis::MoveZ)
 	{
-		NewLoc.Z = FMath::Max(Cursor.Z, CurrentSurfaceParent->GetCollisionBounds().Max.Z);
+		const FBox BeforeBounds = Target->GetPlacementGeometryBounds();
+		const float DesiredBottomZ = FMath::Max(Cursor.Z, CurrentSurfaceParent->GetPlacementGeometryBounds().Max.Z);
+		NewLoc.Z += DesiredBottomZ - BeforeBounds.Min.Z;
 	}
 	else
 	{
@@ -163,8 +151,8 @@ void USurfacePlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Curso
 
 	Target->SetActorLocation(NewLoc);
 
-	const FBox ParentBounds = CurrentSurfaceParent->GetCollisionBounds();
-	const FBox TargetBounds = Target->GetCollisionBounds();
+	const FBox ParentBounds = CurrentSurfaceParent->GetPlacementGeometryBounds();
+	const FBox TargetBounds = Target->GetPlacementGeometryBounds();
 	const bool bWithinParent =
 		TargetBounds.Min.X >= ParentBounds.Min.X &&
 		TargetBounds.Max.X <= ParentBounds.Max.X &&

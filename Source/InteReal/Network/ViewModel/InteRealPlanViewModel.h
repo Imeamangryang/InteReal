@@ -129,6 +129,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
     void SaveCurrentState(const FString& DeltaJson);
 
+    UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+    void SaveCurrentStateAsNewVersion(const FString& DeltaJson);
+
     /** 비교를 위한 이전 버전 Delta 상태 (메모리 보관) */
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|State")
     FString PreviousVersionDeltaJson;

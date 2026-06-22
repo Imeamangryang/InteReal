@@ -3,7 +3,9 @@
 #include "Public/HarnessJsonParser.h"
 #include "Public/HarnessSaveManagerComponent.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/Master/InteRealPlayerController.h"
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -32,6 +34,7 @@ void UHarnessPipelineManager::ClearWorld()
 void UHarnessPipelineManager::LoadProject(int32 PlanId)
 {
 	CurrentPlanId = PlanId;
+	CurrentDeltaVersion = 1;
 	ClearWorld();
 
 	if (GetWorld())
@@ -42,6 +45,21 @@ void UHarnessPipelineManager::LoadProject(int32 PlanId)
 }
 
 void UHarnessPipelineManager::SaveCurrentProject()
+{
+	SaveCurrentProjectInternal(false);
+}
+
+void UHarnessPipelineManager::SaveCurrentProjectAsNewVersion()
+{
+	SaveCurrentProjectInternal(true);
+}
+
+void UHarnessPipelineManager::SetCurrentDeltaVersion(int32 Version)
+{
+	CurrentDeltaVersion = FMath::Max(Version, 1);
+}
+
+void UHarnessPipelineManager::SaveCurrentProjectInternal(bool bCreateNewVersion)
 {
 	if (CurrentPlanId == 0 || !SaveManagerComp) return;
 
@@ -55,9 +73,12 @@ void UHarnessPipelineManager::SaveCurrentProject()
 	
 	FOnDeltaSaved Delegate;
 	Delegate.BindDynamic(this, &UHarnessPipelineManager::HandleDeltaSaved);
-	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate);
+	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate, FMath::Max(CurrentDeltaVersion, 1), bCreateNewVersion);
 	
-	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d"), CurrentPlanId);
+	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d at version %d (CreateNewVersion: %s)"),
+		CurrentPlanId,
+		CurrentDeltaVersion,
+		bCreateNewVersion ? TEXT("TRUE") : TEXT("FALSE"));
 }
 
 void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response)
@@ -66,6 +87,10 @@ void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkRes
 
 	if (bSuccess && Response.ok)
 	{
+		if (Response.version > 0)
+		{
+			CurrentDeltaVersion = Response.version;
+		}
 		UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Save complete. Version: %d"), Response.version);
 		return;
 	}
@@ -82,11 +107,23 @@ void UHarnessPipelineManager::AssembleBase(const FString& BaseJson)
 	if (FHarnessJsonParser::ParseFloorDataFromJsonString(BaseJson, FloorData, Error))
 	{
 		GeneratorComp->BuildHarness(FloorData);
-		OnFloorPlanDataReady.Broadcast(FloorData);
+		const FHarnessFloorData& RuntimeFloorData = GeneratorComp->GetCachedFloorData();
+		OnFloorPlanDataReady.Broadcast(RuntimeFloorData);
 		
-		for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+		if (Cast<AInteRealPlayerController>(GetWorld()->GetFirstPlayerController()))
 		{
-			(*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
+			if (UInteriorPlacementSubsystem* PlacementSubsystem = GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>())
+			{
+				PlacementSubsystem->InitializeFromFloorData(
+					RuntimeFloorData, PlacementSubsystem->GetGridCellSize());
+			}
+		}
+		else
+		{
+			for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+			{
+				(*It)->InitializeFromFloorData(RuntimeFloorData, (*It)->GridCellSize);
+			}
 		}
 	}
 }

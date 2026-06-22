@@ -3,6 +3,29 @@
 #include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 
+static bool OverlapsWallFurniture(const AFurniture* Target, const UInteriorPlacementSubsystem* Subsystem)
+{
+	if (!Target || !Subsystem)
+	{
+		return false;
+	}
+
+	const FBox TargetBounds = Target->GetMeshBounds().ExpandBy(-1.0f);
+	for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
+	{
+		if (!IsValid(Placed) || Placed == Target ||
+			Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Wall)
+		{
+			continue;
+		}
+		if (TargetBounds.Intersect(Placed->GetMeshBounds()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void UWallPlacementHandler::Initialize(UInteriorPlacementSubsystem* InSubsystem)
 {
 	Subsystem = InSubsystem;
@@ -28,19 +51,7 @@ bool UWallPlacementHandler::CanHandle(const FHitResult& Hit) const
 	{
 		return true;
 	}
-	// 천장 지원 가구 (Wall 미지원) → CeilingPlacementHandler에게 넘김
-	if (Subsystem)
-	{
-		const AFurniture* Preview = Subsystem->GetPreviewFurniture();
-		if (Preview
-			&& Preview->SupportsPlacementType(EPlacementSurfaceType::Ceiling)
-			&& !Preview->SupportsPlacementType(EPlacementSurfaceType::Wall))
-		{
-			return false;
-		}
-	}
-	const float FloorThreshold = Subsystem ? Subsystem->GetFloorZ() + 5.0f : 0.0f;
-	return Hit.Location.Z > FloorThreshold;
+	return false;
 }
 
 bool UWallPlacementHandler::OwnsFurniture(const AFurniture* Furniture) const
@@ -93,7 +104,7 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 	Preview->SetActorLocation(SnappedLoc);
 
 	bool bValid = true;
-	const FBox Bounds = Preview->GetCollisionBounds();
+	const FBox Bounds = Preview->GetMeshBounds();
 	if (Bounds.Min.Z < Subsystem->GetFloorZ())
 	{
 		bValid = false;
@@ -102,23 +113,10 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 
 	if (bValid)
 	{
-		const FBox ExpandedBounds = Bounds.ExpandBy(-1.0f);
-		for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
+		bValid = !OverlapsWallFurniture(Preview, Subsystem);
+		if (!bValid)
 		{
-			if (!IsValid(Placed) || Placed == Preview)
-			{
-				continue;
-			}
-			if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Wall)
-			{
-				continue;
-			}
-			if (ExpandedBounds.Intersect(Placed->GetCollisionBounds()))
-			{
-				bValid = false;
-				Subsystem->SetInvalidReason(EPlacementInvalidReason::Overlapping);
-				break;
-			}
+			Subsystem->SetInvalidReason(EPlacementInvalidReason::Overlapping);
 		}
 	}
 
@@ -174,7 +172,7 @@ void UWallPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, 
 		NewLoc.Z = FMath::Max(Cursor.Z, Subsystem->GetFloorZ());
 		Target->SetActorLocation(NewLoc);
 
-		const bool bOverlapping = Subsystem->IsOverlappingPlacedFurniture(Target);
+		const bool bOverlapping = OverlapsWallFurniture(Target, Subsystem);
 		Subsystem->SetInvalidReason(bOverlapping ? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None);
 		Target->SetPlacementState(bOverlapping ? EPlacementState::Invalid : EPlacementState::Preview);
 
@@ -200,7 +198,7 @@ void UWallPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, 
 	                                                      FixedNormal2D.IsNearlyZero() ? nullptr : &FixedNormal2D);
 	Target->SetActorLocation(SnappedLoc);
 
-	const bool bOverlapping = Subsystem->IsOverlappingPlacedFurniture(Target);
+	const bool bOverlapping = OverlapsWallFurniture(Target, Subsystem);
 	Subsystem->SetInvalidReason(bOverlapping ? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None);
 	Target->SetPlacementState(bOverlapping ? EPlacementState::Invalid : EPlacementState::Preview);
 

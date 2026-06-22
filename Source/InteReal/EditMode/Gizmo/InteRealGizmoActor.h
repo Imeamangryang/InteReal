@@ -7,12 +7,14 @@
 #include "InteRealGizmoActor.generated.h"
 
 class AFurniture;
+class APlayerController;
 class UInteriorPlacementSubsystem;
 class UMaterialInstanceDynamic;
 
 UENUM(BlueprintType)
 enum class EInteRealGizmoDisplayMode : uint8
 {
+	All,
 	Move,
 	Rotation
 };
@@ -39,7 +41,8 @@ public:
 	
 	void EndDrag();
 	
-	void UpdateConstantScreenSize(const FVector& CameraLocation, float CameraFOVDegrees, float ScaleMultiplier = 1.0f);
+	void UpdateConstantScreenSize(APlayerController* PlayerController, float ScaleMultiplier = 1.0f);
+	FBox GetVisibleGizmoBounds() const;
 	
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float ReferenceDistance = 1000.0f;
@@ -48,7 +51,10 @@ public:
 	float MinScreenScale = 0.3f;
 
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
-	float MaxScreenScale = 4.0f;
+	float MaxScreenScale = 25.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo")
+	float TargetScreenDiameterPixels = 180.0f;
 
 	bool IsDragging() const { return bIsDragging; }
 	EGizmoTransformAxis GetCurrentAxis() const { return CurrentDraggingAxis; }
@@ -64,9 +70,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
 	float CardinalSnapToleranceDegrees = 3.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Gizmo")
-	FName OpacityParamName = TEXT("Opacity");
-
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
 	FName RadialWipeParamName = TEXT("RadialWipe");
 
@@ -76,17 +79,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
 	FName RotationDirectionParamName = TEXT("RotationDirection");
 
-	UPROPERTY(EditAnywhere, Category = "Gizmo")
-	float DefaultOpacity = 0.3f;
+	// MoveX/Y/Z 아웃라인 → 흰색
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
+	int32 MoveOutlineStencil = 2;
 
-	UPROPERTY(EditAnywhere, Category = "Gizmo")
-	float HighlightOpacity = 1.0f;
-	
+	// RotatePitch/Yaw/Roll 아웃라인 → 베이지
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
+	int32 RotateOutlineStencil = 3;
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Highlight")
+	FName GizmoColorParamName = TEXT("GizmoColor");
+
+	UPROPERTY(EditAnywhere, Category = "Gizmo|Highlight")
+	FLinearColor ActiveAxisColor = FLinearColor(1.0f, 0.65f, 0.0f, 1.0f);
+
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float ZDragSensitivity = 1.0f;
 
 private:
-	void SetAxisOpacity(const FString& Axis, float Opacity);
+	void SetAxisOutline(const FString& Axis, bool bEnable);
+	void SetAxisColorHighlight(const FString& Axis, bool bEnable);
+	FLinearColor GetBaseAxisColor(const FString& Axis) const;
 	void SetAxisRotationVisuals(const FString& Axis, float DeltaAngle, bool bSnapped);
 	void ResetRotationVisuals();
 	FString GetAxisTagFromHit(const FHitResult& CursorHit) const;
@@ -98,6 +111,8 @@ private:
 	FString CurrentDraggingAxisTag;
 
 	float DragStartAngleDeg = 0.0f;
+	FVector2D RotationScreenCenter = FVector2D::ZeroVector;
+	bool bHasRotationScreenCenter = false;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
 	float CurrentRotationDeltaDegrees = 0.0f;
 	FVector DragStartLocation = FVector::ZeroVector;
@@ -105,6 +120,8 @@ private:
 	FVector2D DragStartMousePos = FVector2D::ZeroVector;
 
 	TMap<FString, TArray<TObjectPtr<UMaterialInstanceDynamic>>> AxisMaterials;
+	TMap<FString, TArray<TObjectPtr<UMeshComponent>>> AxisMeshes;
+	TMap<FString, FLinearColor> OriginalAxisColors;
 	FString HoveredAxis;
-	EInteRealGizmoDisplayMode DisplayMode = EInteRealGizmoDisplayMode::Move;
+	EInteRealGizmoDisplayMode DisplayMode = EInteRealGizmoDisplayMode::All;
 };

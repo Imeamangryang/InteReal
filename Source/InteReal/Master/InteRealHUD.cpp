@@ -269,13 +269,28 @@ void AInteRealHUD::UpdateRotationGuide(bool bVisible, float DeltaAngle, const FV
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
-	FVector2D Pos = AnchorScreenPosition + FVector2D(56.f, -24.f);
-	if (ViewportSize.X > 0.f) Pos.X = FMath::Clamp(Pos.X, 0.f, ViewportSize.X - 120.f);
-	if (ViewportSize.Y > 0.f) Pos.Y = FMath::Clamp(Pos.Y, 0.f, ViewportSize.Y - 64.f);
+	const FVector2D GuideSize = RotationGuideInstance->GuideScreenSize;
+	FVector2D Pos = AnchorScreenPosition + RotationGuideInstance->GizmoScreenOffset;
+	if (ViewportSize.X > 0.f) Pos.X = FMath::Clamp(Pos.X, 0.f, FMath::Max(0.f, ViewportSize.X - GuideSize.X));
+	if (ViewportSize.Y > 0.f) Pos.Y = FMath::Clamp(Pos.Y, 0.f, FMath::Max(0.f, ViewportSize.Y - GuideSize.Y));
 
 	RotationGuideInstance->UpdateRotation(DeltaAngle);
+	RotationGuideInstance->SetAlignmentInViewport(FVector2D::ZeroVector);
+	RotationGuideInstance->SetDesiredSizeInViewport(GuideSize);
 	RotationGuideInstance->SetPositionInViewport(Pos, true);
 	RotationGuideInstance->ShowGuide();
+}
+
+void AInteRealHUD::ShowRotationGuideForInput(float InitialYawDegrees, const FVector2D& GizmoCenterScreenPos)
+{
+	if (!RotationGuideInstance) return;
+
+	// 기존 UpdateRotationGuide와 동일하게 bRemoveDPIScale=true 사용
+	// WidgetRadius는 WBP에서 실제 위젯 반경(px)에 맞게 설정
+	const float Radius = RotationGuideInstance->WidgetRadius;
+	const FVector2D TopLeft = GizmoCenterScreenPos - FVector2D(Radius, Radius);
+	RotationGuideInstance->SetPositionInViewport(TopLeft, true);
+	RotationGuideInstance->ShowForRotation(InitialYawDegrees);
 }
 
 void AInteRealHUD::ShowMinimap(EInteRealControlMode CurrentMode)

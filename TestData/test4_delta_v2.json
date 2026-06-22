@@ -1,0 +1,65 @@
+﻿{
+	"furnitureItems": [],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallSurface_room_1781848977332_he_in_split_weld_1781521132139_1781606564844_start_a_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_out_split_split_ws_wc_16_b_0_b_0_0_0_twin_he_out_split_split_ws_wc_16_b_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781848977332_Merge_he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin_he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin_he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_in_split_weld_1781521171020_b_0_0_2_twin_he_in_split_weld_1781521171020_b_0_0_0_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_in_split_weld_1781521207074_b_0_0_2_twin_he_in_split_weld_1781521207074_a_0_0_0_twin_6",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_he_in_split_weld_1781521132139_1781606564844_start_b_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849018348_Merge_he_out_split_ws_wc_10_1781521314021_end_a_0_0_he_out_split_ws_wc_10_1781521314021_end_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_he_out_split_ws_wc_10_1781521314021_end_a_0_0_he_out_split_ws_wc_10_1781521314021_end_b_0_0_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_he_in_ws_wc_1_0_0_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_he_out_split_split_ws_wc_16_b_0_b_0_0_0",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_room_1781849053414_he_in_ws_wc_13_0_0_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781848977332",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781849018348",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_room_1781849053414",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		}
+	]
+}

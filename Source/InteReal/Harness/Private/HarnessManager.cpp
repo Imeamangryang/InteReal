@@ -1,9 +1,10 @@
-#include "InteReal/Harness/Public/HarnessManager.h"
+﻿#include "InteReal/Harness/Public/HarnessManager.h"
 #include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 #include "InteReal/Harness/Public/HarnessMinimapCaptureComponent.h"
 #include "InteReal/Harness/Public/HarnessSaveManagerComponent.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "InteReal/Master/InteRealPlayerController.h"
 #include "InteReal/Master/InteRealHUD.h"
@@ -47,12 +48,25 @@ void AHarnessManager::DelayedCapture()
 
     if (!HarnessComponent) return;
 
-    // 1. 그리드 매니저 초기화
-    const FHarnessFloorData& FloorData = HarnessComponent->GetCachedFloorData();
-    for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
-    {
-        (*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
-    }
+	AInteRealPlayerController* ViewPC = Cast<AInteRealPlayerController>(GetWorld()->GetFirstPlayerController());
+
+	// 1. Legacy maps do not use the placement subsystem.
+	const FHarnessFloorData& FloorData = HarnessComponent->GetCachedFloorData();
+	if (!ViewPC)
+	{
+		for (TActorIterator<AInteriorPlacementManager> It(GetWorld()); It; ++It)
+		{
+			(*It)->InitializeFromFloorData(FloorData, (*It)->GridCellSize);
+		}
+	}
+	else if (UInteriorPlacementSubsystem* PlacementSubsystem = GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>())
+	{
+		if (!PlacementSubsystem->GetGrid())
+		{
+			PlacementSubsystem->InitializeFromFloorData(
+				FloorData, PlacementSubsystem->GetGridCellSize());
+		}
+	}
 
     // 2. 뷰모드 초기화 (ISO 뷰로 강제 고정)
     EHarnessViewMode ModeToApply = EHarnessViewMode::Isometric;
@@ -63,8 +77,7 @@ void AHarnessManager::DelayedCapture()
         (*It)->SnapToTarget();
     }
 
-    AInteRealPlayerController* ViewPC = Cast<AInteRealPlayerController>(GetWorld()->GetFirstPlayerController());
-    if (ViewPC) ViewPC->SetViewMode(ModeToApply);
+	if (ViewPC) ViewPC->SetViewMode(ModeToApply);
 
     // 3. 미니맵 캡처
     if (CaptureComponent)

@@ -280,7 +280,7 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
         PreviewFurniture.DisplayName = PendingFurnitureRow.DisplayName;
         PreviewFurniture.CenterDocumentPosition = PreviewFurnitureCenterDocument;
         PreviewFurniture.Size = PendingFurnitureSize;
-        PreviewFurniture.RotationDegrees = 0.0f;
+        PreviewFurniture.RotationDegrees = PreviewFurnitureRotationDegrees;
 
         DrawFurnitureRect(
             OutDrawElements,
@@ -586,6 +586,7 @@ void UInteReal2DFloorPlanViewportWidget::StartFurniturePlacement(const FFurnitur
 
     bIsPlacingFurniture2D = true;
     bHasFurniturePreviewPosition = false;
+    PreviewFurnitureRotationDegrees = 0.0f;
 
     Invalidate(EInvalidateWidgetReason::Paint);
 }
@@ -596,6 +597,7 @@ void UInteReal2DFloorPlanViewportWidget::CancelFurniturePlacement()
     bHasFurniturePreviewPosition = false;
     PendingFurnitureRow = FFurnitureDataRow();
     PendingFurnitureSize = FVector2D::ZeroVector;
+    PreviewFurnitureRotationDegrees = 0.0f;
 
     Invalidate(EInvalidateWidgetReason::Paint);
 }
@@ -862,8 +864,8 @@ void UInteReal2DFloorPlanViewportWidget::AddPlacedFurnitureAtDocumentPosition(
     );
     NewFurniture.RotationDegrees = RotationDegrees;
 
-    const int32 NewFurnitureIndex = PlacedFurnitures2D.Add(NewFurniture);
-    SelectPlacedFurnitureByIndex(NewFurnitureIndex);
+    PlacedFurnitures2D.Add(NewFurniture);
+    ClearSelectedFurniture();
 
     Invalidate(EInvalidateWidgetReason::Paint);
 }
@@ -879,6 +881,7 @@ void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewAtDocumentPosition(
     }
 
     PreviewFurnitureCenterDocument = CenterDocumentPosition;
+    PreviewFurnitureRotationDegrees = RotationDegrees;
     bHasFurniturePreviewPosition = true;
 
     Invalidate(EInvalidateWidgetReason::Paint);

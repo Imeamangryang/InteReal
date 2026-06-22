@@ -44,6 +44,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
 	void SaveCurrentProject();
 
+	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
+	void SaveCurrentProjectAsNewVersion();
+
+	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
+	void SetCurrentDeltaVersion(int32 Version);
+
+	UFUNCTION(BlueprintPure, Category="Harness|Pipeline")
+	int32 GetCurrentDeltaVersion() const { return CurrentDeltaVersion; }
+
 	/** 수신된 Base JSON으로 벽/바닥 생성 */
 	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
 	void AssembleBase(const FString& BaseJson);
@@ -68,6 +77,8 @@ private:
 	UFUNCTION()
 	void HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response);
 
+	void SaveCurrentProjectInternal(bool bCreateNewVersion);
+
 	UPROPERTY()
 	TObjectPtr<UHarnessSaveManagerComponent> SaveManagerComp;
 
@@ -75,6 +86,7 @@ private:
 	TObjectPtr<UHarnessGeneratorComponent> GeneratorComp;
 
 	int32 CurrentPlanId = 0;
+	int32 CurrentDeltaVersion = 1;
 
 	FTimerHandle AutoSaveTimerHandle;
 };

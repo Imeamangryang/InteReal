@@ -1,4 +1,4 @@
-#include "PlacementTooltipWidget.h"
+﻿#include "PlacementTooltipWidget.h"
 
 void UPlacementTooltipWidget::ShowReason(EPlacementInvalidReason Reason)
 {
@@ -12,10 +12,17 @@ void UPlacementTooltipWidget::ShowReason(EPlacementInvalidReason Reason)
 	case EPlacementInvalidReason::OutOfBounds:
 		Txt_Message->SetText(FText::FromString(TEXT("배치 가능 영역을 벗어났습니다.")));
 		break;
+	case EPlacementInvalidReason::OutsideFloor:
+		Txt_Message->SetText(FText::FromString(TEXT("가구가 도면의 바닥 영역을 벗어났습니다.")));
+		break;
+	case EPlacementInvalidReason::IntersectsWall:
+		Txt_Message->SetText(FText::FromString(TEXT("가구가 벽과 겹칩니다.")));
+		break;
 	case EPlacementInvalidReason::UnsupportedSurface:
 		Txt_Message->SetText(FText::FromString(TEXT("이 위치에는 배치할 수 없는 가구입니다.")));
 		break;
 	default:
+		Txt_Message->SetText(FText::GetEmpty());
 		break;
 	}
 }

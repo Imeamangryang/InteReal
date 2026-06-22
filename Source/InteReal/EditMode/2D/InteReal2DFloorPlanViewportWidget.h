@@ -119,7 +119,6 @@ public:
     );
     
     
-    
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Input")
     FInteReal2DDrawAreaClickedSignature OnDrawAreaClicked;
     
@@ -306,6 +305,7 @@ private:
 
     FVector2D PendingFurnitureSize = FVector2D::ZeroVector;
     FVector2D PreviewFurnitureCenterDocument = FVector2D::ZeroVector;
+    float PreviewFurnitureRotationDegrees = 0.0f;
     bool bHasFurniturePreviewPosition = false;
     
     bool bIsDraggingSelectedFurniture2D = false;

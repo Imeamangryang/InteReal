@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> Btn_Save;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<class UButton> Btn_SaveAsNewVersion;
+
 	UFUNCTION()
 	void OnProjectSelected(const FUnrealProjectItem& ProjectItem);
 
@@ -51,6 +54,9 @@ protected:
 
 	UFUNCTION()
 	void HandleSaveClicked();
+
+	UFUNCTION()
+	void HandleSaveAsNewVersionClicked();
 
 	UFUNCTION()
 	void HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkResponse& Response);
@@ -69,4 +75,5 @@ private:
 	TObjectPtr<UInteRealVersionListController> VersionController;
 
 	class UInteRealPlanViewModel* GetPlanViewModel();
+	bool bLastSaveRequestedNewVersion = false;
 };

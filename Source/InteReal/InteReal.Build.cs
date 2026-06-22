@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -11,7 +11,7 @@ public class InteReal : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Json", "JsonUtilities", "HTTP",
-			"DynamicMesh", "GeometryCore", "GeometryFramework", "GeometryScriptingCore", "UMG", "Slate", "SlateCore", "Niagara", "ModelViewViewModel"
+			"DynamicMesh", "GeometryCore", "GeometryFramework", "GeometryScriptingCore", "UMG", "Slate", "SlateCore", "Niagara", "ModelViewViewModel", "AdvancedWidgets"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent" });

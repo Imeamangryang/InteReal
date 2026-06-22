@@ -1,6 +1,7 @@
 ﻿#include "Furniture.h"
 #include "Engine/PostProcessVolume.h"
 #include "EngineUtils.h"
+#include "PhysicsEngine/BodySetup.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
 {
@@ -136,20 +137,119 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 		MeshComponent->SetStaticMesh(InFurnitureRow.FurnitureMesh);
 
 		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
-		FVector Extent = MeshBounds.BoxExtent;
+		FBox PlacementBounds = MeshBounds.GetBox();
+		bool bUsesSimpleCollision = false;
+		if (const UBodySetup* BodySetup = InFurnitureRow.FurnitureMesh->GetBodySetup())
+		{
+			// Authored simple collision is a more reliable placement footprint than render bounds.
+			if (BodySetup->AggGeom.GetElementCount() > 0)
+			{
+				const FBox CollisionBounds = BodySetup->AggGeom.CalcAABB(FTransform::Identity);
+				if (CollisionBounds.IsValid && CollisionBounds.GetSize().X > KINDA_SMALL_NUMBER &&
+					CollisionBounds.GetSize().Y > KINDA_SMALL_NUMBER)
+				{
+					PlacementBounds = CollisionBounds;
+					bUsesSimpleCollision = true;
+				}
+			}
+		}
+
+		FVector Extent = PlacementBounds.GetExtent();
+		PlacementLocalBounds = PlacementBounds;
 		Extent.Z = 2.0f;
 		CollisionBoxComponent->SetBoxExtent(Extent);
 		
 		const bool bCeilingOnly = SupportsPlacementType(EPlacementSurfaceType::Ceiling)
 		                       && !SupportsPlacementType(EPlacementSurfaceType::Floor);
-		const float IndicatorZ = bCeilingOnly
-			? MeshBounds.Origin.Z + MeshBounds.BoxExtent.Z
-			: MeshBounds.Origin.Z - MeshBounds.BoxExtent.Z;
-		CollisionBoxComponent->SetRelativeLocation(FVector(MeshBounds.Origin.X, MeshBounds.Origin.Y, IndicatorZ));
+		const float IndicatorZ = bCeilingOnly ? PlacementBounds.Max.Z : PlacementBounds.Min.Z;
+		CollisionBoxComponent->SetRelativeLocation(FVector(
+			PlacementBounds.GetCenter().X, PlacementBounds.GetCenter().Y, IndicatorZ));
+		CollisionBoxComponent->UpdateBounds();
+
+		UE_LOG(LogTemp, Log,
+			TEXT("[Placement] Furniture %d mesh=%s renderSize=%s placementSize=%s source=%s"),
+			FurnitureID, *GetNameSafe(InFurnitureRow.FurnitureMesh),
+			*MeshBounds.GetBox().GetSize().ToCompactString(),
+			*PlacementBounds.GetSize().ToCompactString(),
+			bUsesSimpleCollision ? TEXT("SimpleCollision") : TEXT("RenderBounds"));
 		
 		/*CollisionBoxComponent->SetBoxExtent(MeshBounds.BoxExtent);
 		CollisionBoxComponent->SetRelativeLocation(MeshBounds.Origin);*/
 	}
 
 	SetPlacementState(EPlacementState::Preview);
+}
+
+void AFurniture::AlignMeshBottomToZ(float SurfaceZ)
+{
+	if (!MeshComponent || !MeshComponent->GetStaticMesh())
+	{
+		return;
+	}
+
+	const float DeltaZ = SurfaceZ - MeshComponent->Bounds.GetBox().Min.Z;
+	if (!FMath::IsNearlyZero(DeltaZ))
+	{
+		AddActorWorldOffset(FVector(0.0f, 0.0f, DeltaZ));
+	}
+}
+
+void AFurniture::AlignMeshBottomCenterTo(const FVector& TargetCenter, float SurfaceZ)
+{
+	if (!MeshComponent || !MeshComponent->GetStaticMesh())
+	{
+		return;
+	}
+
+	const FBox MeshBounds = GetMeshBounds();
+	const FVector MeshCenter = MeshBounds.GetCenter();
+	AddActorWorldOffset(FVector(
+		TargetCenter.X - MeshCenter.X,
+		TargetCenter.Y - MeshCenter.Y,
+		SurfaceZ - MeshBounds.Min.Z));
+}
+
+void AFurniture::AlignPlacementBottomCenterTo(const FVector& TargetCenter, float SurfaceZ)
+{
+	if (!MeshComponent || !MeshComponent->GetStaticMesh())
+	{
+		return;
+	}
+
+	const FBox Bounds = GetPlacementGeometryBounds();
+	const FVector Center = Bounds.GetCenter();
+	AddActorWorldOffset(FVector(
+		TargetCenter.X - Center.X,
+		TargetCenter.Y - Center.Y,
+		SurfaceZ - Bounds.Min.Z));
+}
+
+void AFurniture::SetRotationPreservingPlacement(const FRotator& NewRotation)
+{
+	if (!MeshComponent || !MeshComponent->GetStaticMesh())
+	{
+		SetActorRotation(NewRotation);
+		return;
+	}
+
+	const FBox Before = GetMeshBounds();
+	SetActorRotation(NewRotation);
+	const FBox After = GetMeshBounds();
+
+	FVector Offset(
+		Before.GetCenter().X - After.GetCenter().X,
+		Before.GetCenter().Y - After.GetCenter().Y,
+		Before.GetCenter().Z - After.GetCenter().Z);
+
+	if (PlacedSurfaceType == EPlacementSurfaceType::Floor ||
+		PlacedSurfaceType == EPlacementSurfaceType::Surface)
+	{
+		Offset.Z = Before.Min.Z - After.Min.Z;
+	}
+	else if (PlacedSurfaceType == EPlacementSurfaceType::Ceiling)
+	{
+		Offset.Z = Before.Max.Z - After.Max.Z;
+	}
+
+	AddActorWorldOffset(Offset);
 }

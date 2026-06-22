@@ -109,24 +109,13 @@ void AInteriorPlacementManager::InitializeFromFloorData(const FHarnessFloorData&
 	float CenterX = (MinX + MaxX) * 0.5f;
 	float CenterY = (MinY + MaxY) * 0.5f;
 
-	// 諛붾떏 쒕㈃ Z쇱씤몃젅댁뒪濡吏곸젒 먯 (HarnessTestActor Z臾닿섍쾶 긽 뺥솗믪씠)
 	float FloorSurfaceZ = 0.0f;
+	if (!FloorData.faces.IsEmpty())
 	{
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-		if (GetWorld()->LineTraceSingleByChannel(
-			Hit,
-			FVector(CenterX, CenterY, 100000.0f),
-			FVector(CenterX, CenterY, -100000.0f),
-			ECC_WorldStatic,
-			Params))
+		FloorSurfaceZ = FloorData.faces[0].z_offset;
+		for (const FTopologyFace& Face : FloorData.faces)
 		{
-			FloorSurfaceZ = Hit.ImpactPoint.Z;
-		}
-		else if (!FloorData.faces.IsEmpty())
-		{
-			FloorSurfaceZ = FloorData.faces[0].z_offset;
+			FloorSurfaceZ = FMath::Min(FloorSurfaceZ, Face.z_offset);
 		}
 	}
 	SetActorLocation(FVector(CenterX, CenterY, FloorSurfaceZ + 1.0f));

@@ -58,6 +58,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Placement|Preview")
 	void UpdatePreviewLocation(const FHitResult& CursorHit);
 
+	// 커서가 유효한 표면을 히트하지 못하는 동안(예: 마우스가 웹 UI 위에 있을 때) 프리뷰가
+	// 월드 원점 등 엉뚱한 위치에 보이는 것을 막기 위해 숨김 처리한다.
+	UFUNCTION(BlueprintCallable, Category = "Placement|Preview")
+	void SetPreviewHidden(bool bHidden);
+
 	UFUNCTION(BlueprintCallable, Category = "Placement|Preview")
 	void RotatePreview(float AngleDeg = 90.0f);
 
@@ -70,6 +75,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Placement")
 	void RemoveFurniture(AFurniture* Target);
+	void ClearAllFurniture();
 	
 	UFUNCTION(BlueprintPure, Category = "Placement")
 	bool IsPreviewLotEmpty() const;
@@ -90,6 +96,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Placement|Gizmo")
 	void UpdateGizmoMoveFree(FVector TargetWorldLocation, AFurniture* Target);
+	void UpdateGizmoRotation(AFurniture* Target);
 
 	UFUNCTION(BlueprintCallable, Category = "Placement|Gizmo")
 	void FinalizeGizmoMove(AFurniture* Target);
@@ -199,6 +206,7 @@ private:
 	FVector2D CurrentDimensions = FVector2D::ZeroVector;
 	FRotator PreviewRotation = FRotator::ZeroRotator;
 	FVector LastRayPosition = FVector::ZeroVector;
+	FHitResult LastPlacementHit;
 	EPlacementSurfaceType CurrentPreviewSurfaceType = EPlacementSurfaceType::Floor;
 	FFurnitureDataRow CurrentFurnitureRow;
 	FVector2D LineFillAnchor = FVector2D::ZeroVector;

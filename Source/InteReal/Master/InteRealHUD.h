@@ -48,6 +48,8 @@ public:
 
 	void UpdateUserGuide(bool bVisible, EPlacementInvalidReason Reason, const FVector2D& MousePosition);
 	void UpdateRotationGuide(bool bVisible, float DeltaAngle, const FVector2D& AnchorScreenPosition);
+	void ShowRotationGuideForInput(float InitialYawDegrees, const FVector2D& GizmoCenterScreenPos);
+	URotationGuideWidget* GetRotationGuideInstance() const { return RotationGuideInstance; }
 	void ShowMinimap(EInteRealControlMode CurrentMode);
 	void UpdateMinimapIconVisibility(EHarnessViewMode NewMode);
 

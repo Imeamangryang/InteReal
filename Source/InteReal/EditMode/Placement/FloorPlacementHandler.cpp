@@ -103,6 +103,7 @@ void UFloorPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult
 
 	const FVector WorldCenter = Grid->ToWorldPosition(FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
 	Preview->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, Subsystem->GetFloorZ()));
+	Preview->AlignPlacementBottomCenterTo(WorldCenter, Subsystem->GetFloorZ());
 
 	// 유효성 검사
 	bool bValid = true;
@@ -249,7 +250,9 @@ void UFloorPlacementHandler::BeginGizmoMove(AFurniture* Target)
 	}
 
 	GizmoDragOriginalAnchor = Target->PlacedGridAnchor;
+	GizmoDragOriginalDimensions = Target->PlacedDimensions;
 	GizmoDragStartLocation = Target->GetActorLocation();
+	GizmoDragStartRotation = Target->GetActorRotation();
 	Subsystem->GetPreviewGridAnchor() = GizmoDragOriginalAnchor;
 
 	// 그리드 셀 비워두기
@@ -282,27 +285,37 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 	const int32 L = FMath::Max(1, (int32)Dims.X);
 	const int32 B = FMath::Max(1, (int32)Dims.Y);
 
-	FVector NewLoc = Target->GetActorLocation();
+	FVector DesiredMeshCenter = Target->GetMeshBounds().GetCenter();
 	if (Axis == EGizmoTransformAxis::MoveX)
 	{
-		NewLoc.X = Cursor.X;
+		DesiredMeshCenter.X = Cursor.X;
 	}
 	else if (Axis == EGizmoTransformAxis::MoveY)
 	{
-		NewLoc.Y = Cursor.Y;
+		DesiredMeshCenter.Y = Cursor.Y;
 	}
-	else if (Axis == EGizmoTransformAxis::MoveZ)
+	else if (Axis != EGizmoTransformAxis::MoveZ)
 	{
-		NewLoc.Z = Cursor.Z;
-	}
-	else
-	{
-		NewLoc = FVector(Cursor.X, Cursor.Y, NewLoc.Z);
+		DesiredMeshCenter.X = Cursor.X;
+		DesiredMeshCenter.Y = Cursor.Y;
 	}
 
-	const FVector2D GridPos = Grid->ToGridPosition(NewLoc);
-	const int32 AnchorX = FMath::RoundToInt(GridPos.X) - (L / 2);
-	const int32 AnchorY = FMath::RoundToInt(GridPos.Y) - (B / 2);
+	const FVector2D GridPos = Grid->ToGridPosition(DesiredMeshCenter);
+	int32 AnchorX = FMath::RoundToInt(GizmoDragOriginalAnchor.X);
+	int32 AnchorY = FMath::RoundToInt(GizmoDragOriginalAnchor.Y);
+	if (Axis == EGizmoTransformAxis::MoveX)
+	{
+		AnchorX = FMath::RoundToInt(GridPos.X) - (L / 2);
+	}
+	else if (Axis == EGizmoTransformAxis::MoveY)
+	{
+		AnchorY = FMath::RoundToInt(GridPos.Y) - (B / 2);
+	}
+	else if (Axis != EGizmoTransformAxis::MoveZ)
+	{
+		AnchorX = FMath::RoundToInt(GridPos.X) - (L / 2);
+		AnchorY = FMath::RoundToInt(GridPos.Y) - (B / 2);
+	}
 
 	bool bValid = true;
 	EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
@@ -327,7 +340,17 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 
 	const FVector WorldCenter = Grid->ToWorldPosition(
 		FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
-	Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, NewLoc.Z));
+	if (Axis == EGizmoTransformAxis::MoveZ)
+	{
+		FVector ActorLocation = Target->GetActorLocation();
+		ActorLocation.Z = Cursor.Z;
+		Target->SetActorLocation(ActorLocation);
+	}
+	const FVector UpdatedMeshCenter = Target->GetMeshBounds().GetCenter();
+	Target->AddActorWorldOffset(FVector(
+		WorldCenter.X - UpdatedMeshCenter.X,
+		WorldCenter.Y - UpdatedMeshCenter.Y,
+		0.0f));
 
 	if (bValid && !IsCornersInsideFloor(Target))
 	{
@@ -425,14 +448,12 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	}
 	else
 	{
-		// 원래 위치로 되돌리기
-		const int32 OL = (int32)Target->PlacedDimensions.X;
-		const int32 OB = (int32)Target->PlacedDimensions.Y;
-		const FVector WorldCenter = Grid->ToWorldPosition(FVector2D(
-			GizmoDragOriginalAnchor.X + OL * 0.5f - 0.5f,
-			GizmoDragOriginalAnchor.Y + OB * 0.5f - 0.5f));
-		Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, GizmoDragStartLocation.Z));
+		const int32 OL = FMath::Max(1, (int32)GizmoDragOriginalDimensions.X);
+		const int32 OB = FMath::Max(1, (int32)GizmoDragOriginalDimensions.Y);
+		Target->SetActorRotation(GizmoDragStartRotation);
+		Target->SetActorLocation(GizmoDragStartLocation);
 		Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
+		Target->PlacedDimensions = GizmoDragOriginalDimensions;
 		for (int32 i = 0; i < OL; i++)
 		{
 			for (int32 j = 0; j < OB; j++)
@@ -463,13 +484,12 @@ void UFloorPlacementHandler::AbortGizmoMove(AFurniture* Target)
 		return;
 	}
 
-	const int32 L = (int32)Target->PlacedDimensions.X;
-	const int32 B = (int32)Target->PlacedDimensions.Y;
-	const FVector WorldCenter = Grid->ToWorldPosition(FVector2D(
-		GizmoDragOriginalAnchor.X + L * 0.5f - 0.5f,
-		GizmoDragOriginalAnchor.Y + B * 0.5f - 0.5f));
-	Target->SetActorLocation(FVector(WorldCenter.X, WorldCenter.Y, GizmoDragStartLocation.Z));
+	const int32 L = FMath::Max(1, (int32)GizmoDragOriginalDimensions.X);
+	const int32 B = FMath::Max(1, (int32)GizmoDragOriginalDimensions.Y);
+	Target->SetActorRotation(GizmoDragStartRotation);
+	Target->SetActorLocation(GizmoDragStartLocation);
 	Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
+	Target->PlacedDimensions = GizmoDragOriginalDimensions;
 	for (int32 i = 0; i < L; i++)
 	{
 		for (int32 j = 0; j < B; j++)

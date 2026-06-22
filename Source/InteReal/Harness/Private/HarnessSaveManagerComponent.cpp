@@ -10,6 +10,10 @@
 #include "Engine/DataTable.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
+#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
+#include "InteReal/EditMode/Managers/GridSpaceManager.h"
+#include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
+#include "InteReal/Master/InteRealPlayerController.h"
 
 namespace
 {
@@ -57,6 +61,15 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFurniture::StaticClass(), FoundActors);
 	
 	UE_LOG(LogTemp, Log, TEXT("[SaveManager] Found %d AFurniture actors."), FoundActors.Num());
+	TMap<const AFurniture*, int32> FurnitureIndices;
+	for (AActor* Actor : FoundActors)
+	{
+		const AFurniture* Furniture = Cast<AFurniture>(Actor);
+		if (Furniture && Furniture->GetPlacementState() == EPlacementState::Placed)
+		{
+			FurnitureIndices.Add(Furniture, FurnitureIndices.Num());
+		}
+	}
 
 	for (AActor* Actor : FoundActors)
 	{
@@ -70,6 +83,13 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 		FFurnitureDelta Delta;
 		Delta.Transform = Actor->GetActorTransform();
 		Delta.FurnitureID = FName(FString::FromInt(Furn->FurnitureID));
+		Delta.SurfaceType = static_cast<uint8>(Furn->GetPlacedSurfaceType());
+		Delta.GridAnchor = Furn->PlacedGridAnchor;
+		Delta.Dimensions = Furn->PlacedDimensions;
+		Delta.WallNormal = Furn->WallNormalAtPlacement;
+		Delta.ParentIndex = FurnitureIndices.Contains(Furn->ParentFurniture)
+			? FurnitureIndices[Furn->ParentFurniture]
+			: INDEX_NONE;
 		
 		DeltaList.FurnitureItems.Add(Delta);
 	}
@@ -124,11 +144,86 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 	FInteriorDeltaList DeltaList;
 	if (FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &DeltaList, 0, 0))
 	{
-		// InteriorPlacementManager를 찾아 가구 스폰 지원 요청
+		bool bLoadedIntoSubsystem = false;
+		if (Cast<AInteRealPlayerController>(GetWorld()->GetFirstPlayerController()))
+		{
+			UInteriorPlacementSubsystem* PlacementSubsystem = GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>();
+			APlacementVisualizerActor* Visualizer = PlacementSubsystem ? PlacementSubsystem->GetVisualizer() : nullptr;
+			if (PlacementSubsystem && Visualizer && Visualizer->FurnitureClass)
+			{
+				TMap<int32, AFurniture*> LoadedBySourceIndex;
+				for (int32 SourceIndex = 0; SourceIndex < DeltaList.FurnitureItems.Num(); ++SourceIndex)
+				{
+					const FFurnitureDelta& Delta = DeltaList.FurnitureItems[SourceIndex];
+					const int32 FurnitureID = FCString::Atoi(*Delta.FurnitureID.ToString());
+					const FFurnitureDataRow* Row = PlacementSubsystem->FindFurnitureRowByID(FurnitureID);
+					if (!Row)
+					{
+						continue;
+					}
+
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					AFurniture* SpawnedActor = GetWorld()->SpawnActor<AFurniture>(
+						Visualizer->FurnitureClass, Delta.Transform, SpawnParams);
+					if (!SpawnedActor)
+					{
+						continue;
+					}
+
+					SpawnedActor->ApplyFurnitureRow(*Row);
+					SpawnedActor->PlacedGridAnchor = Delta.GridAnchor;
+					SpawnedActor->PlacedDimensions = Delta.Dimensions.IsNearlyZero()
+						? FVector2D(Row->Dimensions.X, Row->Dimensions.Y)
+						: Delta.Dimensions;
+					SpawnedActor->SetPlacedSurfaceType(static_cast<EPlacementSurfaceType>(Delta.SurfaceType));
+					SpawnedActor->WallNormalAtPlacement = Delta.WallNormal;
+					SpawnedActor->Tags.Add(TEXT("InteriorFurniture"));
+					SpawnedActor->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), FurnitureID)));
+					SpawnedActor->SetPlacementState(EPlacementState::Placed);
+					PlacementSubsystem->GetPlacedFurnituresMutable().Add(SpawnedActor);
+
+					if (SpawnedActor->GetPlacedSurfaceType() == EPlacementSurfaceType::Floor)
+					{
+						if (AGridSpaceManager* Grid = PlacementSubsystem->GetGrid())
+						{
+							for (int32 X = 0; X < (int32)SpawnedActor->PlacedDimensions.X; ++X)
+							{
+								for (int32 Y = 0; Y < (int32)SpawnedActor->PlacedDimensions.Y; ++Y)
+								{
+									Grid->SetFurniture(SpawnedActor->PlacedGridAnchor + FVector2D(X, Y), SpawnedActor);
+								}
+							}
+						}
+					}
+
+					LoadedBySourceIndex.Add(SourceIndex, SpawnedActor);
+				}
+
+				for (int32 SourceIndex = 0; SourceIndex < DeltaList.FurnitureItems.Num(); ++SourceIndex)
+				{
+					AFurniture* const* ChildPtr = LoadedBySourceIndex.Find(SourceIndex);
+					const int32 ParentIndex = DeltaList.FurnitureItems[SourceIndex].ParentIndex;
+					AFurniture* const* ParentPtr = LoadedBySourceIndex.Find(ParentIndex);
+					if (ChildPtr && ParentPtr &&
+						(*ChildPtr)->GetPlacedSurfaceType() == EPlacementSurfaceType::Surface)
+					{
+						(*ChildPtr)->ParentFurniture = *ParentPtr;
+						(*ChildPtr)->AttachToActor(*ParentPtr, FAttachmentTransformRules::KeepWorldTransform);
+					}
+				}
+				bLoadedIntoSubsystem = true;
+			}
+		}
+
+		// Legacy maps still use the actor-based placement manager.
 		AInteriorPlacementManager* PlacementManager = nullptr;
-		TArray<AActor*> FoundManagers;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteriorPlacementManager::StaticClass(), FoundManagers);
-		if (FoundManagers.Num() > 0) PlacementManager = Cast<AInteriorPlacementManager>(FoundManagers[0]);
+		if (!bLoadedIntoSubsystem)
+		{
+			TArray<AActor*> FoundManagers;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteriorPlacementManager::StaticClass(), FoundManagers);
+			if (FoundManagers.Num() > 0) PlacementManager = Cast<AInteriorPlacementManager>(FoundManagers[0]);
+		}
 
 		for (const FFurnitureDelta& Delta : DeltaList.FurnitureItems)
 		{
@@ -189,6 +284,11 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 
 void UHarnessSaveManagerComponent::ClearInterior()
 {
+	if (UInteriorPlacementSubsystem* PlacementSubsystem = GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>())
+	{
+		PlacementSubsystem->ClearAllFurniture();
+	}
+
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("InteriorFurniture"), FoundActors);
 	for (AActor* Actor : FoundActors)

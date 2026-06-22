@@ -3,7 +3,36 @@
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "Components/MeshComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
+#include "Engine/PostProcessVolume.h"
+#include "EngineUtils.h"
+
+static void SetGizmoOutlineColor(UWorld* World, FLinearColor Color)
+{
+	if (!World) return;
+	for (TActorIterator<APostProcessVolume> It(World); It; ++It)
+	{
+		for (FWeightedBlendable& WB : It->Settings.WeightedBlendables.Array)
+		{
+			UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(WB.Object);
+			if (!MID)
+			{
+				if (UMaterialInterface* Material = Cast<UMaterialInterface>(WB.Object))
+				{
+					MID = UMaterialInstanceDynamic::Create(Material, *It);
+					WB.Object = MID;
+				}
+			}
+			if (MID)
+			{
+				MID->SetVectorParameterValue(TEXT("OutlineColor"), Color);
+			}
+		}
+	}
+}
 
 AInteRealGizmoActor::AInteRealGizmoActor()
 {
@@ -64,7 +93,7 @@ FString AInteRealGizmoActor::GetAxisTagFromComponent(const UPrimitiveComponent* 
 	{
 		return TEXT("RotateRoll");
 	}
-	if (Name.StartsWith(TEXT("RingYaw")) || Name == TEXT("RotationRing"))
+	if (Name.StartsWith(TEXT("RingYaw")) || Name.StartsWith(TEXT("RotationRing")))
 	{
 		return TEXT("RotateYaw");
 	}
@@ -75,6 +104,8 @@ FString AInteRealGizmoActor::GetAxisTagFromComponent(const UPrimitiveComponent* 
 void AInteRealGizmoActor::InitAxisMaterials()
 {
 	AxisMaterials.Empty();
+	AxisMeshes.Empty();
+	OriginalAxisColors.Empty();
 	HoveredAxis.Empty();
 
 	TArray<UMeshComponent*> Meshes;
@@ -92,12 +123,17 @@ void AInteRealGizmoActor::InitAxisMaterials()
 		const FString AxisTag = GetAxisTagFromComponent(Mesh);
 		if (AxisTag.IsEmpty()) continue;
 
+		Mesh->SetRenderCustomDepth(false);
+
+		AxisMeshes.FindOrAdd(AxisTag).Add(Mesh);
+
 		TArray<TObjectPtr<UMaterialInstanceDynamic>>& DMIs = AxisMaterials.FindOrAdd(AxisTag);
 		for (int32 i = 0; i < Mesh->GetNumMaterials(); i++)
 		{
 			if (UMaterialInstanceDynamic* DMI = Mesh->CreateAndSetMaterialInstanceDynamic(i))
 			{
-				DMI->SetScalarParameterValue(OpacityParamName, DefaultOpacity);
+				DMI->SetScalarParameterValue(TEXT("Opacity"), 1.0f);
+				OriginalAxisColors.FindOrAdd(AxisTag) = DMI->K2_GetVectorParameterValue(GizmoColorParamName);
 				DMI->SetScalarParameterValue(RadialWipeParamName, 0.0f);
 				DMI->SetScalarParameterValue(SnapHighlightParamName, 0.0f);
 				DMI->SetScalarParameterValue(RotationDirectionParamName, 1.0f);
@@ -106,7 +142,7 @@ void AInteRealGizmoActor::InitAxisMaterials()
 		}
 	}
 
-	SetDisplayMode(DisplayMode);
+	SetDisplayMode(EInteRealGizmoDisplayMode::All);
 }
 
 void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
@@ -126,9 +162,11 @@ void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 		if (AxisTag.IsEmpty()) continue;
 
 		const bool bIsRotationComponent = AxisTag.StartsWith(TEXT("Rotate")) || AxisTag == TEXT("RotationRing");
-		const bool bShouldShow = DisplayMode == EInteRealGizmoDisplayMode::Rotation
-			? bIsRotationComponent
-			: !bIsRotationComponent;
+		const bool bShouldShow =
+			DisplayMode == EInteRealGizmoDisplayMode::All ||
+			(DisplayMode == EInteRealGizmoDisplayMode::Rotation
+				? bIsRotationComponent
+				: !bIsRotationComponent);
 
 		const bool bCollisionOnly = IsCollisionOnlyGizmoComponent(Component);
 		Component->SetVisibility(bShouldShow && !bCollisionOnly, true);
@@ -137,18 +175,30 @@ void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 	}
 }
 
-void AInteRealGizmoActor::SetAxisOpacity(const FString& Axis, float Opacity)
+void AInteRealGizmoActor::SetAxisOutline(const FString& Axis, bool bEnable)
 {
-	if (const TArray<TObjectPtr<UMaterialInstanceDynamic>>* DMIs = AxisMaterials.Find(Axis))
+	const TArray<TObjectPtr<UMeshComponent>>* Meshes = AxisMeshes.Find(Axis);
+	if (!Meshes) return;
+
+	if (bEnable)
 	{
-		for (UMaterialInstanceDynamic* DMI : *DMIs)
-		{
-			if (DMI)
-			{
-				DMI->SetScalarParameterValue(OpacityParamName, Opacity);
-			}
-		}
+		SetGizmoOutlineColor(GetWorld(), FLinearColor::White);
 	}
+	SetAxisColorHighlight(Axis, bEnable);
+
+	const bool bIsMove = Axis.StartsWith(TEXT("Move"));
+	const int32 Stencil = bIsMove ? MoveOutlineStencil : RotateOutlineStencil;
+	UE_LOG(LogTemp, Log, TEXT("[GizmoOutline] axis=%s enabled=%d stencil=%d meshes=%d"),
+		*Axis, bEnable ? 1 : 0, Stencil, Meshes->Num());
+
+	for (UMeshComponent* Mesh : *Meshes)
+	{
+		if (!Mesh) continue;
+		Mesh->SetCustomDepthStencilValue(bEnable ? Stencil : 0);
+		Mesh->SetRenderCustomDepth(bEnable);
+		Mesh->MarkRenderStateDirty();
+	}
+
 }
 
 void AInteRealGizmoActor::SetAxisRotationVisuals(const FString& Axis, float DeltaAngle, bool bSnapped)
@@ -247,11 +297,11 @@ void AInteRealGizmoActor::UpdateHover(bool bIsHitting, const FHitResult& CursorH
 
 	if (!HoveredAxis.IsEmpty())
 	{
-		SetAxisOpacity(HoveredAxis, DefaultOpacity);
+		SetAxisOutline(HoveredAxis, false);
 	}
 	if (!NewHoveredAxis.IsEmpty())
 	{
-		SetAxisOpacity(NewHoveredAxis, HighlightOpacity);
+		SetAxisOutline(NewHoveredAxis, true);
 	}
 	HoveredAxis = NewHoveredAxis;
 }
@@ -270,40 +320,28 @@ void AInteRealGizmoActor::BeginDrag(const FString& Axis,
 	DragStartMousePos = MousePos;
 	CurrentRotationDeltaDegrees = 0.0f;
 
+	SetAxisOutline(Axis, true);
+
 	if (CurrentDraggingAxis == EGizmoTransformAxis::RotateYaw ||
 		CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch ||
 		CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 	{
 		DragStartFurnitureRot = Target->GetActorRotation();
-
-		// 축별 회전 평면 선택
-		FVector PlaneNormal = FVector::UpVector;
-		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
+		bHasRotationScreenCenter = false;
+		if (const UWorld* World = GetWorld())
 		{
-			PlaneNormal = FVector::RightVector;
-		}
-		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
-		{
-			PlaneNormal = FVector::ForwardVector;
+			if (APlayerController* PC = World->GetFirstPlayerController())
+			{
+				bHasRotationScreenCenter = PC->ProjectWorldLocationToScreen(
+					Target->GetVisualBounds().GetCenter(), RotationScreenCenter);
+			}
 		}
 
-		const FVector Center = Target->GetActorLocation();
-		const FVector Hit = FMath::LinePlaneIntersection(WorldOrigin,
-		                                                 WorldOrigin + WorldDir * 100000.f,
-		                                                 FPlane(Center, PlaneNormal));
-
-		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
-		{
-			DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.X - Center.X));
-		}
-		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
-		{
-			DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.Y - Center.Y));
-		}
-		else
-		{
-			DragStartAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
-		}
+		DragStartAngleDeg = bHasRotationScreenCenter
+			? FMath::RadiansToDegrees(FMath::Atan2(
+				MousePos.Y - RotationScreenCenter.Y,
+				MousePos.X - RotationScreenCenter.X))
+			: 0.0f;
 	}
 	else if (CurrentDraggingAxis == EGizmoTransformAxis::MoveX ||
 	         CurrentDraggingAxis == EGizmoTransformAxis::MoveY ||
@@ -313,6 +351,12 @@ void AInteRealGizmoActor::BeginDrag(const FString& Axis,
 
 		if (CurrentDraggingAxis == EGizmoTransformAxis::MoveX || CurrentDraggingAxis == EGizmoTransformAxis::MoveY)
 		{
+			if (Target->GetPlacedSurfaceType() == EPlacementSurfaceType::Floor)
+			{
+				// FloorPlacementHandler snaps the visible mesh center, not the imported pivot.
+				DragStartLocation = Target->GetMeshBounds().GetCenter();
+			}
+
 			// 클릭 시점의 커서-가구 오프셋을 기록해 드래그 시작 시 위치가 튀지 않게 함
 			FVector PlaneNormal = FVector::UpVector;
 			if (Target->GetPlacedSurfaceType() == EPlacementSurfaceType::Wall && !Target->WallNormalAtPlacement.IsNearlyZero())
@@ -343,34 +387,11 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 		CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch ||
 		CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 	{
-		FVector PlaneNormal = FVector::UpVector;
-		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
-		{
-			PlaneNormal = FVector::RightVector;
-		}
-		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
-		{
-			PlaneNormal = FVector::ForwardVector;
-		}
-
-		const FVector Center = Target->GetActorLocation();
-		const FVector Hit = FMath::LinePlaneIntersection(WorldOrigin,
-		                                                 WorldOrigin + WorldDir * 100000.f,
-		                                                 FPlane(Center, PlaneNormal));
-
-		float CurrentAngle;
-		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
-		{
-			CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.X - Center.X));
-		}
-		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
-		{
-			CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Z - Center.Z, Hit.Y - Center.Y));
-		}
-		else
-		{
-			CurrentAngle = FMath::RadiansToDegrees(FMath::Atan2(Hit.Y - Center.Y, Hit.X - Center.X));
-		}
+		const float CurrentAngle = bHasRotationScreenCenter
+			? FMath::RadiansToDegrees(FMath::Atan2(
+				MousePos.Y - RotationScreenCenter.Y,
+				MousePos.X - RotationScreenCenter.X))
+			: (MousePos.X - DragStartMousePos.X) * 0.5f;
 
 		float DeltaAngle = FRotator::NormalizeAxis(CurrentAngle - DragStartAngleDeg) * RotationSensitivity;
 		if (bSnapRotationToGrid)
@@ -402,7 +423,7 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 		}
 
 		CurrentRotationDeltaDegrees = DeltaAngle;
-		Target->SetActorRotation(NewRot);
+		Target->SetRotationPreservingPlacement(NewRot);
 		return;
 	}
 
@@ -448,24 +469,117 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 	}
 }
 
-void AInteRealGizmoActor::UpdateConstantScreenSize(const FVector& CameraLocation, float CameraFOVDegrees, float ScaleMultiplier)
+void AInteRealGizmoActor::UpdateConstantScreenSize(APlayerController* PlayerController, float ScaleMultiplier)
 {
+	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	{
+		return;
+	}
+
+	const FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+	const float CameraFOVDegrees = PlayerController->PlayerCameraManager->GetFOVAngle();
 	const float Distance = FVector::Dist(CameraLocation, GetActorLocation());
-	
 	const float FOVScale = FMath::Tan(FMath::DegreesToRadians(CameraFOVDegrees * 0.5f));
-	const float Scale = FMath::Clamp(Distance * FOVScale * ScaleMultiplier / ReferenceDistance, MinScreenScale, MaxScreenScale);
+	float Scale = FMath::Clamp(Distance * FOVScale * ScaleMultiplier / ReferenceDistance, MinScreenScale, MaxScreenScale);
 	SetActorScale3D(FVector(Scale));
+
+	// Correct the approximation using the gizmo's actual projected pixel bounds.
+	const FBox Bounds = GetVisibleGizmoBounds();
+	if (!Bounds.IsValid)
+	{
+		return;
+	}
+
+	const FVector Min = Bounds.Min;
+	const FVector Max = Bounds.Max;
+	const FVector Corners[8] = {
+		{Min.X, Min.Y, Min.Z}, {Max.X, Min.Y, Min.Z},
+		{Min.X, Max.Y, Min.Z}, {Max.X, Max.Y, Min.Z},
+		{Min.X, Min.Y, Max.Z}, {Max.X, Min.Y, Max.Z},
+		{Min.X, Max.Y, Max.Z}, {Max.X, Max.Y, Max.Z}
+	};
+
+	FVector2D ScreenMin(FLT_MAX, FLT_MAX);
+	FVector2D ScreenMax(-FLT_MAX, -FLT_MAX);
+	bool bProjected = false;
+	for (const FVector& Corner : Corners)
+	{
+		FVector2D ScreenCorner;
+		if (PlayerController->ProjectWorldLocationToScreen(Corner, ScreenCorner, true))
+		{
+			ScreenMin.X = FMath::Min(ScreenMin.X, ScreenCorner.X);
+			ScreenMin.Y = FMath::Min(ScreenMin.Y, ScreenCorner.Y);
+			ScreenMax.X = FMath::Max(ScreenMax.X, ScreenCorner.X);
+			ScreenMax.Y = FMath::Max(ScreenMax.Y, ScreenCorner.Y);
+			bProjected = true;
+		}
+	}
+
+	if (bProjected)
+	{
+		const FVector2D PixelSize = ScreenMax - ScreenMin;
+		const float CurrentDiameter = FMath::Max(PixelSize.X, PixelSize.Y);
+		if (CurrentDiameter > 1.0f)
+		{
+			const float DesiredDiameter = TargetScreenDiameterPixels;
+			Scale = FMath::Clamp(Scale * DesiredDiameter / CurrentDiameter, MinScreenScale, MaxScreenScale);
+			SetActorScale3D(FVector(Scale));
+		}
+	}
+}
+
+void AInteRealGizmoActor::SetAxisColorHighlight(const FString& Axis, bool bEnable)
+{
+	if (const TArray<TObjectPtr<UMaterialInstanceDynamic>>* Materials = AxisMaterials.Find(Axis))
+	{
+		const FLinearColor Color = bEnable ? ActiveAxisColor : GetBaseAxisColor(Axis);
+		for (UMaterialInstanceDynamic* Material : *Materials)
+		{
+			if (Material)
+			{
+				Material->SetVectorParameterValue(GizmoColorParamName, Color);
+			}
+		}
+	}
+}
+
+FLinearColor AInteRealGizmoActor::GetBaseAxisColor(const FString& Axis) const
+{
+	if (const FLinearColor* OriginalColor = OriginalAxisColors.Find(Axis))
+	{
+		return *OriginalColor;
+	}
+	return FLinearColor::White;
+}
+
+FBox AInteRealGizmoActor::GetVisibleGizmoBounds() const
+{
+	FBox Bounds(EForceInit::ForceInit);
+	TArray<UMeshComponent*> Meshes;
+	GetComponents<UMeshComponent>(Meshes);
+	for (const UMeshComponent* Mesh : Meshes)
+	{
+		if (Mesh && Mesh->IsVisible() && !IsCollisionOnlyGizmoComponent(Mesh))
+		{
+			Bounds += Mesh->Bounds.GetBox();
+		}
+	}
+	return Bounds;
 }
 
 void AInteRealGizmoActor::EndDrag()
 {
 	if (!CurrentDraggingAxisTag.IsEmpty())
 	{
-		SetAxisOpacity(CurrentDraggingAxisTag, DefaultOpacity);
+		SetAxisOutline(CurrentDraggingAxisTag, false);
 	}
 	ResetRotationVisuals();
 	bIsDragging = false;
+	bHasRotationScreenCenter = false;
 	CurrentDraggingAxis = EGizmoTransformAxis::None;
 	CurrentDraggingAxisTag.Empty();
+	// UpdateHover must treat the axis under the released cursor as a fresh hover
+	// and turn CustomDepth back on during the next tick.
+	HoveredAxis.Empty();
 	CurrentRotationDeltaDegrees = 0.0f;
 }

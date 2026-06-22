@@ -32,15 +32,9 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         float Length = 0.0f;
         float Angle = 0.0f;
         float WallThickness = HarnessDefaultWallThicknessCm;
-        float StartInset = 0.0f;
-        float EndInset = 0.0f;
         FVector2D Center = FVector2D::ZeroVector;
         FVector2D Direction = FVector2D::ZeroVector;
         FVector2D InteriorNormal = FVector2D::ZeroVector;
-        FVector2D PrevDirection = FVector2D::ZeroVector;
-        FVector2D PrevInteriorNormal = FVector2D::ZeroVector;
-        FVector2D NextDirection = FVector2D::ZeroVector;
-        FVector2D NextInteriorNormal = FVector2D::ZeroVector;
     };
 
     struct FWallRun
@@ -56,8 +50,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         float Length = 0.0f;
         float Angle = 0.0f;
         float WallThickness = HarnessDefaultWallThicknessCm;
-        float StartInset = 0.0f;
-        float EndInset = 0.0f;
     };
 
     struct FFaceSegmentEdgeMatch
@@ -304,11 +296,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             const FVector2D SideCenter = (*CurrPoint + *NextPoint) * 0.5f;
             const FVector2D InteriorNormal = ComputeInteriorNormal(*CurrPoint, *NextPoint);
 
-            const FString& PrevId = Face.contour_vertex_ids[(i - 1 + NumVerts) % NumVerts];
-            const FString& AfterId = Face.contour_vertex_ids[(i + 2) % NumVerts];
-            const FVector2D* PrevPoint = VertexCache.Find(PrevId);
-            const FVector2D* AfterPoint = VertexCache.Find(AfterId);
-
             OutSide.FaceId = MakeHarnessSurfaceToken(Face.face_id);
             OutSide.SurfaceEdgeId = bMatchesForward || Edge.twin_id.IsEmpty()
                 ? MakeHarnessSurfaceToken(Edge.id)
@@ -320,18 +307,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             OutSide.Center = SideCenter;
             OutSide.Direction = SegmentDir;
             OutSide.InteriorNormal = InteriorNormal.GetSafeNormal();
-
-            if (PrevPoint)
-            {
-                OutSide.PrevDirection = (*CurrPoint - *PrevPoint).GetSafeNormal();
-                OutSide.PrevInteriorNormal = ComputeInteriorNormal(*PrevPoint, *CurrPoint).GetSafeNormal();
-            }
-
-            if (AfterPoint)
-            {
-                OutSide.NextDirection = (*AfterPoint - *NextPoint).GetSafeNormal();
-                OutSide.NextInteriorNormal = ComputeInteriorNormal(*NextPoint, *AfterPoint).GetSafeNormal();
-            }
 
             return true;
         }
@@ -442,62 +417,23 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         AnimatedWalls.Add(WallComp);
     };
 
-    auto BuildWallSurfacePanels = [&](const FWallSurfaceSide& Side, const FVector2D& SurfaceNormal, const FVector2D& PrevSurfaceNormal, const FVector2D& NextSurfaceNormal, float WallThickness, const TArray<FName>& Tags)
+    auto BuildWallSurfacePanels = [&](const FWallSurfaceSide& Side, const FVector2D& SurfaceNormal, float WallThickness, const TArray<FName>& Tags)
     {
         if (Side.Direction.IsNearlyZero() || SurfaceNormal.IsNearlyZero())
         {
             return;
         }
 
-        const float OffsetDistance = (WallThickness * 0.5f) + HarnessSurfaceGapCm;
-        const FVector2D SurfaceCenter = Side.Center + (SurfaceNormal * OffsetDistance);
-        const FVector2D BaseStart = Side.Center - (Side.Direction * (Side.Length * 0.5f));
-        const FVector2D BaseEnd = Side.Center + (Side.Direction * (Side.Length * 0.5f));
-
-        const float HalfLength = Side.Length * 0.5f;
-        const float MaxMiterAdjustment = OffsetDistance + HarnessMergeEndpointToleranceCm;
-        float XMin = -HalfLength;
-        float XMax = HalfLength;
-
-        FVector2D MiterPoint;
-        if (!Side.PrevDirection.IsNearlyZero() && !PrevSurfaceNormal.IsNearlyZero() &&
-            IntersectHarnessLines2D(BaseStart + (PrevSurfaceNormal * OffsetDistance), Side.PrevDirection, BaseStart + (SurfaceNormal * OffsetDistance), Side.Direction, MiterPoint))
-        {
-            XMin = FVector2D::DotProduct(MiterPoint - SurfaceCenter, Side.Direction);
-            XMin = FMath::Clamp(XMin, -HalfLength - MaxMiterAdjustment, -HalfLength + MaxMiterAdjustment);
-        }
-
-        if (!Side.NextDirection.IsNearlyZero() && !NextSurfaceNormal.IsNearlyZero() &&
-            IntersectHarnessLines2D(BaseEnd + (SurfaceNormal * OffsetDistance), Side.Direction, BaseEnd + (NextSurfaceNormal * OffsetDistance), Side.NextDirection, MiterPoint))
-        {
-            XMax = FVector2D::DotProduct(MiterPoint - SurfaceCenter, Side.Direction);
-            XMax = FMath::Clamp(XMax, HalfLength - MaxMiterAdjustment, HalfLength + MaxMiterAdjustment);
-        }
-
-        if (XMax - XMin <= 1.0f)
-        {
-            XMin = -HalfLength;
-            XMax = HalfLength;
-        }
-
-        float StartInset = FMath::Max(Side.StartInset, 0.0f);
-        float EndInset = FMath::Max(Side.EndInset, 0.0f);
-        const float MaxTotalInset = FMath::Max(Side.Length - 1.0f, 0.0f);
-        const float TotalInset = StartInset + EndInset;
-        if (TotalInset > MaxTotalInset && TotalInset > KINDA_SMALL_NUMBER)
-        {
-            const float InsetScale = MaxTotalInset / TotalInset;
-            StartInset *= InsetScale;
-            EndInset *= InsetScale;
-        }
-
-        XMin += StartInset;
-        XMax -= EndInset;
-
-        if (XMax - XMin <= 1.0f)
+        if (Side.Length <= 1.0f)
         {
             return;
         }
+
+        const float OffsetDistance = (WallThickness * 0.5f) + HarnessSurfaceGapCm;
+        const FVector2D SurfaceCenter = Side.Center + (SurfaceNormal * OffsetDistance);
+        const float HalfLength = Side.Length * 0.5f;
+        const float XMin = -HalfLength;
+        const float XMax = HalfLength;
 
         const float ZMin = Side.ZOffset + HarnessSurfaceVerticalGapCm;
         const float ZMax = Side.ZOffset + FMath::Max(Side.Height - HarnessSurfaceVerticalGapCm, HarnessSurfaceVerticalGapCm + 1.0f);
@@ -581,7 +517,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         if (bHarnessSurfaceBuildDebug)
         {
             UE_LOG(LogTemp, Warning,
-                TEXT("[WallSurfaceDebug] BuildSurface Tags=[%s] Face=%s Edge=%s Center=%s SurfaceCenter=%s Dir=%s SurfaceNormal=%s LocalPositiveY=%s Dot=%.3f bFacePositiveY=%d Len=%.2f XMin=%.2f XMax=%.2f InsetStart=%.2f InsetEnd=%.2f Thickness=%.2f"),
+                TEXT("[WallSurfaceDebug] BuildSurface Tags=[%s] Face=%s Edge=%s Center=%s SurfaceCenter=%s Dir=%s SurfaceNormal=%s LocalPositiveY=%s Dot=%.3f bFacePositiveY=%d Len=%.2f XMin=%.2f XMax=%.2f Thickness=%.2f"),
                 *JoinHarnessTagNames(Tags),
                 *Side.FaceId,
                 *Side.SurfaceEdgeId,
@@ -595,8 +531,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
                 Side.Length,
                 XMin,
                 XMax,
-                StartInset,
-                EndInset,
                 WallThickness);
         }
 
@@ -1120,182 +1054,13 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             MergedSides.RemoveAt(0);
         }
 
-        const int32 NumSides = MergedSides.Num();
-        for (int32 i = 0; i < NumSides; ++i)
+        for (FWallSurfaceSide& Side : MergedSides)
         {
-            FWallSurfaceSide& Side = MergedSides[i];
             Side.SurfaceEdgeId = MakeMergedSurfaceEdgeId(Side.SourceSurfaceEdgeIds);
             Side.Openings = BuildOpeningsForRun(Side.OpeningEdgeIds, Side.Center, Side.Direction);
-
-            const FWallSurfaceSide& PrevSide = MergedSides[(i - 1 + NumSides) % NumSides];
-            const FWallSurfaceSide& NextSide = MergedSides[(i + 1) % NumSides];
-
-            const FVector2D SideStart = Side.Center - (Side.Direction * (Side.Length * 0.5f));
-            const FVector2D SideEnd = Side.Center + (Side.Direction * (Side.Length * 0.5f));
-            const FVector2D PrevEnd = PrevSide.Center + (PrevSide.Direction * (PrevSide.Length * 0.5f));
-            const FVector2D NextStart = NextSide.Center - (NextSide.Direction * (NextSide.Length * 0.5f));
-
-            if (FVector2D::Distance(PrevEnd, SideStart) <= HarnessMergeEndpointToleranceCm)
-            {
-                Side.PrevDirection = PrevSide.Direction;
-                Side.PrevInteriorNormal = PrevSide.InteriorNormal;
-            }
-
-            if (FVector2D::Distance(SideEnd, NextStart) <= HarnessMergeEndpointToleranceCm)
-            {
-                Side.NextDirection = NextSide.Direction;
-                Side.NextInteriorNormal = NextSide.InteriorNormal;
-            }
         }
 
         return MergedSides;
-    };
-
-    auto ApplyTJointSurfaceInsets = [](TArray<FWallSurfaceSide>& SurfaceSides, const TArray<FWallRun>& Runs)
-    {
-        auto BelongsToRun = [](const FWallSurfaceSide& Side, const FWallRun& Run) -> bool
-        {
-            for (const FTopologyHalfEdge* Edge : Run.Edges)
-            {
-                if (!Edge)
-                {
-                    continue;
-                }
-
-                if (Side.CoreEdgeIds.Contains(Edge->id) || (!Edge->twin_id.IsEmpty() && Side.CoreEdgeIds.Contains(Edge->twin_id)))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
-        auto ComputeEndpointInset = [&](const FWallSurfaceSide& Side, const FVector2D& Endpoint) -> float
-        {
-            float Inset = 0.0f;
-            if (Side.Direction.IsNearlyZero())
-            {
-                return Inset;
-            }
-
-            for (const FWallRun& Run : Runs)
-            {
-                if (Run.Direction.IsNearlyZero() || Run.Length <= KINDA_SMALL_NUMBER || BelongsToRun(Side, Run))
-                {
-                    continue;
-                }
-
-                if (FMath::Abs(CrossHarness2D(Side.Direction, Run.Direction)) <= HarnessMergeCollinearTolerance)
-                {
-                    continue;
-                }
-
-                const FVector2D RunStart = Run.Center - (Run.Direction * (Run.Length * 0.5f));
-                const float AlongRun = FVector2D::DotProduct(Endpoint - RunStart, Run.Direction);
-                if (AlongRun <= HarnessMergeEndpointToleranceCm || AlongRun >= Run.Length - HarnessMergeEndpointToleranceCm)
-                {
-                    continue;
-                }
-
-                const FVector2D RunNormal(-Run.Direction.Y, Run.Direction.X);
-                const float DistanceToRun = FMath::Abs(FVector2D::DotProduct(Endpoint - RunStart, RunNormal));
-                if (DistanceToRun > HarnessMergeEndpointToleranceCm * 2.0f)
-                {
-                    continue;
-                }
-
-                Inset = FMath::Max(Inset, (Run.WallThickness * 0.5f) + HarnessSurfaceGapCm);
-            }
-
-            return Inset;
-        };
-
-        for (FWallSurfaceSide& Side : SurfaceSides)
-        {
-            if (Side.Direction.IsNearlyZero() || Side.Length <= 1.0f)
-            {
-                continue;
-            }
-
-            const FVector2D SideStart = Side.Center - (Side.Direction * (Side.Length * 0.5f));
-            const FVector2D SideEnd = Side.Center + (Side.Direction * (Side.Length * 0.5f));
-            Side.StartInset = FMath::Max(Side.StartInset, ComputeEndpointInset(Side, SideStart));
-            Side.EndInset = FMath::Max(Side.EndInset, ComputeEndpointInset(Side, SideEnd));
-        }
-    };
-
-    auto ApplyWallRunEndpointInsets = [](TArray<FWallRun>& Runs)
-    {
-        auto ComputeEndpointInset = [&](const FWallRun& Run, const FVector2D& Endpoint) -> float
-        {
-            float Inset = 0.0f;
-            if (Run.Direction.IsNearlyZero() || Run.Length <= KINDA_SMALL_NUMBER)
-            {
-                return Inset;
-            }
-
-            for (const FWallRun& OtherRun : Runs)
-            {
-                if (&OtherRun == &Run || OtherRun.Direction.IsNearlyZero() || OtherRun.Length <= KINDA_SMALL_NUMBER)
-                {
-                    continue;
-                }
-
-                if (FMath::Abs(CrossHarness2D(Run.Direction, OtherRun.Direction)) <= HarnessMergeCollinearTolerance)
-                {
-                    continue;
-                }
-
-                const FVector2D OtherStart = OtherRun.Center - (OtherRun.Direction * (OtherRun.Length * 0.5f));
-                const float AlongOther = FVector2D::DotProduct(Endpoint - OtherStart, OtherRun.Direction);
-                if (AlongOther < -HarnessMergeEndpointToleranceCm || AlongOther > OtherRun.Length + HarnessMergeEndpointToleranceCm)
-                {
-                    continue;
-                }
-
-                const FVector2D OtherNormal(-OtherRun.Direction.Y, OtherRun.Direction.X);
-                const float DistanceToOther = FMath::Abs(FVector2D::DotProduct(Endpoint - OtherStart, OtherNormal));
-                if (DistanceToOther > HarnessMergeEndpointToleranceCm * 2.0f)
-                {
-                    continue;
-                }
-
-                const bool bTouchesOtherEndpoint =
-                    AlongOther <= HarnessMergeEndpointToleranceCm ||
-                    AlongOther >= OtherRun.Length - HarnessMergeEndpointToleranceCm;
-                if (bTouchesOtherEndpoint && Run.RunId.Compare(OtherRun.RunId) < 0)
-                {
-                    continue;
-                }
-
-                Inset = FMath::Max(Inset, (OtherRun.WallThickness * 0.5f) + HarnessWallZFightSeparationCm);
-            }
-
-            return Inset;
-        };
-
-        for (FWallRun& Run : Runs)
-        {
-            if (Run.Direction.IsNearlyZero() || Run.Length <= 1.0f)
-            {
-                continue;
-            }
-
-            const FVector2D RunStart = Run.Center - (Run.Direction * (Run.Length * 0.5f));
-            const FVector2D RunEnd = Run.Center + (Run.Direction * (Run.Length * 0.5f));
-            Run.StartInset = FMath::Max(Run.StartInset, ComputeEndpointInset(Run, RunStart));
-            Run.EndInset = FMath::Max(Run.EndInset, ComputeEndpointInset(Run, RunEnd));
-
-            const float MaxInset = FMath::Max(Run.Length - 1.0f, 0.0f);
-            const float TotalInset = Run.StartInset + Run.EndInset;
-            if (TotalInset > MaxInset && TotalInset > KINDA_SMALL_NUMBER)
-            {
-                const float InsetScale = MaxInset / TotalInset;
-                Run.StartInset *= InsetScale;
-                Run.EndInset *= InsetScale;
-            }
-        }
     };
 
     TArray<FWallRun> WallRuns = BuildMergedWallRuns();
@@ -1337,9 +1102,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         }
     }
 
-    // ApplyTJointSurfaceInsets(InteriorSurfaceSides, WallRuns);
-    // ApplyWallRunEndpointInsets(WallRuns);
-
     for (const FWallRun& Run : WallRuns)
     {
         if (Run.Edges.Num() == 0 || Run.Length <= KINDA_SMALL_NUMBER)
@@ -1374,8 +1136,8 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             }
         }
 
-        const FVector2D CoreStart = Run.Start + (Run.Direction * Run.StartInset);
-        const FVector2D CoreEnd = Run.End - (Run.Direction * Run.EndInset);
+        const FVector2D CoreStart = Run.Start;
+        const FVector2D CoreEnd = Run.End;
         const FVector2D CoreSegment = CoreEnd - CoreStart;
         const float CoreLength = CoreSegment.Size();
         if (CoreLength <= 1.0f)
@@ -1403,7 +1165,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         BuildWallBox(
             LeftCenter,
             Run.Angle,
-            CoreLength + Run.WallThickness,
+            CoreLength,
             HalfThickness, // 두께를 절반으로!
             CoreBottomZ,
             CoreTopZ,
@@ -1420,7 +1182,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         BuildWallBox(
             RightCenter,
             Run.Angle,
-            CoreLength + Run.WallThickness,
+            CoreLength,
             HalfThickness, // 두께를 절반으로!
             CoreBottomZ,
             CoreTopZ,
@@ -1441,8 +1203,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         BuildWallSurfacePanels(
             Side,
             Side.InteriorNormal,
-            Side.PrevInteriorNormal,
-            Side.NextInteriorNormal,
             Side.WallThickness,
             {
                 FName(TEXT("WallSurface")),
@@ -1459,8 +1219,6 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             BuildWallSurfacePanels(
                 Side,
                 ExteriorNormal,
-                -Side.PrevInteriorNormal,
-                -Side.NextInteriorNormal,
                 Side.WallThickness,
                 {
                     FName(TEXT("WallExterior")),

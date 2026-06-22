@@ -110,10 +110,10 @@ public:
 	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo|FirstPerson")
-	float FirstPersonGizmoScaleMultiplier = 2.0f;
+	float FirstPersonGizmoScaleMultiplier = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
-	float GizmoTraceRadius = 12.0f;
+	float GizmoTraceRadius = 18.0f;
 	
 protected:
 	void UpdateCursorHit();
@@ -138,6 +138,9 @@ protected:
 	
 	void SelectFurniture(AFurniture* Furniture);
 	void DeselectFurniture();
+
+	UFUNCTION()
+	void OnGizmoRotationChanged(float NewYawDegrees);
 
 	void SelectSurface(UMeshComponent* SurfaceComponent);
 	void DeselectSurface();
@@ -269,9 +272,12 @@ private:
 	bool bContinuousModifierHeld = false;
 
 	bool bIsMovingFurniture = false;
+	bool bPreviewHiddenUntilViewport = false;
 	FVector MoveDragOffset = FVector::ZeroVector;
+	bool bIsGizmoRotationWidgetActive = false;
 	
 	void BindFloorPlan2DEvents();
+	void RebuildFloorPlan2DFromPlacedFurniture();
 	void RegisterFloorPlan2DFurnitureActor(const FInteReal2DPlacedFurniture& Furniture2D, AFurniture* FurnitureActor);
 	bool FindFloorPlan2DGuidForFurniture(const AFurniture* FurnitureActor, FGuid& OutInstanceGuid) const;
 	bool RemoveFloorPlan2DForFurniture(AFurniture* FurnitureActor);
