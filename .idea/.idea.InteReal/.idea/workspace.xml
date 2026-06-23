@@ -13,70 +13,136 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57f23332-e90c-42ac-abe7-3a098a832158" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewTransform.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewTransform.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/Components/InteRealFloorPlanPlacementSyncComponent.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/InteReal/Master/Components/InteRealFloorPlanPlacementSyncComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.InteReal/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___ALMA_Fluted_Dining_Table/alma_fluted_dining_table/StaticMeshes/템바보드다이닝테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___ALMA_Fluted_Dining_Table/alma_fluted_dining_table/StaticMeshes/템바보드다이닝테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Akshni_Newton_ComputerTable/akshni_newton_computertable/StaticMeshes/모던컴퓨터데스크.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Akshni_Newton_ComputerTable/akshni_newton_computertable/StaticMeshes/모던컴퓨터데스크.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Ardent_Club_Chair/ardent_club_chair/StaticMeshes/아르덴트클럽체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Ardent_Club_Chair/ardent_club_chair/StaticMeshes/아르덴트클럽체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Armchair/armchair/StaticMeshes/모던암체어2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Armchair/armchair/StaticMeshes/모던암체어2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Bloomington_Puffy_Chair/bloomgton_puffy_chair/StaticMeshes/블루밍턴퍼피체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Bloomington_Puffy_Chair/bloomgton_puffy_chair/StaticMeshes/블루밍턴퍼피체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Cabin_Armchair/cabin_armchair/StaticMeshes/캐빈암체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Cabin_Armchair/cabin_armchair/StaticMeshes/캐빈암체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chair_Daisy_Plywood/chair_daisy_plywood/StaticMeshes/플라이우드체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chair_Daisy_Plywood/chair_daisy_plywood/StaticMeshes/플라이우드체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chair_TON_515/chair_ton_515/StaticMeshes/톤체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chair_TON_515/chair_ton_515/StaticMeshes/톤체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chest_Of_Drawers_Halley_Bellavita/chest_of_drawers_halley_bellavita/StaticMeshes/모던서랍장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Chest_Of_Drawers_Halley_Bellavita/chest_of_drawers_halley_bellavita/StaticMeshes/모던서랍장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Computer_Desk/computer_desk/StaticMeshes/컴퓨터데스크.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Computer_Desk/computer_desk/StaticMeshes/컴퓨터데스크.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Corner_sofa/corner_sofa/StaticMeshes/코너형소파2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Corner_sofa/corner_sofa/StaticMeshes/코너형소파2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Dining_Room_Chair/dining_room_chair/StaticMeshes/다이닝체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Dining_Room_Chair/dining_room_chair/StaticMeshes/다이닝체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Drawer_Cabinet/drawer_cabinet/StaticMeshes/캐비넷.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Drawer_Cabinet/drawer_cabinet/StaticMeshes/캐비넷.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Drawer_Desk/drawer_desk/StaticMeshes/서랍형책상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Drawer_Desk/drawer_desk/StaticMeshes/서랍형책상.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elepheant_Dining_Table/elepheant_dining_table/StaticMeshes/모던다이닝테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elepheant_Dining_Table/elepheant_dining_table/StaticMeshes/모던다이닝테이블.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz____Sullivan_Side_Table/sullivan_side_table/StaticMeshes/설리반사이드테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz____Sullivan_Side_Table/sullivan_side_table/StaticMeshes/설리반사이드테이블.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomCloset/StaticMeshes/BathroomCloset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomLight/Materials/Material_002.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomLight/Materials/Material_003.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomLight/Materials/unnamed_001.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomLight/StaticMeshes/BathroomLight.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomLight/Textures/Image_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomMirror/StaticMeshes/BathroomMirror.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomMirror2/StaticMeshes/BathroomMirror2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomRug/StaticMeshes/BathroomRug.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Bathtub/StaticMeshes/Bathtub.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Candle/StaticMeshes/Candle.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Diffuser/StaticMeshes/Diffuser.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/DispenserHanger/StaticMeshes/DispenserHanger.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Faucet/StaticMeshes/Faucet.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/HangerwTowel/StaticMeshes/HangerwTowel.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Shampoo/StaticMeshes/Shampoo.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/ShowerBooth/StaticMeshes/ShowerBooth.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/ShowerHead/StaticMeshes/ShowerHead.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Sink/StaticMeshes/Sink.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/SoapDispenser/StaticMeshes/SoapDispenser.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Toilet/StaticMeshes/Toilet.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/ToiletPaper/StaticMeshes/ToiletPaper.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/ToiletSwitch/StaticMeshes/ToiletSwitch.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Towel/StaticMeshes/Towel.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Towel2/StaticMeshes/Towel2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/Towel3/StaticMeshes/Towel3.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/TowerHanger/StaticMeshes/TowerHanger.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bed_01/bed_01/StaticMeshes/모던침대3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bed_01/bed_01/StaticMeshes/모던침대3.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/Material.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/ceilingfan.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/texture_pbr_20250901.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/texture_pbr_20250901_metallic.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/texture_pbr_20250901_normal.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/CeilingFan_/texture_pbr_20250901_roughness.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan/Materials/Material_001.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan/StaticMeshes/실링팬.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/Materials/Emission.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/Materials/Metal.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_PhysicsAsset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_Skeleton.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/Textures/ceiling_fan_free_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/Textures/ceiling_fan_free_texture_1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/ceiling_fan_free/Textures/ceiling_fan_free_texture_2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/Materials/lambert1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/StaticMeshes/실링팬2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/Textures/lambert1_baseColor.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/Textures/lambert1_emissive.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/Textures/lambert1_metallicRoughness.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Ceiling_Fan/scene/Textures/lambert1_normal.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Electronics/computer_desk/StaticMeshes/computer_desk.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Electronics/near_future_computer_monitor/StaticMeshes/near_future_computer_monitor.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Electronics/personal_computer/StaticMeshes/personal_computer.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Electronics/ultrawide_monitor/StaticMeshes/ultrawide_monitor.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/KitchenCabinet2/StaticMeshes/KitchenCabinet2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/KitchenCabinet2/StaticMeshes/KitchenCabinet2.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/haier_refrigerator/Materials/Haier_Refrigerator.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/haier_refrigerator/StaticMeshes/haier_refrigerator.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/haier_refrigerator/Textures/haier_refrigerator_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/haier_refrigerator/Textures/haier_refrigerator_texture_1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/haier_refrigerator/Textures/haier_refrigerator_texture_2.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elliot_Dining_Table/elliot_dining_table/StaticMeshes/엘리엇다이닝테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elliot_Dining_Table/elliot_dining_table/StaticMeshes/엘리엇다이닝테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elodie-Console_Table/elodie_console_table/StaticMeshes/엘로디콘솔테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Elodie-Console_Table/elodie_console_table/StaticMeshes/엘로디콘솔테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Finlandia_Small_Chair/finlandia_small_chair/StaticMeshes/핀란디아체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Finlandia_Small_Chair/finlandia_small_chair/StaticMeshes/핀란디아체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Goccia_Stool/goccia_stool/StaticMeshes/스툴2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Goccia_Stool/goccia_stool/StaticMeshes/스툴2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hayman_Teak_Seat_Sofa/hayman_teak_seat_sofa/StaticMeshes/모던소파3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hayman_Teak_Seat_Sofa/hayman_teak_seat_sofa/StaticMeshes/모던소파3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hico_Work_Table/hico_work_table/StaticMeshes/모던워크테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hico_Work_Table/hico_work_table/StaticMeshes/모던워크테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hiko_Side_Table/hiko_side_table/StaticMeshes/모던사이드테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hiko_Side_Table/hiko_side_table/StaticMeshes/모던사이드테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hostel_Room_Chair/hostel_room_chair/StaticMeshes/모던의자2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Hostel_Room_Chair/hostel_room_chair/StaticMeshes/모던의자2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Lars_Sofa/lars_sofa/StaticMeshes/모던소파4.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz___Lars_Sofa/lars_sofa/StaticMeshes/모던소파4.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz____Kingsview_Corner_Sofa/kingsview_corner_sofa/StaticMeshes/코너형소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/ArchvizFurnitureCollections/Archviz____Kingsview_Corner_Sofa/kingsview_corner_sofa/StaticMeshes/코너형소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomCloset/StaticMeshes/세면대.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bathroom/BathroomCloset/StaticMeshes/세면대.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Cabinet/화이트캐비넷.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Cabinet/화이트캐비넷.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Dresser/dressingtable.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Dresser/dressingtable.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Hanger/드레스룸행거.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Hanger/드레스룸행거.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/TVStand/StaticMeshes/TV수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/TVStand/StaticMeshes/TV수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Wardrobe/드레스룸옷장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/Wardrobe/드레스룸옷장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/WashingMachine/washingmachine.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/WashingMachine/washingmachine.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/WhiteBed/WhiteBed.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Bedroom/WhiteBed/WhiteBed.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/가죽의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/가죽의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/군대2층침상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/군대2층침상.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/군대침상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/군대침상.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던사무용의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던사무용의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던소파2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던소파2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던암체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던암체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던의자1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던의자1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던침대.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던침대.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던침대2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던침대2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/모던테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/변기.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/변기.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/보조의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/보조의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/올드의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/올드의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/올드테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/올드테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대램프3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/침대테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/커피테이블.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/커피테이블.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식가죽소파3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식원형탁자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식원형탁자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식탁자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/클래식탁자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/테이블램프.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/FreeFurniturePack/Meshes/테이블램프.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Armchair/칼리브리암체어.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Armchair/칼리브리암체어.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Deco/다기세트.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Deco/다기세트.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Lamp/책상램프.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Lamp/책상램프.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Lamp/천장등.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Lamp/천장등.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Multimedia/PS5.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Multimedia/PS5.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Sofa/칼리브리소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Furniture_Cosy_Pack_Free/StaticMesh/Sofa/칼리브리소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/HomeDecor/mini_plant/StaticMeshes/mini_plant.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/HomeDecor/mini_plant/StaticMeshes/mini_plant.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크서랍식수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크서랍식수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬림서랍식수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬림서랍식수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬림수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬림수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬립수납장.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Cupboards/앤티크슬립수납장.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/대형코타츠탁상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/대형코타츠탁상.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/소형코타츠식탁.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/소형코타츠식탁.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/소형코타츠탁상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/소형코타츠탁상.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/중형코타츠식탁.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/중형코타츠식탁.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/중형코타츠탁상.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/중형코타츠탁상.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠덮개.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠덮개.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠식탁1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠식탁1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠식탁2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠식탁2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠의자.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/KotatsuSet/코타츠의자.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/스탠딩조명.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/스탠딩조명.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/천장조명.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/천장조명.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/탁상조명1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/탁상조명1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/탁상조명2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Light/탁상조명2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/거울1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/거울1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/거울2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/거울2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/수저통.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/수저통.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/우산꽂이.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/우산꽂이.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/티슈케이스.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/티슈케이스.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/휴지통1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/휴지통1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/휴지통2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Props/휴지통2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/대형선반.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/대형선반.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/소형선반.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/소형선반.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/중형선반.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/중형선반.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/책장3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/책장3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/책장5.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/책장5.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/초대형선반.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Shelves/초대형선반.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/소형수납바구니.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/소형수납바구니.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/소형수납바구니2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/소형수납바구니2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/수납바구니3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/SmallStorage/중형수납바구니3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/1인용소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/1인용소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/벤치형소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/벤치형소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/소파.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Sofa/소파.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/서랍장2_80.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/서랍장2_80.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_100.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_100.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_40.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_40.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_60.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_60.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_80.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/수납선반_80.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/신발장_120.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/신발장_120.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/협탁.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/StorageShelves/협탁.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블2.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블3.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/JapaneseFurniture_Modern/Assets/Tables/테이블3.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/Fridge/haier_refrigerator/StaticMeshes/냉장고.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/Fridge/haier_refrigerator/StaticMeshes/냉장고.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/Fridge/retro_fridge/StaticMeshes/레트로냉장고.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/Fridge/retro_fridge/StaticMeshes/레트로냉장고.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/kitchen/SkeletalMeshes/StaticMesh.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Kitchen/kitchen/SkeletalMeshes/StaticMesh.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/CeilingFan/CeilingFan_/ceilingfan.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/CeilingFan/CeilingFan_/ceilingfan.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/CeilingFan/celling_fan_clean/SkeletalMeshes/StaticMesh.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/CeilingFan/celling_fan_clean/SkeletalMeshes/StaticMesh.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/cabinet_tv/StaticMeshes/cabinet_tv.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/LivingRoom/cabinet_tv/StaticMeshes/cabinet_tv.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_Fabric.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_Fabric.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_FabricWhite.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_FabricWhite.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_Fabric_Dense.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Fabric/MI_Fabric_Dense.uasset" afterDir="false" />
@@ -95,33 +161,6 @@
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Dark.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Dark.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Dark_Small.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Dark_Small.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Painted_White.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Assets/Models/Materials/Wood/MI_Wood_Painted_White.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/Materials/Emission.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/Materials/Metal.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_PhysicsAsset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/SkeletalMeshes/ceiling_fan_free_Skeleton.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/Textures/ceiling_fan_free_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/Textures/ceiling_fan_free_texture_1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/ceiling_fan_free/Textures/ceiling_fan_free_texture_2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Materials/bottom.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Materials/emission.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Materials/medium.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Materials/topbottom.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Materials/wings.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/SkeletalMeshes/celling_fan_clean.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/SkeletalMeshes/celling_fan_clean_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/SkeletalMeshes/celling_fan_clean_PhysicsAsset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/SkeletalMeshes/celling_fan_clean_Skeleton.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_3.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_4.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_5.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_6.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_7.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/celling_fan_clean/Textures/celling_fan_clean_texture_8.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Materials/Control_Panel.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Materials/Fridge.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Materials/Handles.uasset" beforeDir="false" />
@@ -136,34 +175,51 @@
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Textures/modern_fridge_texture_6.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Textures/modern_fridge_texture_7.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Assets/Models/modern_fridge/Textures/modern_fridge_texture_8.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/Materials/Body.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/Materials/Handles.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/Materials/Text.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/Materials/Trim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/StaticMeshes/retro_fridge.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/retro_fridge/Textures/retro_fridge_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/Materials/Scene_-_Root.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/SkeletalMeshes/simple_ceiling_fan.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/SkeletalMeshes/simple_ceiling_fan_Anim.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/SkeletalMeshes/simple_ceiling_fan_PhysicsAsset.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/SkeletalMeshes/simple_ceiling_fan_Skeleton.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/Textures/simple_ceiling_fan_texture_0.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/Textures/simple_ceiling_fan_texture_1.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/Textures/simple_ceiling_fan_texture_2.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Assets/Models/simple_ceiling_fan/Textures/simple_ceiling_fan_texture_3.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Furnitures.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Materials.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Furnitures/DT_Materials.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_EditModePlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_EditModePlayerController.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_Gizmo.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Blueprints/BP_GizmoT.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Maps/MasterTestMap.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Rot_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_X_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Y_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_Gizmo_Z_Inst.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterGizmo.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterOutline.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/Materials/M_MasterOutline.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/EditMode/UI/WBP_RotationGuide.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/EditMode/UI/WBP_GizmoAngleHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/EditMode/UI/WBP_GizmoAngleHUD.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widgets/Component/WBP_SearchListWidget.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Widgets/Component/WBP_SearchListWidget.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Master/Widgets/ViewMode/WBP_EnvironmentPanel.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Master/Widgets/ViewMode/WBP_EnvironmentPanel.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/Widgets/WBP_Layout.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Widgets/WBP_Layout.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/Widgets/WBP_TopBar.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/InteReal.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/InteReal.sln.DotSettings.user" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanTypes.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanTypes.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furniture/Furniture.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furniture/Furniture.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Furniture/Furniture.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Furniture/Furniture.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Gizmo/InteRealGizmoActor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Gizmo/InteRealGizmoActor.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Gizmo/InteRealGizmoActor.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Gizmo/InteRealGizmoActor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/History/PlacementSerializer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/History/PlacementSerializer.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Managers/GridSpaceManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Placement/FloorPlacementHandler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Placement/FloorPlacementHandler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Placement/FloorPlacementHandler.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Placement/FloorPlacementHandler.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/RotationGuideWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/RotationGuideWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/RotationGuideWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/EditMode/UI/RotationGuideWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessPipelineManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessSaveManagerComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Private/HarnessSaveManagerComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Harness/Public/HarnessPipelineManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Lighting/Controller/EnvController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/SearchListWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/SearchListWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/SearchListWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Components/SearchListWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/Controllers/SearchListControllers.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/Controllers/SearchListControllers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/EditModeLayoutWidget.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/EditModeLayoutWidget.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/EditModeLayoutWidget.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Master/UI/SubWidgets/EditModeLayoutWidget.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/Network/InteRealNetworkSubsystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestData/test3_delta.json" beforeDir="false" afterPath="$PROJECT_DIR$/TestData/test3_delta.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestData/test3_delta_v2.json" beforeDir="false" afterPath="$PROJECT_DIR$/TestData/test3_delta_v2.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestData/test4_delta.json" beforeDir="false" afterPath="$PROJECT_DIR$/TestData/test4_delta.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestData/test4_delta_v4.json" beforeDir="false" afterPath="$PROJECT_DIR$/TestData/test4_delta_v4.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -195,6 +251,8 @@
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanCreator.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanCreator.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewTransform.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewTransform.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/EditMode/Controllers/EditModePlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -211,6 +269,8 @@
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Lighting/UIManager/WeatherUISubsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Lighting/Widget/WeatherWidget.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/Components/InteRealFloorPlanPlacementSyncComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/Components/InteRealFloorPlanPlacementSyncComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/InteRealHUD.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/Master/InteRealPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -230,6 +290,7 @@
     <setting file="file://$PROJECT_DIR$/Source/InteReal/SubSystems/InteRealUISubSystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeData.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeManager.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeWidget.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/InteReal/ViewMode/ViewModeWidget.h" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -432,6 +493,10 @@
       <workItem from="1781659374355" duration="16954000" />
       <workItem from="1781822732646" duration="27771000" />
       <workItem from="1782087743897" duration="1322000" />
+      <workItem from="1782089165178" duration="8452000" />
+      <workItem from="1782112173449" duration="7649000" />
+      <workItem from="1782167853726" duration="446000" />
+      <workItem from="1782172007516" duration="2029000" />
     </task>
     <servers />
   </component>
