@@ -78,6 +78,7 @@ void AViewModeManager::FocusOnBuilding()
 		FVector Center((Min.X + Max.X) / 2.0f, (Min.Y + Max.Y) / 2.0f, 0.0f);
 		TargetLocation = Center;
 
+		//ApplyPanelOffset();
 		CalculateOptimalZoom();
 	}
 }
@@ -217,4 +218,40 @@ void AViewModeManager::FocusOnLocation(FVector WorldLocation)
 {
 	TargetLocation.X = WorldLocation.X;
 	TargetLocation.Y = WorldLocation.Y;
+}
+
+void AViewModeManager::SetFloorPlanPanelOffset(bool bPanelOpen)
+{
+	if (bPanelOpen)
+	{
+		switch (CurrentMode)
+		{
+		case EHarnessViewMode::TopDown:
+			TargetLocation = FVector(-150.f, 1000.f, 1500.f);
+			break;
+
+		case EHarnessViewMode::Isometric:
+			TargetLocation = FVector(-948.f, 1048.f, 1088.f);
+			break;
+
+		case EHarnessViewMode::FirstPerson:
+			break;
+		}
+	}
+	else
+	{
+		switch (CurrentMode)
+		{
+		case EHarnessViewMode::TopDown:
+			TargetLocation = FVector(800.f, 700.f, 1000.f);
+			break;
+
+		case EHarnessViewMode::Isometric:
+			TargetLocation = FVector(-148.f, 1648.f, 1912.f);
+			break;
+
+		case EHarnessViewMode::FirstPerson:
+			break;
+		}
+	}
 }

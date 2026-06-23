@@ -289,8 +289,18 @@ void AInteRealHUD::ShowRotationGuideForInput(float InitialYawDegrees, const FVec
 	// WidgetRadius는 WBP에서 실제 위젯 반경(px)에 맞게 설정
 	const float Radius = RotationGuideInstance->WidgetRadius;
 	const FVector2D TopLeft = GizmoCenterScreenPos - FVector2D(Radius, Radius);
+	RotationGuideInstance->SetAlignmentInViewport(FVector2D::ZeroVector);
+	RotationGuideInstance->SetDesiredSizeInViewport(FVector2D(Radius * 2.0f));
 	RotationGuideInstance->SetPositionInViewport(TopLeft, true);
 	RotationGuideInstance->ShowForRotation(InitialYawDegrees);
+}
+
+void AInteRealHUD::UpdateRotationGuideForInput(float DeltaAngle)
+{
+	if (RotationGuideInstance)
+	{
+		RotationGuideInstance->UpdateRotation(DeltaAngle);
+	}
 }
 
 void AInteRealHUD::ShowMinimap(EInteRealControlMode CurrentMode)

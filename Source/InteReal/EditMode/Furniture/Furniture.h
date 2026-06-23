@@ -8,6 +8,8 @@
 #include "FFurnitureDataRow.h"
 #include "Furniture.generated.h"
 
+class AGridSpaceManager;
+
 UENUM(BlueprintType)
 enum class EPlacementState : uint8
 {
@@ -69,6 +71,7 @@ public:
 
 	FVector2D PlacedGridAnchor = FVector2D::ZeroVector;
 	FVector2D PlacedDimensions = FVector2D::ZeroVector;
+	TArray<FIntPoint> PlacedOccupiedCells;
 
 	// 벽 배치 시 벽 노멀 저장 (기즈모 이동 시 재사용)
 	FVector WallNormalAtPlacement = FVector::ZeroVector;
@@ -113,6 +116,9 @@ public:
 		}
 		return GetMeshBounds();
 	}
+
+	void GetOccupiedGridCells(const AGridSpaceManager* Grid, FVector2D Anchor,
+	                          FVector2D Dimensions, TArray<FIntPoint>& OutCells) const;
 	
 	float GetPivotToBottomOffsetZ() const
 	{

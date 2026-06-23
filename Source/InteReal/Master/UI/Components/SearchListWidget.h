@@ -134,6 +134,7 @@ private:
     UInteRealThemeData* ResolveThemeData();
     void ApplyThemeStyle();
     void HandleListFocused();
+    void RestoreSelectedText();
     void ClearRows();
     void RebuildFilteredItems();
     bool MatchesFilter(const FString& Label) const;

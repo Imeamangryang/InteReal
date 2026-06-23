@@ -4,6 +4,46 @@
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 
+static bool ValidateOccupiedCells(const TArray<FIntPoint>& Cells, AGridSpaceManager* Grid,
+	const AFurniture* Furniture, EPlacementInvalidReason& OutReason)
+{
+	for (const FIntPoint& Cell : Cells)
+	{
+		const FVector2D GridCell(Cell.X, Cell.Y);
+		if (Grid->GetTileState(GridCell) == EGridTileState::None)
+		{
+			OutReason = EPlacementInvalidReason::OutsideFloor;
+			return false;
+		}
+		if (AActor* Occupant = Grid->GetFurniture(GridCell); Occupant && Occupant != Furniture)
+		{
+			OutReason = EPlacementInvalidReason::Overlapping;
+			return false;
+		}
+	}
+	return true;
+}
+
+static void SetOccupiedCells(AGridSpaceManager* Grid, const TArray<FIntPoint>& Cells, AFurniture* Furniture)
+{
+	for (const FIntPoint& Cell : Cells)
+	{
+		Grid->SetFurniture(FVector2D(Cell.X, Cell.Y), Furniture);
+	}
+}
+
+static void ClearOccupiedCells(AGridSpaceManager* Grid, const TArray<FIntPoint>& Cells, const AFurniture* Furniture)
+{
+	for (const FIntPoint& Cell : Cells)
+	{
+		const FVector2D GridCell(Cell.X, Cell.Y);
+		if (Grid->GetFurniture(GridCell) == Furniture)
+		{
+			Grid->SetFurniture(GridCell, nullptr);
+		}
+	}
+}
+
 static bool SegmentIntersectsAABB(FVector2D P1, FVector2D P2, FVector2D BoxMin, FVector2D BoxMax)
 {
 	float TMin = 0.0f;
@@ -109,30 +149,9 @@ void UFloorPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult
 	bool bValid = true;
 	EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
 
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			const FVector2D Cell(AnchorX + i, AnchorY + j);
-			if (Grid->GetTileState(Cell) == EGridTileState::None)
-			{
-				bValid = false;
-				Reason = EPlacementInvalidReason::OutsideFloor;
-				break;
-			}
-			AActor* Occupant = Grid->GetFurniture(Cell);
-			if (Occupant && Occupant != Preview)
-			{
-				bValid = false;
-				Reason = EPlacementInvalidReason::Overlapping;
-				break;
-			}
-		}
-		if (!bValid)
-		{
-			break;
-		}
-	}
+	TArray<FIntPoint> OccupiedCells;
+	Preview->GetOccupiedGridCells(Grid, NewAnchor, Dims, OccupiedCells);
+	bValid = ValidateOccupiedCells(OccupiedCells, Grid, Preview, Reason);
 
 	if (bValid && !IsCornersInsideFloor(Preview))
 	{
@@ -144,29 +163,6 @@ void UFloorPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult
 	{
 		bValid = false;
 		Reason = EPlacementInvalidReason::IntersectsWall;
-	}
-
-	// 배치된 가구와 바운딩박스 겹침 체크
-	if (bValid)
-	{
-		const FBox PreviewBounds = Preview->GetCollisionBounds().ExpandBy(-1.0f);
-		for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
-		{
-			if (!IsValid(Placed) || Placed == Preview)
-			{
-				continue;
-			}
-			if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Floor)
-			{
-				continue;
-			}
-			if (PreviewBounds.Intersect(Placed->GetCollisionBounds()))
-			{
-				bValid = false;
-				Reason = EPlacementInvalidReason::Overlapping;
-				break;
-			}
-		}
 	}
 
 	Subsystem->SetInvalidReason(Reason);
@@ -191,16 +187,8 @@ void UFloorPlacementHandler::OnConfirm(AFurniture* Furniture)
 
 	const FVector2D Anchor = Subsystem->GetPreviewGridAnchor();
 	const FVector2D Dims = Subsystem->GetCurrentDimensions();
-	const int32 L = (int32)Dims.X;
-	const int32 B = (int32)Dims.Y;
-
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			Grid->SetFurniture(FVector2D(Anchor.X + i, Anchor.Y + j), Furniture);
-		}
-	}
+	Furniture->GetOccupiedGridCells(Grid, Anchor, Dims, Furniture->PlacedOccupiedCells);
+	SetOccupiedCells(Grid, Furniture->PlacedOccupiedCells, Furniture);
 
 	Furniture->PlacedGridAnchor = Anchor;
 	Furniture->PlacedDimensions = Dims;
@@ -220,16 +208,8 @@ void UFloorPlacementHandler::OnRemove(AFurniture* Furniture)
 		return;
 	}
 
-	const int32 L = (int32)Furniture->PlacedDimensions.X;
-	const int32 B = (int32)Furniture->PlacedDimensions.Y;
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			Grid->SetFurniture(FVector2D(Furniture->PlacedGridAnchor.X + i, Furniture->PlacedGridAnchor.Y + j),
-			                   nullptr);
-		}
-	}
+	ClearOccupiedCells(Grid, Furniture->PlacedOccupiedCells, Furniture);
+	Furniture->PlacedOccupiedCells.Reset();
 }
 
 // ─────────────────────────────────────────────
@@ -251,20 +231,13 @@ void UFloorPlacementHandler::BeginGizmoMove(AFurniture* Target)
 
 	GizmoDragOriginalAnchor = Target->PlacedGridAnchor;
 	GizmoDragOriginalDimensions = Target->PlacedDimensions;
+	GizmoDragOriginalOccupiedCells = Target->PlacedOccupiedCells;
 	GizmoDragStartLocation = Target->GetActorLocation();
 	GizmoDragStartRotation = Target->GetActorRotation();
 	Subsystem->GetPreviewGridAnchor() = GizmoDragOriginalAnchor;
 
 	// 그리드 셀 비워두기
-	const int32 L = (int32)Target->PlacedDimensions.X;
-	const int32 B = (int32)Target->PlacedDimensions.Y;
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			Grid->SetFurniture(FVector2D(Target->PlacedGridAnchor.X + i, Target->PlacedGridAnchor.Y + j), nullptr);
-		}
-	}
+	ClearOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
 }
 
 void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor, EGizmoTransformAxis Axis)
@@ -319,24 +292,6 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 
 	bool bValid = true;
 	EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
-	for (int32 i = 0; i < L && bValid; i++)
-	{
-		for (int32 j = 0; j < B && bValid; j++)
-		{
-			const FVector2D Cell(AnchorX + i, AnchorY + j);
-			if (Grid->GetTileState(Cell) == EGridTileState::None)
-			{
-				bValid = false;
-				Reason = EPlacementInvalidReason::OutsideFloor;
-			}
-			AActor* Occ = Grid->GetFurniture(Cell);
-			if (Occ && Occ != Target)
-			{
-				bValid = false;
-				Reason = EPlacementInvalidReason::Overlapping;
-			}
-		}
-	}
 
 	const FVector WorldCenter = Grid->ToWorldPosition(
 		FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
@@ -352,6 +307,10 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 		WorldCenter.Y - UpdatedMeshCenter.Y,
 		0.0f));
 
+	TArray<FIntPoint> OccupiedCells;
+	Target->GetOccupiedGridCells(Grid, FVector2D(AnchorX, AnchorY), Dims, OccupiedCells);
+	bValid = ValidateOccupiedCells(OccupiedCells, Grid, Target, Reason);
+
 	if (bValid && !IsCornersInsideFloor(Target))
 	{
 		bValid = false;
@@ -362,12 +321,6 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 	{
 		bValid = false;
 		Reason = EPlacementInvalidReason::IntersectsWall;
-	}
-
-	if (bValid && Subsystem->IsOverlappingPlacedFurniture(Target))
-	{
-		bValid = false;
-		Reason = EPlacementInvalidReason::Overlapping;
 	}
 
 	if (bValid)
@@ -409,28 +362,13 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	}
 
 	const FVector2D NewAnchor = Subsystem->GetPreviewGridAnchor();
-	const int32 L = (int32)Target->PlacedDimensions.X;
-	const int32 B = (int32)Target->PlacedDimensions.Y;
-
 	bool bValid = Subsystem->InvalidReason == EPlacementInvalidReason::None;
-	for (int32 i = 0; i < L && bValid; i++)
-	{
-		for (int32 j = 0; j < B && bValid; j++)
-		{
-			const FVector2D Cell(NewAnchor.X + i, NewAnchor.Y + j);
-			if (Grid->GetTileState(Cell) == EGridTileState::None)
-			{
-				bValid = false;
-			}
-			AActor* Occ = Grid->GetFurniture(Cell);
-			if (Occ && Occ != Target)
-			{
-				bValid = false;
-			}
-		}
-	}
+	TArray<FIntPoint> NewOccupiedCells;
+	Target->GetOccupiedGridCells(Grid, NewAnchor, Target->PlacedDimensions, NewOccupiedCells);
+	EPlacementInvalidReason CellReason = EPlacementInvalidReason::None;
+	bValid = bValid && ValidateOccupiedCells(NewOccupiedCells, Grid, Target, CellReason);
 
-	if (bValid && (!IsCornersInsideFloor(Target) || IntersectsWalls(Target) || Subsystem->IsOverlappingPlacedFurniture(Target)))
+	if (bValid && (!IsCornersInsideFloor(Target) || IntersectsWalls(Target)))
 	{
 		bValid = false;
 	}
@@ -438,29 +376,17 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	if (bValid)
 	{
 		Target->PlacedGridAnchor = NewAnchor;
-		for (int32 i = 0; i < L; i++)
-		{
-			for (int32 j = 0; j < B; j++)
-			{
-				Grid->SetFurniture(FVector2D(NewAnchor.X + i, NewAnchor.Y + j), Target);
-			}
-		}
+		Target->PlacedOccupiedCells = MoveTemp(NewOccupiedCells);
+		SetOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
 	}
 	else
 	{
-		const int32 OL = FMath::Max(1, (int32)GizmoDragOriginalDimensions.X);
-		const int32 OB = FMath::Max(1, (int32)GizmoDragOriginalDimensions.Y);
 		Target->SetActorRotation(GizmoDragStartRotation);
 		Target->SetActorLocation(GizmoDragStartLocation);
 		Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
 		Target->PlacedDimensions = GizmoDragOriginalDimensions;
-		for (int32 i = 0; i < OL; i++)
-		{
-			for (int32 j = 0; j < OB; j++)
-			{
-				Grid->SetFurniture(FVector2D(GizmoDragOriginalAnchor.X + i, GizmoDragOriginalAnchor.Y + j), Target);
-			}
-		}
+		Target->PlacedOccupiedCells = GizmoDragOriginalOccupiedCells;
+		SetOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
 	}
 
 	if (Visualizer)
@@ -484,19 +410,12 @@ void UFloorPlacementHandler::AbortGizmoMove(AFurniture* Target)
 		return;
 	}
 
-	const int32 L = FMath::Max(1, (int32)GizmoDragOriginalDimensions.X);
-	const int32 B = FMath::Max(1, (int32)GizmoDragOriginalDimensions.Y);
 	Target->SetActorRotation(GizmoDragStartRotation);
 	Target->SetActorLocation(GizmoDragStartLocation);
 	Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
 	Target->PlacedDimensions = GizmoDragOriginalDimensions;
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			Grid->SetFurniture(FVector2D(GizmoDragOriginalAnchor.X + i, GizmoDragOriginalAnchor.Y + j), Target);
-		}
-	}
+	Target->PlacedOccupiedCells = GizmoDragOriginalOccupiedCells;
+	SetOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
 
 	if (APlacementVisualizerActor* Visualizer = Subsystem->GetVisualizer())
 	{

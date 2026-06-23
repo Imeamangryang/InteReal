@@ -69,6 +69,8 @@ void UHarnessPipelineManager::SaveCurrentProjectInternal(bool bCreateNewVersion)
 	UInteRealNetworkSubsystem* Network = GI->GetSubsystem<UInteRealNetworkSubsystem>();
 	if (!Network) return;
 
+	bSkipCameraFocusOnNextLoad = true; // 저장 후 뒤이어 발생할 리로드 때 카메라 포커싱 스킵!
+
 	FString DeltaJson = SaveManagerComp->SaveInteriorState();
 	
 	FOnDeltaSaved Delegate;
@@ -95,6 +97,7 @@ void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkRes
 		return;
 	}
 
+	bSkipCameraFocusOnNextLoad = false; // 저장 실패 시 리로드 스킵용 플래그 해제
 	UE_LOG(LogTemp, Error, TEXT("[Harness] PipelineManager: Save failed."));
 }
 

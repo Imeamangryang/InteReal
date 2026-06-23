@@ -25,6 +25,7 @@ class UDynamicMeshComponent;
 class UMeshComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
+class UInteRealFloorPlanPlacementSyncComponent;
 
 UENUM(BlueprintType)
 enum class EInteRealControlMode : uint8
@@ -57,30 +58,10 @@ public:
 
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
-
-	UFUNCTION()
-	void HandleFloorPlan2DFurniturePlacementRequested(FVector2D DocumentPosition);
-
-	UFUNCTION()
-	void HandleFloorPlan2DFurniturePreviewMoved(FVector2D DocumentPosition);
-
-	UFUNCTION()
 	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
-	
-	UFUNCTION()
-	void HandleFloorPlan2DPlacedFurnitureSelected(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
-	
-	UFUNCTION()
-	void HandleFloorPlan2DPlacedFurnitureMoved(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
 
 	UFUNCTION()
-	void HandleFloorPlan2DPlacedFurnitureMoveEnded(int32 FurnitureIndex, FInteReal2DPlacedFurniture Furniture);
-	
-	UFUNCTION()
-	void HandleFloorPlan2DPlacedFurnitureDeleted(int32 FurnitureIndex, FGuid InstanceGuid);
-
-	UFUNCTION()
-	void HandleFloorPlan2DPlacedFurnituresCleared();
+	void HandleFloorPlanPanelOpenChanged(bool bOpen);
 
 	UFUNCTION(BlueprintPure, Category = "InteReal|Mode")
 	EInteRealControlMode GetControlMode() const { return CurrentControlMode; }
@@ -105,6 +86,18 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Surface")
 	void ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial);
+	
+	UFUNCTION(BlueprintPure, Category = "InteReal|FloorPlanSync")
+	AFurniture* GetSelectedFurniture() const { return SelectedFurniture.Get(); }
+
+	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
+	void SelectFurnitureForFloorPlanSync(AFurniture* Furniture);
+
+	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
+	void DeleteFurnitureForFloorPlanSync(AFurniture* Furniture);
+
+	void SnapshotPlacedFurnitureActorsForFloorPlanSync(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const;
+	AFurniture* ResolveConfirmedFurnitureActorForFloorPlanSync(AFurniture* PreviousPreviewFurniture, const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
 	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
@@ -264,6 +257,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|Input")
 	TObjectPtr<UInputAction> IA_SwitchToFirstPerson = nullptr;
 
+	UPROPERTY()
+	TObjectPtr<UInteRealFloorPlanPlacementSyncComponent> FloorPlanPlacementSyncComponent;
+	
 private:
 	// ===== Edit Mode State =====
 	bool bIsHitting = false;
@@ -276,30 +272,12 @@ private:
 	FVector MoveDragOffset = FVector::ZeroVector;
 	bool bIsGizmoRotationWidgetActive = false;
 	
-	void BindFloorPlan2DEvents();
-	void RebuildFloorPlan2DFromPlacedFurniture();
-	void RegisterFloorPlan2DFurnitureActor(const FInteReal2DPlacedFurniture& Furniture2D, AFurniture* FurnitureActor);
-	bool FindFloorPlan2DGuidForFurniture(const AFurniture* FurnitureActor, FGuid& OutInstanceGuid) const;
-	bool RemoveFloorPlan2DForFurniture(AFurniture* FurnitureActor);
-	void SyncFloorPlan2DFromFurniture(AFurniture* FurnitureActor);
-	void SyncFurnitureActorFromFloorPlan2D(const FInteReal2DPlacedFurniture& Furniture2D);
 	void SnapshotPlacedFurnitureActors(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const;
 	AFurniture* ResolveConfirmedFurnitureActor(
 		AFurniture* PreviousPreviewFurniture,
 		const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys
 	) const;
-	bool RegisterLastAddedFloorPlan2DFurnitureActor(
-		UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget,
-		AFurniture* FurnitureActor
-	);
 	void DeleteFurnitureActor(AFurniture* FurnitureActor);
-
-	TMap<FGuid, TWeakObjectPtr<AFurniture>> FloorPlan2DFurnitureActors;
-	bool bIsSyncingFloorPlan2DFrom3D = false;
-	bool bIsSyncingFurniture3DFrom2D = false;
-	bool bIsMovingFurnitureFromFloorPlan2D = false;
-	bool bIsDeletingFurnitureFromFloorPlan2D = false;
-	bool bIsDeletingFurnitureFrom3D = false;
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
@@ -323,4 +301,6 @@ private:
 	// ===== View Mode State =====
 	UPROPERTY()
 	TObjectPtr<AViewModeManager> CachedViewModeManager = nullptr;
+	
+	bool bFloorPlanOffsetInitialized = false;
 };

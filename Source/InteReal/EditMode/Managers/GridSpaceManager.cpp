@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GridSpaceManager.h"
 
@@ -38,7 +38,7 @@ int AGridSpaceManager::GetBreadth()
 	return Breadth;
 }
 
-float AGridSpaceManager::GetCellSize()
+float AGridSpaceManager::GetCellSize() const
 {
 	return CellSize;
 }
@@ -50,7 +50,7 @@ FVector2D AGridSpaceManager::ToGridPosition(FVector WorldPosition)
 	return FVector2D(GridX, GridY);
 }
 
-FVector AGridSpaceManager::ToWorldPosition(FVector2D GridPosition)
+FVector AGridSpaceManager::ToWorldPosition(FVector2D GridPosition) const
 {
 	float WorldX = (GridPosition.X - Length * 0.5f + 0.5f) * CellSize + GridOrigin.X;
 	float WorldY = (GridPosition.Y - Breadth * 0.5f + 0.5f) * CellSize + GridOrigin.Y;

@@ -111,6 +111,8 @@ private:
 	FString CurrentDraggingAxisTag;
 
 	float DragStartAngleDeg = 0.0f;
+	float LastRotationMouseAngleDeg = 0.0f;
+	float AccumulatedRotationDeltaDegrees = 0.0f;
 	FVector2D RotationScreenCenter = FVector2D::ZeroVector;
 	bool bHasRotationScreenCenter = false;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;

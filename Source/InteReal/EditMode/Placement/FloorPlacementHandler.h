@@ -38,6 +38,7 @@ private:
 	// 기즈모 드래그 상태
 	FVector2D GizmoDragOriginalAnchor = FVector2D::ZeroVector;
 	FVector2D GizmoDragOriginalDimensions = FVector2D::ZeroVector;
+	TArray<FIntPoint> GizmoDragOriginalOccupiedCells;
 	FVector GizmoDragStartLocation = FVector::ZeroVector;
 	FRotator GizmoDragStartRotation = FRotator::ZeroRotator;
 };

@@ -449,23 +449,19 @@ bool UInteriorPlacementSubsystem::IsPreviewLotEmpty() const
 		return false;
 	}
 
-	const int32 L = (int32)CurrentDimensions.X;
-	const int32 B = (int32)CurrentDimensions.Y;
-
-	for (int32 i = 0; i < L; i++)
+	TArray<FIntPoint> OccupiedCells;
+	PreviewFurniture->GetOccupiedGridCells(Grid, PreviewGridAnchor, CurrentDimensions, OccupiedCells);
+	for (const FIntPoint& Cell : OccupiedCells)
 	{
-		for (int32 j = 0; j < B; j++)
+		const FVector2D GridCell(Cell.X, Cell.Y);
+		if (Grid->GetTileState(GridCell) == EGridTileState::None)
 		{
-			FVector2D Cell(PreviewGridAnchor.X + i, PreviewGridAnchor.Y + j);
-			if (Grid->GetTileState(Cell) == EGridTileState::None)
-			{
-				return false;
-			}
-			AActor* Existing = Grid->GetFurniture(Cell);
-			if (Existing && Existing != PreviewFurniture)
-			{
-				return false;
-			}
+			return false;
+		}
+		AActor* Existing = Grid->GetFurniture(GridCell);
+		if (Existing && Existing != PreviewFurniture)
+		{
+			return false;
 		}
 	}
 	return true;
@@ -792,22 +788,6 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 	const int32 L = (int32)Dims.X;
 	const int32 B = (int32)Dims.Y;
 
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			FVector2D Cell(GridAnchor.X + i, GridAnchor.Y + j);
-			if (Grid->GetTileState(Cell) == EGridTileState::None)
-			{
-				return;
-			}
-			if (Grid->GetFurniture(Cell))
-			{
-				return;
-			}
-		}
-	}
-
 	FVector World = Grid->ToWorldPosition(FVector2D(
 		(float)GridAnchor.X + ((float)L / 2.0f) - 0.5f,
 		(float)GridAnchor.Y + ((float)B / 2.0f) - 0.5f));
@@ -823,6 +803,16 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 
 	NewFurniture->ApplyFurnitureRow(Row);
 	NewFurniture->AlignPlacementBottomCenterTo(World, FloorZ);
+	NewFurniture->GetOccupiedGridCells(Grid, GridAnchor, Dims, NewFurniture->PlacedOccupiedCells);
+	for (const FIntPoint& Cell : NewFurniture->PlacedOccupiedCells)
+	{
+		const FVector2D GridCell(Cell.X, Cell.Y);
+		if (Grid->GetTileState(GridCell) == EGridTileState::None || Grid->GetFurniture(GridCell))
+		{
+			NewFurniture->Destroy();
+			return;
+		}
+	}
 
 	// 도면 외부/벽 관통 체크는 FloorPlacementHandler의 유효성 검사 함수 재활용
 	UFloorPlacementHandler* FloorHandler = Cast<UFloorPlacementHandler>(PlacementHandlers.Last());
@@ -832,26 +822,9 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 		return;
 	}
 
-	const FBox NewBounds = NewFurniture->GetCollisionBounds().ExpandBy(-1.0f);
-	for (AFurniture* Placed : PlacedFurnitures)
+	for (const FIntPoint& Cell : NewFurniture->PlacedOccupiedCells)
 	{
-		if (!IsValid(Placed))
-		{
-			continue;
-		}
-		if (NewBounds.Intersect(Placed->GetCollisionBounds()))
-		{
-			NewFurniture->Destroy();
-			return;
-		}
-	}
-
-	for (int32 i = 0; i < L; i++)
-	{
-		for (int32 j = 0; j < B; j++)
-		{
-			Grid->SetFurniture(FVector2D(GridAnchor.X + i, GridAnchor.Y + j), NewFurniture);
-		}
+		Grid->SetFurniture(FVector2D(Cell.X, Cell.Y), NewFurniture);
 	}
 
 	NewFurniture->PlacedGridAnchor = GridAnchor;

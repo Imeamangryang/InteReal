@@ -55,7 +55,10 @@ public:
 	// 지정한 월드 위치로 카메라를 부드럽게 이동 (XY만 변경, Z 유지)
 	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
 	void FocusOnLocation(FVector WorldLocation);
-	
+
+	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
+	void SetFloorPlanPanelOffset(bool bPanelOpen);
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "ViewMode|Components")
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -112,4 +115,7 @@ private:
 
 	// Mode Presets
 	void UpdateTargetParameters();
+	
+	FVector BuildingCenter = FVector::ZeroVector;
+	float CurrentPanelWidthRatio = 0.f;
 };

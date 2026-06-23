@@ -33,7 +33,7 @@ public:
 
     /** 서버 주소 */
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")
-    FString ServerUrl = TEXT("http://15.164.49.175:8000");
+    FString ServerUrl = TEXT("http://3.34.1.185:8000");
 
     /** JWT 인증 토큰 */
     UPROPERTY(BlueprintReadWrite, Category = "InteReal|Network")

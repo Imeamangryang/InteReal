@@ -8,6 +8,8 @@ class UButton;
 class USizeBox;
 class UInteReal2DFloorPlanViewportWidget;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFloorPlanPanelOpenChangedSignature, bool, bOpen);
+
 UCLASS(BlueprintType, Blueprintable)
 class INTEREAL_API UEditModeLayoutWidget : public UUserWidget
 {
@@ -69,6 +71,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlan")
 	bool bAutoFitFloorPlanDrawArea = true;
+	
+	UPROPERTY(BlueprintAssignable, Category="InteReal|EditModeLayout")
+	FOnFloorPlanPanelOpenChangedSignature OnFloorPlanPanelOpenChanged;
 
 protected:
 	virtual void NativeConstruct() override;

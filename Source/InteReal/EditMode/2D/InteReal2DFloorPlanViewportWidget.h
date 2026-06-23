@@ -5,31 +5,8 @@
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal2DFloorPlanTypes.h"
+#include "InteReal2DFloorPlanViewTransform.h"
 #include "InteReal2DFloorPlanViewportWidget.generated.h"
-
-USTRUCT(BlueprintType)
-struct FInteReal2DPlacedFurniture
-{
-    GENERATED_BODY()
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    FGuid InstanceGuid;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    int32 FurnitureID = 0;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    FText DisplayName;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    FVector2D CenterDocumentPosition = FVector2D::ZeroVector;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    FVector2D Size = FVector2D::ZeroVector;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
-    float RotationDegrees = 0.0f;
-};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DDrawAreaClickedSignature, FVector2D, LocalPosition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInteReal2DFurniturePlacementRequestedSignature, FVector2D, DocumentPosition);
@@ -66,6 +43,11 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     int32 FindPlacedFurnitureIndexByGuid(const FGuid& InstanceGuid) const;
+    
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool GetPlacedFurnitureByGuid(const FGuid& InstanceGuid, FInteReal2DPlacedFurniture& OutFurniture) const;
+    
+    FInteReal2DFloorPlanViewTransform BuildViewTransform(const FVector2D& LocalSize) const;
 
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     bool SelectPlacedFurnitureByGuid(const FGuid& InstanceGuid);
@@ -106,7 +88,7 @@ public:
     );
     
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
-    void AddPlacedFurnitureAtDocumentPosition(
+    FGuid AddPlacedFurnitureAtDocumentPosition(
         const FFurnitureDataRow& FurnitureRow,
         const FVector2D& CenterDocumentPosition,
         float RotationDegrees

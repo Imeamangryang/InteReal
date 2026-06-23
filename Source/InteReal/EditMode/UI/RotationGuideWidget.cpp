@@ -2,6 +2,25 @@
 #include "Components/TextBlock.h"
 #include "Components/RadialSlider.h"
 
+namespace
+{
+	FText FormatRotationDelta(float DeltaAngle)
+	{
+		const int32 Magnitude = FMath::Min(FMath::RoundToInt(FMath::Abs(DeltaAngle)), 359);
+		if (Magnitude == 0)
+		{
+			return FText::FromString(TEXT("0°"));
+		}
+		
+		if (DeltaAngle < 0.0f)
+		{
+			return FText::FromString(FString::Printf(TEXT("+ %d°"), Magnitude));
+		}
+
+		return FText::FromString(FString::Printf(TEXT("- %d°"), Magnitude));
+	}
+}
+
 void URotationGuideWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -23,8 +42,9 @@ void URotationGuideWidget::ShowForRotation(float InitialYawDegrees)
 
 	if (RS_Angle)
 	{
-		// Yaw (-180 ~ 180) → (0 ~ 1)
-		const float InitialValue = (BaseYawDegrees + 180.0f) / 360.0f;
+		RS_Angle->SetVisibility(ESlateVisibility::Visible);
+		// Map 0..360 degrees directly onto the radial slider's 0..1 range.
+		const float InitialValue = FRotator::ClampAxis(BaseYawDegrees) / 360.0f;
 		RS_Angle->SetValue(InitialValue);
 	}
 
@@ -33,8 +53,8 @@ void URotationGuideWidget::ShowForRotation(float InitialYawDegrees)
 		Txt_Angle->SetText(FText::FromString(TEXT("0°")));
 	}
 
-	// Visible: 클릭/드래그 입력을 받아야 하므로 HitTestInvisible 아님
-	SetVisibility(ESlateVisibility::Visible);
+	// The active gizmo drag owns the mouse; this widget mirrors that drag.
+	SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void URotationGuideWidget::HideGuide()
@@ -44,13 +64,12 @@ void URotationGuideWidget::HideGuide()
 
 void URotationGuideWidget::HandleSliderValueChanged(float Value)
 {
-	const float NewYaw = Value * 360.0f - 180.0f;
+	const float NewYaw = FRotator::NormalizeAxis(Value * 360.0f);
 	const float Delta = FRotator::NormalizeAxis(NewYaw - BaseYawDegrees);
 
 	if (Txt_Angle)
 	{
-		Txt_Angle->SetText(FText::FromString(
-			FString::Printf(TEXT("%d°"), FMath::RoundToInt(FMath::Abs(Delta)))));
+		Txt_Angle->SetText(FormatRotationDelta(Delta));
 	}
 
 	OnRotationChanged.Broadcast(NewYaw);
@@ -59,10 +78,15 @@ void URotationGuideWidget::HandleSliderValueChanged(float Value)
 
 void URotationGuideWidget::UpdateRotation(float DeltaAngle)
 {
+	if (RS_Angle)
+	{
+		const float CurrentAngle = FRotator::ClampAxis(BaseYawDegrees + DeltaAngle);
+		RS_Angle->SetValue(CurrentAngle / 360.0f);
+	}
+
 	if (Txt_Angle)
 	{
-		Txt_Angle->SetText(FText::FromString(
-			FString::Printf(TEXT("%d°"), FMath::RoundToInt(FMath::Abs(DeltaAngle)))));
+		Txt_Angle->SetText(FormatRotationDelta(DeltaAngle));
 	}
 }
 

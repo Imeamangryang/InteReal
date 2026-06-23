@@ -53,3 +53,27 @@ struct FInteReal2DFloorPlanDocument
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D")
 	bool bFlipYForScreenSpace = false;
 };
+
+USTRUCT(BlueprintType)
+struct FInteReal2DPlacedFurniture
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	FGuid InstanceGuid;
+    
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	int32 FurnitureID = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	FText DisplayName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	FVector2D CenterDocumentPosition = FVector2D::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	FVector2D Size = FVector2D::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+	float RotationDegrees = 0.0f;
+};

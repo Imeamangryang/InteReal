@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "MVVMViewModelBase.h"
 #include "InteReal/Network/InteRealDataTypes.h"
 #include "SearchListControllers.generated.h"
 
@@ -9,20 +9,17 @@ class UInteRealPlanViewModel;
 class USearchListWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnProjectControllerItemSelected, const FUnrealProjectItem&, ProjectItem);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlanControllerItemSelected, const FUnrealPlanItem&, PlanItem);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVersionControllerItemSelected, const FUnrealDeltaVersionItem&, VersionItem);
 
-/** 
- * Base controller for handling search list logic, decoupling it from the UI component. 
- */
+/** Base Controller for Search Lists */
 UCLASS(Abstract)
 class INTEREAL_API UInteRealSearchListControllerBase : public UObject
 {
     GENERATED_BODY()
+
 public:
     virtual void InitializeController(UInteRealPlanViewModel* InViewModel, USearchListWidget* InWidget);
     virtual void DeinitializeController();
-    virtual void Refresh() PURE_VIRTUAL(UInteRealSearchListControllerBase::Refresh, );
+    virtual void Refresh() {}
 
 protected:
     UPROPERTY()
@@ -37,10 +34,10 @@ protected:
     virtual void OnSearchStringChanged(const FString& SearchString);
 
     UFUNCTION()
-    virtual void OnItemClicked(int32 ItemId) PURE_VIRTUAL(UInteRealSearchListControllerBase::OnItemClicked, );
+    virtual void OnListFocused();
 
     UFUNCTION()
-    virtual void OnListFocused();
+    virtual void OnItemClicked(int32 ItemId) {}
 
     bool MatchesFilter(const FString& Title) const;
 };
@@ -71,6 +68,8 @@ private:
     void UpdateWidget();
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlanControllerItemSelected, const FUnrealPlanItem&, PlanItem);
+
 /** Controller for Plan Search List */
 UCLASS()
 class INTEREAL_API UInteRealPlanListController : public UInteRealSearchListControllerBase
@@ -99,6 +98,8 @@ private:
     bool bHasLoaded = false;
     void UpdateWidget();
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVersionControllerItemSelected, const FUnrealDeltaVersionItem&, VersionItem);
 
 /** Controller for Version Search List */
 UCLASS()

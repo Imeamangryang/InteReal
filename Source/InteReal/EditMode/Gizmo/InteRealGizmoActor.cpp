@@ -39,23 +39,6 @@ AInteRealGizmoActor::AInteRealGizmoActor()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-static bool IsCollisionOnlyGizmoComponent(const UPrimitiveComponent* Component)
-{
-	if (!Component)
-	{
-		return false;
-	}
-
-	const FString Name = Component->GetName();
-	if (Name.Contains(TEXT("Collision"), ESearchCase::IgnoreCase) ||
-		Name.Contains(TEXT("Hit"), ESearchCase::IgnoreCase))
-	{
-		return true;
-	}
-
-	return false;
-}
-
 FString AInteRealGizmoActor::GetAxisTagFromComponent(const UPrimitiveComponent* Component)
 {
 	if (!Component)
@@ -113,13 +96,6 @@ void AInteRealGizmoActor::InitAxisMaterials()
 
 	for (UMeshComponent* Mesh : Meshes)
 	{
-		if (IsCollisionOnlyGizmoComponent(Mesh))
-		{
-			Mesh->SetVisibility(false, false);
-			Mesh->SetHiddenInGame(true, false);
-			continue;
-		}
-
 		const FString AxisTag = GetAxisTagFromComponent(Mesh);
 		if (AxisTag.IsEmpty()) continue;
 
@@ -168,9 +144,9 @@ void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 				? bIsRotationComponent
 				: !bIsRotationComponent);
 
-		const bool bCollisionOnly = IsCollisionOnlyGizmoComponent(Component);
-		Component->SetVisibility(bShouldShow && !bCollisionOnly, true);
-		Component->SetHiddenInGame(!bShouldShow || bCollisionOnly, true);
+		const bool bIsVisualMesh = Component->IsA<UMeshComponent>();
+		Component->SetVisibility(bIsVisualMesh && bShouldShow, true);
+		Component->SetHiddenInGame(!bIsVisualMesh || !bShouldShow, true);
 		Component->SetCollisionEnabled(bShouldShow ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	}
 }
@@ -188,8 +164,6 @@ void AInteRealGizmoActor::SetAxisOutline(const FString& Axis, bool bEnable)
 
 	const bool bIsMove = Axis.StartsWith(TEXT("Move"));
 	const int32 Stencil = bIsMove ? MoveOutlineStencil : RotateOutlineStencil;
-	UE_LOG(LogTemp, Log, TEXT("[GizmoOutline] axis=%s enabled=%d stencil=%d meshes=%d"),
-		*Axis, bEnable ? 1 : 0, Stencil, Meshes->Num());
 
 	for (UMeshComponent* Mesh : *Meshes)
 	{
@@ -342,6 +316,8 @@ void AInteRealGizmoActor::BeginDrag(const FString& Axis,
 				MousePos.Y - RotationScreenCenter.Y,
 				MousePos.X - RotationScreenCenter.X))
 			: 0.0f;
+		LastRotationMouseAngleDeg = DragStartAngleDeg;
+		AccumulatedRotationDeltaDegrees = 0.0f;
 	}
 	else if (CurrentDraggingAxis == EGizmoTransformAxis::MoveX ||
 	         CurrentDraggingAxis == EGizmoTransformAxis::MoveY ||
@@ -393,36 +369,54 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 				MousePos.X - RotationScreenCenter.X))
 			: (MousePos.X - DragStartMousePos.X) * 0.5f;
 
-		float DeltaAngle = FRotator::NormalizeAxis(CurrentAngle - DragStartAngleDeg) * RotationSensitivity;
+		if (bHasRotationScreenCenter)
+		{
+			const float FrameDelta = FRotator::NormalizeAxis(CurrentAngle - LastRotationMouseAngleDeg);
+			AccumulatedRotationDeltaDegrees += FrameDelta;
+			LastRotationMouseAngleDeg = CurrentAngle;
+		}
+		else
+		{
+			AccumulatedRotationDeltaDegrees =
+				(MousePos.X - DragStartMousePos.X) * 0.5f * RotationSensitivity;
+		}
+
+		float DeltaAngle = AccumulatedRotationDeltaDegrees;
 		if (bSnapRotationToGrid)
 		{
 			DeltaAngle = FMath::GridSnap(DeltaAngle, 15.0f);
 		}
 
+		const float DeltaMagnitude = FMath::Abs(DeltaAngle);
+		const float WrappedMagnitude = FMath::Fmod(DeltaMagnitude, 360.0f);
+		CurrentRotationDeltaDegrees = DeltaAngle < 0.0f ? -WrappedMagnitude : WrappedMagnitude;
+
 		FRotator NewRot = DragStartFurnitureRot;
 		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
 		{
 			const float RawAngle = FRotator::NormalizeAxis(NewRot.Pitch + DeltaAngle);
-			NewRot.Pitch = ApplyCardinalSnap(NewRot.Pitch + DeltaAngle);
-			DeltaAngle = FRotator::NormalizeAxis(NewRot.Pitch - DragStartFurnitureRot.Pitch);
-			SetAxisRotationVisuals(CurrentDraggingAxisTag, DeltaAngle, !FMath::IsNearlyEqual(RawAngle, NewRot.Pitch, 0.01f));
+			NewRot.Pitch = bSnapRotationToGrid
+				? ApplyCardinalSnap(NewRot.Pitch + DeltaAngle)
+				: RawAngle;
+			SetAxisRotationVisuals(CurrentDraggingAxisTag, CurrentRotationDeltaDegrees, !FMath::IsNearlyEqual(RawAngle, NewRot.Pitch, 0.01f));
 		}
 		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 		{
 			const float RawAngle = FRotator::NormalizeAxis(NewRot.Roll - DeltaAngle);
-			NewRot.Roll = ApplyCardinalSnap(NewRot.Roll - DeltaAngle);
-			DeltaAngle = FRotator::NormalizeAxis(DragStartFurnitureRot.Roll - NewRot.Roll);
-			SetAxisRotationVisuals(CurrentDraggingAxisTag, DeltaAngle, !FMath::IsNearlyEqual(RawAngle, NewRot.Roll, 0.01f));
+			NewRot.Roll = bSnapRotationToGrid
+				? ApplyCardinalSnap(NewRot.Roll - DeltaAngle)
+				: RawAngle;
+			SetAxisRotationVisuals(CurrentDraggingAxisTag, CurrentRotationDeltaDegrees, !FMath::IsNearlyEqual(RawAngle, NewRot.Roll, 0.01f));
 		}
 		else
 		{
 			const float RawAngle = FRotator::NormalizeAxis(NewRot.Yaw + DeltaAngle);
-			NewRot.Yaw = ApplyCardinalSnap(NewRot.Yaw + DeltaAngle);
-			DeltaAngle = FRotator::NormalizeAxis(NewRot.Yaw - DragStartFurnitureRot.Yaw);
-			SetAxisRotationVisuals(CurrentDraggingAxisTag, DeltaAngle, !FMath::IsNearlyEqual(RawAngle, NewRot.Yaw, 0.01f));
+			NewRot.Yaw = bSnapRotationToGrid
+				? ApplyCardinalSnap(NewRot.Yaw + DeltaAngle)
+				: RawAngle;
+			SetAxisRotationVisuals(CurrentDraggingAxisTag, CurrentRotationDeltaDegrees, !FMath::IsNearlyEqual(RawAngle, NewRot.Yaw, 0.01f));
 		}
 
-		CurrentRotationDeltaDegrees = DeltaAngle;
 		Target->SetRotationPreservingPlacement(NewRot);
 		return;
 	}
@@ -559,7 +553,7 @@ FBox AInteRealGizmoActor::GetVisibleGizmoBounds() const
 	GetComponents<UMeshComponent>(Meshes);
 	for (const UMeshComponent* Mesh : Meshes)
 	{
-		if (Mesh && Mesh->IsVisible() && !IsCollisionOnlyGizmoComponent(Mesh))
+		if (Mesh && Mesh->IsVisible())
 		{
 			Bounds += Mesh->Bounds.GetBox();
 		}

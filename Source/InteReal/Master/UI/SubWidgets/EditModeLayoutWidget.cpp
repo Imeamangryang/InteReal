@@ -81,6 +81,8 @@ void UEditModeLayoutWidget::SetFloorPlanPanelOpen(bool bOpen)
 
 	BP_OnFloorPlanPanelOpenChanged(bIsFloorPlanPanelOpen);
 	ApplyLayout();
+	
+	OnFloorPlanPanelOpenChanged.Broadcast(bIsFloorPlanPanelOpen);
 }
 
 void UEditModeLayoutWidget::ToggleFloorPlanPanel()

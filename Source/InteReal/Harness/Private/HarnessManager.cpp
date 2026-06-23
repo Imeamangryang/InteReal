@@ -69,15 +69,29 @@ void AHarnessManager::DelayedCapture()
 	}
 
     // 2. 뷰모드 초기화 (ISO 뷰로 강제 고정)
-    EHarnessViewMode ModeToApply = EHarnessViewMode::Isometric;
-    for (TActorIterator<AViewModeManager> It(GetWorld()); It; ++It)
+    bool bShouldResetCamera = true;
+    if (auto* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
     {
-        (*It)->SetViewMode(ModeToApply);
-        (*It)->FocusOnBuilding();
-        (*It)->SnapToTarget();
+        if (Pipeline->bSkipCameraFocusOnNextLoad)
+        {
+            bShouldResetCamera = false;
+            Pipeline->bSkipCameraFocusOnNextLoad = false; // 소모(Reset)
+            UE_LOG(LogTemp, Log, TEXT("[Harness] AHarnessManager: bSkipCameraFocusOnNextLoad is TRUE. Skipping camera focus/viewmode reset."));
+        }
     }
 
-	if (ViewPC) ViewPC->SetViewMode(ModeToApply);
+    if (bShouldResetCamera)
+    {
+        EHarnessViewMode ModeToApply = EHarnessViewMode::Isometric;
+        for (TActorIterator<AViewModeManager> It(GetWorld()); It; ++It)
+        {
+            (*It)->SetViewMode(ModeToApply);
+            (*It)->FocusOnBuilding();
+            (*It)->SnapToTarget();
+        }
+
+        if (ViewPC) ViewPC->SetViewMode(ModeToApply);
+    }
 
     // 3. 미니맵 캡처
     if (CaptureComponent)

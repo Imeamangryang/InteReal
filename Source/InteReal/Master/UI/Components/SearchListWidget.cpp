@@ -77,6 +77,7 @@ void USearchListWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
     else if (bIsResultsVisible && !bIsInputFocused && !bIsResultsHovered)
     {
         SetResultsVisible(false);
+        RestoreSelectedText();
     }
 
     bWasInputFocused = bIsInputFocused;
@@ -145,6 +146,7 @@ void USearchListWidget::SetResultsVisible(bool bVisible)
 void USearchListWidget::NotifyItemClicked(int32 ItemId)
 {
     OnItemClicked.Broadcast(ItemId);
+    SetResultsVisible(false);
 }
 
 void USearchListWidget::HandleSearchTextChanged(const FText& Text)
@@ -161,6 +163,15 @@ void USearchListWidget::HandleSearchTextChanged(const FText& Text)
 
 void USearchListWidget::HandleListFocused()
 {
+    if (EditText_Search && !EditText_Search->GetText().IsEmpty())
+    {
+        bSuppressSearchTextChanged = true;
+        EditText_Search->SetText(FText::GetEmpty());
+        bSuppressSearchTextChanged = false;
+        
+        OnSearchStringChanged.Broadcast(TEXT(""));
+    }
+
     const bool bWasVisible = bIsResultsVisible;
     SetResultsVisible(true);
     RebuildFilteredItems();
@@ -169,6 +180,26 @@ void USearchListWidget::HandleListFocused()
     {
         OnListFocused.Broadcast();
     }
+}
+
+void USearchListWidget::RestoreSelectedText()
+{
+    if (!EditText_Search) return;
+
+    for (const FSearchListEntry& Entry : Items)
+    {
+        if (Entry.bIsSelected)
+        {
+            bSuppressSearchTextChanged = true;
+            EditText_Search->SetText(FText::FromString(Entry.Label));
+            bSuppressSearchTextChanged = false;
+            return;
+        }
+    }
+
+    bSuppressSearchTextChanged = true;
+    EditText_Search->SetText(FText::GetEmpty());
+    bSuppressSearchTextChanged = false;
 }
 
 void USearchListWidget::ClearRows()

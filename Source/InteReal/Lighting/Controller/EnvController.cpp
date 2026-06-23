@@ -1,4 +1,4 @@
-#include "EnvController.h"
+﻿#include "EnvController.h"
 
 #include "InteReal/Lighting/UIManager/WeatherUISubsystem.h"
 #include "InteReal/Struct/LightingDataStruct.h"
@@ -72,6 +72,20 @@ void AEnvController::BeginPlay()
     // 1초마다 건물 영역을 확인하여 나이아가라 파라미터를 갱신합니다.
     GetWorldTimerManager().SetTimer(BuildingScanTimer, this, &AEnvController::UpdateBuildingMask, 1.0f, true);
     
+    if (SunLight)
+    {
+        // 1. 반사광 배율을 0으로 설정 (Specular Scale)
+        SunLight->SetSpecularScale(0.0f);
+
+        // 2. 그림자 기울기 편향을 0으로 설정 (Shadow Slope Bias)
+        SunLight->SetShadowSlopeBias(0.0f);
+
+        // 3. 미세한 틈새의 빛샘 방지를 위해 컨택트 섀도 적용 (Contact Shadow Length)
+        SunLight->ContactShadowLength = 0.08f;
+
+        // 4. 그림자 시작 지점을 물체에 더 가깝게 당김 (Shadow Bias)
+        SunLight->SetShadowBias(0.1f);
+    }
 }
 
 void AEnvController::Tick(float DeltaTime)
@@ -233,6 +247,9 @@ void AEnvController::TriggerRandomLightning()
             PL->SetIntensity(100000.0f);        // 광량 대폭 상향
             PL->SetLightColor(FLinearColor(0.8f, 0.9f, 1.0f)); // 푸른빛이 섞인 흰색
             PL->SetVisibility(true);
+            
+            PL->SetSpecularScale(0.0f);
+            PL->SetShadowSlopeBias(0.0f);
         }
 
         // 0.1 ~ 0.2초 사이의 랜덤한 시간으로 설정

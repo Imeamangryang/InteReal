@@ -194,14 +194,11 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 
 		if (SurfaceType == EPlacementSurfaceType::Floor && Grid)
 		{
-			const int32 L = (int32)NewFurniture->PlacedDimensions.X;
-			const int32 B = (int32)NewFurniture->PlacedDimensions.Y;
-			for (int32 i = 0; i < L; i++)
+			NewFurniture->GetOccupiedGridCells(Grid, NewFurniture->PlacedGridAnchor,
+				NewFurniture->PlacedDimensions, NewFurniture->PlacedOccupiedCells);
+			for (const FIntPoint& Cell : NewFurniture->PlacedOccupiedCells)
 			{
-				for (int32 j = 0; j < B; j++)
-				{
-					Grid->SetFurniture(FVector2D(GridX + i, GridY + j), NewFurniture);
-				}
+				Grid->SetFurniture(FVector2D(Cell.X, Cell.Y), NewFurniture);
 			}
 		}
 

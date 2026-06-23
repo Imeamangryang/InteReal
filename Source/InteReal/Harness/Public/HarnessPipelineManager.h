@@ -73,6 +73,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Harness|Pipeline")
 	FOnPipelineSaveFinished OnPipelineSaveFinished;
 
+	UPROPERTY(BlueprintReadWrite, Category="Harness|Pipeline")
+	bool bSkipCameraFocusOnNextLoad = false;
+
 private:
 	UFUNCTION()
 	void HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response);

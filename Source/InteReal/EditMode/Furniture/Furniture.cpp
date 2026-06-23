@@ -2,6 +2,7 @@
 #include "Engine/PostProcessVolume.h"
 #include "EngineUtils.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "InteReal/EditMode/Managers/GridSpaceManager.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
 {
@@ -178,6 +179,59 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 	}
 
 	SetPlacementState(EPlacementState::Preview);
+}
+
+void AFurniture::GetOccupiedGridCells(const AGridSpaceManager* Grid, FVector2D Anchor,
+	FVector2D Dimensions, TArray<FIntPoint>& OutCells) const
+{
+	OutCells.Reset();
+	if (!Grid)
+	{
+		return;
+	}
+
+	const int32 L = FMath::Max(1, FMath::RoundToInt(Dimensions.X));
+	const int32 B = FMath::Max(1, FMath::RoundToInt(Dimensions.Y));
+	const UStaticMesh* StaticMesh = MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	const UBodySetup* BodySetup = StaticMesh ? StaticMesh->GetBodySetup() : nullptr;
+	const bool bHasSimpleCollision = BodySetup && BodySetup->AggGeom.GetElementCount() > 0;
+	const float CellHalfExtent = Grid->GetCellSize() * 0.48f;
+	const FBox Bounds = GetPlacementGeometryBounds();
+	const float HalfHeight = FMath::Max(1.0f, Bounds.GetExtent().Z - 1.0f);
+
+	for (int32 X = 0; X < L; ++X)
+	{
+		for (int32 Y = 0; Y < B; ++Y)
+		{
+			const FIntPoint Cell(FMath::RoundToInt(Anchor.X) + X, FMath::RoundToInt(Anchor.Y) + Y);
+			bool bOccupied = true;
+			if (bHasSimpleCollision && MeshComponent)
+			{
+				FVector CellCenter = Grid->ToWorldPosition(FVector2D(Cell.X, Cell.Y));
+				CellCenter.Z = Bounds.GetCenter().Z;
+				bOccupied = MeshComponent->OverlapComponent(
+					CellCenter, FQuat::Identity,
+					FCollisionShape::MakeBox(FVector(CellHalfExtent, CellHalfExtent, HalfHeight)));
+			}
+
+			if (bOccupied)
+			{
+				OutCells.Add(Cell);
+			}
+		}
+	}
+
+	// A missing physics body must not make furniture occupy no cells at all.
+	if (OutCells.IsEmpty())
+	{
+		for (int32 X = 0; X < L; ++X)
+		{
+			for (int32 Y = 0; Y < B; ++Y)
+			{
+				OutCells.Emplace(FMath::RoundToInt(Anchor.X) + X, FMath::RoundToInt(Anchor.Y) + Y);
+			}
+		}
+	}
 }
 
 void AFurniture::AlignMeshBottomToZ(float SurfaceZ)

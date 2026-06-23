@@ -29,7 +29,8 @@ namespace
 			TEXT("WallSurface_"),
 			TEXT("WallExterior_"),
 			TEXT("FloorFace_"),
-			TEXT("WallEdge_")
+			TEXT("WallEdge_"),
+			TEXT("WallCore_")
 		};
 
 		for (const TCHAR* Prefix : PreferredPrefixes)
@@ -39,6 +40,10 @@ namespace
 				const FString TagStr = Tag.ToString();
 				if (TagStr.StartsWith(Prefix))
 				{
+					if (TagStr == TEXT("WallCore_Left") || TagStr == TEXT("WallCore_Right"))
+					{
+						continue;
+					}
 					return TagStr;
 				}
 			}
@@ -105,20 +110,17 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 				HarnessOwner->GetComponents<UMeshComponent>(MeshComps);
 				for (UMeshComponent* MeshComp : MeshComps)
 				{
-					if (MeshComp->ComponentHasTag(TEXT("EditableWall")) || MeshComp->ComponentHasTag(TEXT("EditableFloor")))
+					const FString SurfaceID = FindHarnessSurfaceId(MeshComp);
+					if (!SurfaceID.IsEmpty())
 					{
 						UMaterialInterface* Mat = MeshComp->GetMaterial(0);
 						if (Mat)
 						{
-							const FString SurfaceID = FindHarnessSurfaceId(MeshComp);
-							if (!SurfaceID.IsEmpty())
-							{
-								FSurfaceMaterialDelta MatDelta;
-								MatDelta.SurfaceID = SurfaceID;
-								MatDelta.MaterialPath = Mat->GetPathName();
-								DeltaList.SurfaceMaterials.Add(MatDelta);
-								SurfaceCount++;
-							}
+							FSurfaceMaterialDelta MatDelta;
+							MatDelta.SurfaceID = SurfaceID;
+							MatDelta.MaterialPath = Mat->GetPathName();
+							DeltaList.SurfaceMaterials.Add(MatDelta);
+							SurfaceCount++;
 						}
 					}
 				}
