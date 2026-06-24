@@ -76,9 +76,6 @@ private:
 	void HandlePlantCategoryClicked();
 
 	UFUNCTION()
-	void HandleRugCategoryClicked();
-
-	UFUNCTION()
 	void HandleShelfCategoryClicked();
 
 	bool DoesItemMatchFilter(const UFurnitureItemWidget* ItemWidget) const;
@@ -136,10 +133,7 @@ private:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UButton> Button_Plant = nullptr;
-
-	UPROPERTY(meta = (BindWidgetOptional))
-	TObjectPtr<UButton> Button_Rug = nullptr;
-
+	
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UButton> Button_Shelf = nullptr;
 

@@ -207,14 +207,7 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
         PreviewFurniture.Size = PendingFurnitureSize;
         PreviewFurniture.RotationDegrees = PreviewFurnitureRotationDegrees;
 
-        DrawFurnitureRect(
-            OutDrawElements,
-            AllottedGeometry,
-            LayerId,
-            PreviewFurniture,
-            FurniturePreviewFillColor,
-            FurniturePreviewOutlineColor
-        );
+        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, PreviewFurniture, bIsFurniturePreviewPlacementValid ? FurniturePreviewFillColor : InvalidFurniturePreviewFillColor, bIsFurniturePreviewPlacementValid ? FurniturePreviewOutlineColor : InvalidFurniturePreviewOutlineColor);
 
         LayerId += 2;
     }
@@ -503,6 +496,7 @@ void UInteReal2DFloorPlanViewportWidget::StartFurniturePlacement(const FFurnitur
 
     bIsPlacingFurniture2D = true;
     bHasFurniturePreviewPosition = false;
+    bIsFurniturePreviewPlacementValid = true;
     PreviewFurnitureRotationDegrees = 0.0f;
 
     Invalidate(EInvalidateWidgetReason::Paint);
@@ -512,6 +506,7 @@ void UInteReal2DFloorPlanViewportWidget::CancelFurniturePlacement()
 {
     bIsPlacingFurniture2D = false;
     bHasFurniturePreviewPosition = false;
+    bIsFurniturePreviewPlacementValid = true;
     PendingFurnitureRow = FFurnitureDataRow();
     PendingFurnitureSize = FVector2D::ZeroVector;
     PreviewFurnitureRotationDegrees = 0.0f;
@@ -903,4 +898,10 @@ bool UInteReal2DFloorPlanViewportWidget::IsDocumentPointInsideFurniture(
 
     return FMath::Abs(LocalPoint.X) <= HalfSize.X &&
         FMath::Abs(LocalPoint.Y) <= HalfSize.Y;
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewPlacementValid(bool bPlacementValid)
+{
+    bIsFurniturePreviewPlacementValid = bPlacementValid;
+    Invalidate(EInvalidateWidgetReason::Paint);
 }

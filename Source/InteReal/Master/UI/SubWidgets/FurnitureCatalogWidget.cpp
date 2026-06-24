@@ -90,12 +90,6 @@ void UFurnitureCatalogWidget::NativeConstruct()
 		Button_Plant->OnClicked.AddDynamic(this, &UFurnitureCatalogWidget::HandlePlantCategoryClicked);
 	}
 
-	if (Button_Rug)
-	{
-		Button_Rug->OnClicked.RemoveDynamic(this, &UFurnitureCatalogWidget::HandleRugCategoryClicked);
-		Button_Rug->OnClicked.AddDynamic(this, &UFurnitureCatalogWidget::HandleRugCategoryClicked);
-	}
-
 	if (Button_Shelf)
 	{
 		Button_Shelf->OnClicked.RemoveDynamic(this, &UFurnitureCatalogWidget::HandleShelfCategoryClicked);
@@ -235,11 +229,6 @@ void UFurnitureCatalogWidget::HandlePlantCategoryClicked()
 	SetCategoryFilter(EFurnitureAssetCategory::Plant);
 }
 
-void UFurnitureCatalogWidget::HandleRugCategoryClicked()
-{
-	SetCategoryFilter(EFurnitureAssetCategory::Rug);
-}
-
 void UFurnitureCatalogWidget::HandleShelfCategoryClicked()
 {
 	SetCategoryFilter(EFurnitureAssetCategory::Shelf);
@@ -314,8 +303,8 @@ FButtonStyle UFurnitureCatalogWidget::MakeCategoryButtonStyle(bool bSelected) co
 	ButtonStyle.SetHovered(Brush);
 	ButtonStyle.SetPressed(Brush);
 	ButtonStyle.SetDisabled(Brush);
-	ButtonStyle.NormalPadding = FMargin(5.0f, 0.0f, 5.0f, 0.0f);
-	ButtonStyle.PressedPadding = FMargin(5.0f, 0.0f, 5.0f, 0.0f);
+	ButtonStyle.NormalPadding = FMargin(12.0f, 1.5f, 12.0f, 1.5f);
+	ButtonStyle.PressedPadding = FMargin(12.0f, 1.5f, 12.0f, 1.5f);
 
 	return ButtonStyle;
 }
@@ -365,6 +354,5 @@ void UFurnitureCatalogWidget::RefreshCategoryButtonStyles()
 	ApplyCategoryButtonStyle(Button_Decor, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Decor);
 	ApplyCategoryButtonStyle(Button_Mirror, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Mirror);
 	ApplyCategoryButtonStyle(Button_Plant, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Plant);
-	ApplyCategoryButtonStyle(Button_Rug, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Rug);
 	ApplyCategoryButtonStyle(Button_Shelf, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Shelf);
 }

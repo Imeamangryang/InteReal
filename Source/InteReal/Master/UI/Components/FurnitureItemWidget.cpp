@@ -53,7 +53,7 @@ void UFurnitureItemWidget::HandleDisplayButtonClicked()
 		{
 			UISubsystem->NotifyFurnitureSpawn(FurnitureData);
 		}
-	}
+	} 
 }
 
 FText UFurnitureItemWidget::MakeSizeText(const TCHAR* Prefix, float Value) const

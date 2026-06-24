@@ -58,6 +58,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Harness|Camera")
 	void SetFloorPlanPanelOffset(bool bPanelOpen);
+	
+	FVector GetBuildingCenter() const;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "ViewMode|Components")

@@ -228,36 +228,62 @@ void AViewModeManager::FocusOnLocation(FVector WorldLocation)
 
 void AViewModeManager::SetFloorPlanPanelOffset(bool bPanelOpen)
 {
-	if (bPanelOpen)
+	const FVector Center = GetBuildingCenter();
+
+	switch (CurrentMode)
 	{
-		switch (CurrentMode)
+	case EHarnessViewMode::TopDown:
 		{
-		case EHarnessViewMode::TopDown:
-			TargetLocation = FVector(-150.f, 1000.f, 1500.f);
-			break;
+			const FVector BaseOffset = FVector(0.f, 0.f, 500.f);
+			const FVector PanelOpenOffsetDelta = FVector(-1500.f, 700.f, 1500.f);
 
-		case EHarnessViewMode::Isometric:
-			TargetLocation = FVector(-948.f, 1048.f, 1088.f);
-			break;
+			TargetLocation = Center + BaseOffset;
 
-		case EHarnessViewMode::FirstPerson:
+			if (bPanelOpen)
+			{
+				TargetLocation += PanelOpenOffsetDelta;
+			}
+
 			break;
 		}
-	}
-	else
-	{
-		switch (CurrentMode)
+
+	case EHarnessViewMode::Isometric:
 		{
-		case EHarnessViewMode::TopDown:
-			TargetLocation = FVector(800.f, 700.f, 2000.f);
-			break;
+			const FVector BaseOffset = FVector(-1200.f, 1400.f, 1500.f);
+			const FVector PanelOpenOffsetDelta = FVector(-1500.f, -1500.f, 0.f);
 
-		case EHarnessViewMode::Isometric:
-			TargetLocation = FVector(-148.f, 1648.f, 1912.f);
-			break;
+			TargetLocation = Center + BaseOffset;
 
-		case EHarnessViewMode::FirstPerson:
+			if (bPanelOpen)
+			{
+				TargetLocation += PanelOpenOffsetDelta;
+			}
+
 			break;
 		}
+
+	case EHarnessViewMode::FirstPerson:
+		break;
 	}
+}
+
+FVector AViewModeManager::GetBuildingCenter() const
+{
+	UHarnessGeneratorComponent* GenComp = nullptr;
+
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		GenComp = PipelineManager->GetGeneratorComp();
+	}
+
+	if (!GenComp)
+	{
+		return FVector::ZeroVector;
+	}
+
+	FVector2D Min;
+	FVector2D Max;
+	GenComp->GetFloorBounds(Min, Max);
+
+	return FVector((Min.X + Max.X) * 0.5f, (Min.Y + Max.Y) * 0.5f, 0.0f);
 }

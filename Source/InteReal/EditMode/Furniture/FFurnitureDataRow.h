@@ -44,7 +44,6 @@ enum class EFurnitureAssetCategory : uint8
 	Decor UMETA(DisplayName = "장식/소품"),
 	Mirror UMETA(DisplayName = "거울"),
 	Plant UMETA(DisplayName = "식물"),
-	Rug UMETA(DisplayName = "러그"),
 	Shelf UMETA(DisplayName = "선반/책장"),
 };
 

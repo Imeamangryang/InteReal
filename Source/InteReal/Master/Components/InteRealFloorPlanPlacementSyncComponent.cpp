@@ -277,6 +277,7 @@ void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DFurniturePreview
 	if (FloorPlan2DWidget)
 	{
 		FloorPlan2DWidget->SetFurniturePreviewAtDocumentPosition(FVector2D(SnappedWorldLocation.X, SnappedWorldLocation.Y), SnappedYaw);
+		FloorPlan2DWidget->SetFurniturePreviewPlacementValid(PS->InvalidReason == EPlacementInvalidReason::None);
 	}
 }
 
@@ -644,7 +645,9 @@ void UInteRealFloorPlanPlacementSyncComponent::SetFloorPlan2DPreviewFromFurnitur
 
 	const FVector PreviewLocation = PreviewFurniture->GetMeshBounds().GetCenter();
 
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
 	FloorPlan2DWidget->SetFurniturePreviewAtDocumentPosition(FVector2D(PreviewLocation.X, PreviewLocation.Y), PreviewFurniture->GetActorRotation().Yaw);
+	FloorPlan2DWidget->SetFurniturePreviewPlacementValid(!PS || PS->InvalidReason == EPlacementInvalidReason::None);
 }
 
 void UInteRealFloorPlanPlacementSyncComponent::SyncPreview2DFromActivePreview()

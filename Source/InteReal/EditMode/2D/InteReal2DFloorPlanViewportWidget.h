@@ -101,6 +101,9 @@ public:
         float RotationDegrees
     );
     
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    void SetFurniturePreviewPlacementValid(bool bPlacementValid);
+    
     
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Input")
     FInteReal2DDrawAreaClickedSignature OnDrawAreaClicked;
@@ -199,6 +202,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     FLinearColor FurniturePreviewOutlineColor = FLinearColor(0.0f, 0.55f, 1.0f, 1.0f);
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor InvalidFurniturePreviewFillColor = FLinearColor(1.0f, 0.0f, 0.0f, 0.18f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor InvalidFurniturePreviewOutlineColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture", meta=(ClampMin="0.0", UIMin="0.0"))
     float FurnitureOutlineThickness = 2.0f;
 
@@ -294,6 +303,7 @@ private:
     FVector2D PreviewFurnitureCenterDocument = FVector2D::ZeroVector;
     float PreviewFurnitureRotationDegrees = 0.0f;
     bool bHasFurniturePreviewPosition = false;
+    bool bIsFurniturePreviewPlacementValid = true;
     
     bool bIsDraggingSelectedFurniture2D = false;
     int32 DraggingFurnitureIndex2D = INDEX_NONE;
