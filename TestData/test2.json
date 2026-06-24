@@ -1,2184 +1,863 @@
 ﻿{
-  "faces": [
+  "schema_version": "3.1",
+  "unit": "mm",
+  "coordinate_system": {
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "rotation_degrees": 0
+  },
+  "plan": {
+    "id": 2,
+    "version": 1,
+    "name": "Korean_Apt_84m2_4Bay"
+  },
+  "levels": [
     {
-      "label": "嫄곗떎",
-      "face_id": "room_1781677182860",
-      "contour_vertex_ids": [
-        "v47",
-        "v20",
-        "v46",
-        "v15",
-        "v14"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "label": "二쇰갑",
-      "face_id": "room_1781677206227",
-      "contour_vertex_ids": [
-        "v0",
-        "v29",
-        "v48",
-        "v49",
-        "v15",
-        "v31"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "label": "?꾧? 蹂듬룄",
-      "face_id": "room_1781677237866",
-      "contour_vertex_ids": [
-        "v5",
-        "v8",
-        "v9",
-        "v32",
-        "v26",
-        "v50",
-        "v29",
-        "v7"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "label": "移⑥떎",
-      "face_id": "room_1781677268641",
-      "contour_vertex_ids": [
-        "v41",
-        "v20",
-        "v13",
-        "v10"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "label": "?쒕젅?ㅻ８",
-      "face_id": "room_1781677283897",
-      "contour_vertex_ids": [
-        "v10",
-        "v13",
-        "v40",
-        "v38"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "label": "?붿옣??",
-      "face_id": "room_1781677298812",
-      "contour_vertex_ids": [
-        "v2",
-        "v40",
-        "v6",
-        "v3"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
+      "id": "level_1",
+      "name": "1F",
+      "elevation": 0,
+      "default_height": 2400
     }
   ],
-  "metadata": {
-    "coordinateSystem": {
-      "flipX": false,
-      "flipY": true,
-      "swapXY": false,
-      "target": "unreal",
-      "scaleCmPerPx": 1,
-      "sourceOrigin": "top-left",
-      "targetOrigin": "top-left",
-      "targetUpAxis": "Z",
-      "transformOrder": [
-        "source_image_coordinates",
-        "origin_shift",
-        "y_axis_flip",
-        "x_axis_flip",
-        "xy_axis_swap",
-        "scale_to_cm"
-      ],
-      "coordinatePolicy": "ue_z_up_y_negative",
-      "sourceYDirection": "down",
-      "imageXToUnrealAxis": "X",
-      "imageYToUnrealAxis": "-Y"
+  "walls": [
+    {
+      "id": "wall_1",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 4000
+        },
+        {
+          "x": 10000,
+          "y": 4000
+        }
+      ]
     },
-    "sourceImageWidth": 923,
-    "sourceImageHeight": 676
-  },
+    {
+      "id": "wall_2",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 0,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_3",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_4",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 4000
+        },
+        {
+          "x": 10000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_5",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 8000
+        },
+        {
+          "x": 12000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_6",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 6000
+        },
+        {
+          "x": 12000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_7",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 12000,
+          "y": 4000
+        },
+        {
+          "x": 14000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_8",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 6000
+        },
+        {
+          "x": 10000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_9",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 4000
+        },
+        {
+          "x": 6000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_10",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 3000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_11",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 0
+        },
+        {
+          "x": 6000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_12",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 12000,
+          "y": 4000
+        },
+        {
+          "x": 12000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_13",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 6000
+        },
+        {
+          "x": 0,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_14",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 0
+        },
+        {
+          "x": 12000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_15",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 0
+        },
+        {
+          "x": 3000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_16",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 8000
+        },
+        {
+          "x": 3000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_17",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 8000
+        },
+        {
+          "x": 10000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_18",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 12000,
+          "y": 0
+        },
+        {
+          "x": 14000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_19",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 6000
+        },
+        {
+          "x": 3000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_20",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 4000
+        },
+        {
+          "x": 3000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_21",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 0
+        },
+        {
+          "x": 6000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_22",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 3000,
+          "y": 8000
+        },
+        {
+          "x": 6000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "wall_23",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_24",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 6000
+        },
+        {
+          "x": 3000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_25",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 14000,
+          "y": 0
+        },
+        {
+          "x": 14000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_26",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_27",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 3000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_28",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 4000
+        },
+        {
+          "x": 12000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_29",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 12000,
+          "y": 6000
+        },
+        {
+          "x": 12000,
+          "y": 8000
+        }
+      ]
+    }
+  ],
+  "spaces": [
+    {
+      "id": "bed3",
+      "level_id": "level_1",
+      "kind": "bedroom",
+      "name": "침실3",
+      "boundary": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 3000,
+          "y": 0
+        },
+        {
+          "x": 3000,
+          "y": 4000
+        },
+        {
+          "x": 0,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "bed2",
+      "level_id": "level_1",
+      "kind": "bedroom",
+      "name": "침실2",
+      "boundary": [
+        {
+          "x": 3000,
+          "y": 0
+        },
+        {
+          "x": 6000,
+          "y": 0
+        },
+        {
+          "x": 6000,
+          "y": 4000
+        },
+        {
+          "x": 3000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "living",
+      "level_id": "level_1",
+      "kind": "living_room",
+      "name": "거실",
+      "boundary": [
+        {
+          "x": 6000,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 4000
+        },
+        {
+          "x": 6000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "bed1",
+      "level_id": "level_1",
+      "kind": "bedroom",
+      "name": "안방",
+      "boundary": [
+        {
+          "x": 10000,
+          "y": 0
+        },
+        {
+          "x": 14000,
+          "y": 0
+        },
+        {
+          "x": 14000,
+          "y": 4000
+        },
+        {
+          "x": 10000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "level_id": "level_1",
+      "kind": "kitchen",
+      "name": "주방",
+      "boundary": [
+        {
+          "x": 3000,
+          "y": 4000
+        },
+        {
+          "x": 10000,
+          "y": 4000
+        },
+        {
+          "x": 10000,
+          "y": 8000
+        },
+        {
+          "x": 3000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "bath2",
+      "level_id": "level_1",
+      "kind": "bathroom",
+      "name": "공용욕실",
+      "boundary": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 3000,
+          "y": 4000
+        },
+        {
+          "x": 3000,
+          "y": 6000
+        },
+        {
+          "x": 0,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "entrance",
+      "level_id": "level_1",
+      "kind": "entrance",
+      "name": "현관",
+      "boundary": [
+        {
+          "x": 0,
+          "y": 6000
+        },
+        {
+          "x": 3000,
+          "y": 6000
+        },
+        {
+          "x": 3000,
+          "y": 8000
+        },
+        {
+          "x": 0,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "id": "bath1",
+      "level_id": "level_1",
+      "kind": "bathroom",
+      "name": "안방욕실",
+      "boundary": [
+        {
+          "x": 10000,
+          "y": 4000
+        },
+        {
+          "x": 12000,
+          "y": 4000
+        },
+        {
+          "x": 12000,
+          "y": 6000
+        },
+        {
+          "x": 10000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "dress",
+      "level_id": "level_1",
+      "kind": "closet",
+      "name": "드레스룸",
+      "boundary": [
+        {
+          "x": 10000,
+          "y": 6000
+        },
+        {
+          "x": 12000,
+          "y": 6000
+        },
+        {
+          "x": 12000,
+          "y": 8000
+        },
+        {
+          "x": 10000,
+          "y": 8000
+        }
+      ]
+    }
+  ],
   "openings": [
     {
-      "id": "door_1781521393816",
-      "type": "Door",
-      "door_kind": "swing",
-      "window_role": null,
-      "door_direction": "left",
-      "target_edge_id": "he_lintel_door_1781521393816",
-      "width_mm": 550.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_1781521408854",
-      "type": "Door",
-      "door_kind": "swing",
-      "window_role": null,
-      "door_direction": "left",
-      "target_edge_id": "he_lintel_door_1781521408854",
-      "width_mm": 550.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_1781521416564",
-      "type": "Door",
-      "door_kind": "sliding",
-      "window_role": null,
-      "door_direction": "left",
-      "target_edge_id": "he_lintel_door_1781521416564",
-      "width_mm": 800.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_1781521423913",
-      "type": "Door",
-      "door_kind": "swing",
-      "window_role": null,
-      "door_direction": "left",
-      "target_edge_id": "he_lintel_door_1781521423913",
-      "width_mm": 550.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "window_1781521452295",
-      "type": "Window",
-      "door_kind": null,
-      "window_role": "exterior",
-      "door_direction": null,
-      "target_edge_id": "he_window_window_1781521452295",
-      "width_mm": 2400.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
-    },
-    {
-      "id": "window_1781521467919",
-      "type": "Window",
-      "door_kind": null,
-      "window_role": "exterior",
-      "door_direction": null,
-      "target_edge_id": "he_window_window_1781521467919",
-      "width_mm": 2100.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
-    },
-    {
-      "id": "door_1781521488732",
-      "type": "Door",
-      "door_kind": "sliding",
-      "window_role": null,
-      "door_direction": "right",
-      "target_edge_id": "he_lintel_door_1781521488732",
-      "width_mm": 800.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    }
-  ],
-  "vertices": [
-    {
-      "x": 6111.369,
-      "y": -4530.0,
-      "id": "v0"
-    },
-    {
-      "x": 6111.369,
-      "y": -6265.0,
-      "id": "v1"
-    },
-    {
-      "x": 6290.001,
-      "y": -1370.0,
-      "id": "v2"
-    },
-    {
-      "x": 7599.999,
-      "y": -1370.0,
-      "id": "v3"
-    },
-    {
-      "x": 6120.001,
-      "y": -5490.0,
-      "id": "v4"
-    },
-    {
-      "x": 7219.999,
-      "y": -5490.0,
-      "id": "v5"
-    },
-    {
-      "x": 7610.0,
-      "y": -3410.0,
-      "id": "v6"
-    },
-    {
-      "x": 7220.0,
-      "y": -4530.0,
-      "id": "v7"
-    },
-    {
-      "x": 6885.0,
-      "y": -5500.0,
-      "id": "v8"
-    },
-    {
-      "x": 6885.0,
-      "y": -6260.0,
-      "id": "v9"
-    },
-    {
-      "x": 4592.549,
-      "y": -515.19,
-      "id": "v10"
-    },
-    {
-      "x": 4590.0,
-      "y": -1060.0,
-      "id": "v11"
-    },
-    {
-      "x": 4590.0,
-      "y": -2010.0,
-      "id": "v12"
-    },
-    {
-      "x": 4592.965,
-      "y": -3412.3,
-      "id": "v13"
-    },
-    {
-      "x": 3750.0,
-      "y": -6050.0,
-      "id": "v14"
-    },
-    {
-      "x": 3750.0,
-      "y": -6260.0,
-      "id": "v15"
-    },
-    {
-      "x": 4600.0,
-      "y": -2010.0,
-      "id": "v16"
-    },
-    {
-      "x": 5008.28,
-      "y": -2010.713,
-      "id": "v17"
-    },
-    {
-      "x": 5808.279,
-      "y": -2012.109,
-      "id": "v18"
-    },
-    {
-      "x": 6266.705,
-      "y": -2012.909,
-      "id": "v19"
-    },
-    {
-      "x": 290.905,
-      "y": -3412.3,
-      "id": "v20"
-    },
-    {
-      "x": 3964.806,
-      "y": -3412.3,
-      "id": "v21"
-    },
-    {
-      "x": 4514.806,
-      "y": -3412.3,
-      "id": "v22"
-    },
-    {
-      "x": 4602.965,
-      "y": -3422.3,
-      "id": "v23"
-    },
-    {
-      "x": 6360.873,
-      "y": -3422.3,
-      "id": "v24"
-    },
-    {
-      "x": 6910.873,
-      "y": -3422.3,
-      "id": "v25"
-    },
-    {
-      "x": 8354.998,
-      "y": -3422.3,
-      "id": "v26"
-    },
-    {
-      "x": 7062.785,
-      "y": -4530.0,
-      "id": "v27"
-    },
-    {
-      "x": 6262.785,
-      "y": -4530.0,
-      "id": "v28"
-    },
-    {
-      "x": 5581.719,
-      "y": -4530.0,
-      "id": "v29"
-    },
-    {
-      "x": 300.001,
-      "y": -6275.0,
-      "id": "v30"
-    },
-    {
-      "x": 6111.369,
-      "y": -6275.0,
-      "id": "v31"
-    },
-    {
-      "x": 8354.998,
-      "y": -6275.0,
-      "id": "v32"
-    },
-    {
-      "x": 8354.998,
-      "y": -3412.3,
-      "id": "v33"
-    },
-    {
-      "x": 8354.998,
-      "y": -4898.482,
-      "id": "v34"
-    },
-    {
-      "x": 8354.998,
-      "y": -5448.482,
-      "id": "v35"
-    },
-    {
-      "x": 8354.998,
-      "y": -6265.0,
-      "id": "v36"
-    },
-    {
-      "x": 301.823,
-      "y": -515.19,
-      "id": "v37"
-    },
-    {
-      "x": 6289.323,
-      "y": -515.19,
-      "id": "v38"
-    },
-    {
-      "x": 6284.499,
-      "y": -2007.954,
-      "id": "v39"
-    },
-    {
-      "x": 6280.0,
-      "y": -3400.0,
-      "id": "v40"
-    },
-    {
-      "x": 291.823,
-      "y": -515.19,
-      "id": "v41"
-    },
-    {
-      "x": 291.698,
-      "y": -911.292,
-      "id": "v42"
-    },
-    {
-      "x": 291.032,
-      "y": -3011.292,
-      "id": "v43"
-    },
-    {
-      "x": 290.838,
-      "y": -3623.711,
-      "id": "v44"
-    },
-    {
-      "x": 290.078,
-      "y": -6023.711,
-      "id": "v45"
-    },
-    {
-      "x": 290.001,
-      "y": -6265.0,
-      "id": "v46"
-    },
-    {
-      "x": 3733.921,
-      "y": -3412.3,
-      "id": "v47"
-    },
-    {
-      "x": 5583.849,
-      "y": -3422.3,
-      "id": "v48"
-    },
-    {
-      "x": 3747.424,
-      "y": -3412.3,
-      "id": "v49"
-    },
-    {
-      "x": 5610.855,
-      "y": -3422.3,
-      "id": "v50"
-    }
-  ],
-  "half_edges": [
-    {
-      "id": "he_out_ws_wc_17_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_ws_wc_17_0_0_twin",
-      "wall_id": "ws_wc_17",
-      "vertex_end": "v1",
-      "vertex_start": "v0",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_ws_wc_17_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_ws_wc_17_0_0",
-      "wall_id": "ws_wc_17",
-      "vertex_end": "v0",
-      "vertex_start": "v1",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_1_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_1_0_0_twin",
-      "wall_id": "ws_wc_1",
-      "vertex_end": "v3",
-      "vertex_start": "v2",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_1_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_1_0_0",
-      "wall_id": "ws_wc_1",
-      "vertex_end": "v2",
-      "vertex_start": "v3",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_9_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_9_0_0_twin",
-      "wall_id": "ws_wc_9",
-      "vertex_end": "v5",
-      "vertex_start": "v4",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_9_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_9_0_0",
-      "wall_id": "ws_wc_9",
-      "vertex_end": "v4",
-      "vertex_start": "v5",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_13_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_13_0_0_twin",
-      "wall_id": "ws_wc_13",
-      "vertex_end": "v6",
-      "vertex_start": "v3",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_13_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_13_0_0",
-      "wall_id": "ws_wc_13",
-      "vertex_end": "v3",
-      "vertex_start": "v6",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_14_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_14_0_0_twin",
-      "wall_id": "ws_wc_14",
-      "vertex_end": "v5",
-      "vertex_start": "v7",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_14_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_14_0_0",
-      "wall_id": "ws_wc_14",
-      "vertex_end": "v7",
-      "vertex_start": "v5",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_15_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_15_0_0_twin",
-      "wall_id": "ws_wc_15",
-      "vertex_end": "v9",
-      "vertex_start": "v8",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_15_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_15_0_0",
-      "wall_id": "ws_wc_15",
-      "vertex_end": "v8",
-      "vertex_start": "v9",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_18_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_18_0_0_twin",
-      "wall_id": "ws_wc_18",
-      "vertex_end": "v11",
-      "vertex_start": "v10",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_18_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_18_0_0",
-      "wall_id": "ws_wc_18",
-      "vertex_end": "v10",
-      "vertex_start": "v11",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_19_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_19_0_0_twin",
-      "wall_id": "ws_wc_19",
-      "vertex_end": "v13",
-      "vertex_start": "v12",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_19_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_19_0_0",
-      "wall_id": "ws_wc_19",
-      "vertex_end": "v12",
-      "vertex_start": "v13",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_20_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_20_0_0_twin",
-      "wall_id": "ws_wc_20",
-      "vertex_end": "v15",
-      "vertex_start": "v14",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_ws_wc_20_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_ws_wc_20_0_0",
-      "wall_id": "ws_wc_20",
-      "vertex_end": "v14",
-      "vertex_start": "v15",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_weld_1781521216547_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_weld_1781521216547_0_0_twin",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v17",
-      "vertex_start": "v16",
-      "wall_ratio_end": 0.244962,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_weld_1781521216547_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_weld_1781521216547_0_0",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v16",
-      "vertex_start": "v17",
-      "wall_ratio_end": 0.244962,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_lintel_door_1781521488732",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521488732_twin",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v18",
-      "vertex_start": "v17",
-      "wall_ratio_end": 0.724951,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.244962
-    },
-    {
-      "id": "he_lintel_door_1781521488732_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521488732",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v17",
-      "vertex_start": "v18",
-      "wall_ratio_end": 0.724951,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.244962
-    },
-    {
-      "id": "he_in_weld_1781521216547_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_weld_1781521216547_0_2_twin",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v19",
-      "vertex_start": "v18",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.724951
-    },
-    {
-      "id": "he_in_weld_1781521216547_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_weld_1781521216547_0_2",
-      "wall_id": "weld_1781521216547",
-      "vertex_end": "v18",
-      "vertex_start": "v19",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.724951
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_a_0_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_a_0_0_0_twin",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v21",
-      "vertex_start": "v20",
-      "wall_ratio_end": 0.853987,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_a_0_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_a_0_0_0",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v20",
-      "vertex_start": "v21",
-      "wall_ratio_end": 0.853987,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_lintel_door_1781521408854",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521408854_twin",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v22",
-      "vertex_start": "v21",
-      "wall_ratio_end": 0.981832,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.853987
-    },
-    {
-      "id": "he_lintel_door_1781521408854_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521408854",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v21",
-      "vertex_start": "v22",
-      "wall_ratio_end": 0.981832,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.853987
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_a_0_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_a_0_0_2_twin",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v13",
-      "vertex_start": "v22",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.981832
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_a_0_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_a_0_0_2",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "vertex_end": "v22",
-      "vertex_start": "v13",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.981832
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_b_0_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_b_0_0_0_twin",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v24",
-      "vertex_start": "v23",
-      "wall_ratio_end": 0.468522,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_b_0_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_b_0_0_0",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v23",
-      "vertex_start": "v24",
-      "wall_ratio_end": 0.468522,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_lintel_door_1781521393816",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521393816_twin",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v25",
-      "vertex_start": "v24",
-      "wall_ratio_end": 0.615109,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.468522
-    },
-    {
-      "id": "he_lintel_door_1781521393816_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521393816",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v24",
-      "vertex_start": "v25",
-      "wall_ratio_end": 0.615109,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.468522
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_b_0_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_b_0_0_2_twin",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v26",
-      "vertex_start": "v25",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.615109
-    },
-    {
-      "id": "he_in_split_weld_1781521207074_b_0_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521207074_b_0_0_2",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "vertex_end": "v25",
-      "vertex_start": "v26",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.615109
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_0_twin",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v27",
-      "vertex_start": "v7",
-      "wall_ratio_end": 0.14181,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_0",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v7",
-      "vertex_start": "v27",
-      "wall_ratio_end": 0.14181,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_lintel_door_1781521416564",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521416564_twin",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v28",
-      "vertex_start": "v27",
-      "wall_ratio_end": 0.863421,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.14181
-    },
-    {
-      "id": "he_lintel_door_1781521416564_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521416564",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v27",
-      "vertex_start": "v28",
-      "wall_ratio_end": 0.863421,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.14181
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_2_twin",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v0",
-      "vertex_start": "v28",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.863421
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_a_0_2",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "vertex_end": "v28",
-      "vertex_start": "v0",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.863421
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_b_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_b_0_0_twin",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_b",
-      "vertex_end": "v29",
-      "vertex_start": "v0",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_wall_1781521261257_1781521309700_start_b_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_wall_1781521261257_1781521309700_start_b_0_0",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_b",
-      "vertex_end": "v0",
-      "vertex_start": "v29",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_ws_wc_10_1781521314021_end_a_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_ws_wc_10_1781521314021_end_a_0_0_twin",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "vertex_end": "v31",
-      "vertex_start": "v30",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_ws_wc_10_1781521314021_end_a_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_ws_wc_10_1781521314021_end_a_0_0",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "vertex_end": "v30",
-      "vertex_start": "v31",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_ws_wc_10_1781521314021_end_b_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_ws_wc_10_1781521314021_end_b_0_0_twin",
-      "wall_id": "split_ws_wc_10_1781521314021_end_b",
-      "vertex_end": "v32",
-      "vertex_start": "v31",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_ws_wc_10_1781521314021_end_b_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_ws_wc_10_1781521314021_end_b_0_0",
-      "wall_id": "split_ws_wc_10_1781521314021_end_b",
-      "vertex_end": "v31",
-      "vertex_start": "v32",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521171020_b_0_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521171020_b_0_0_0_twin",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v34",
-      "vertex_start": "v33",
-      "wall_ratio_end": 0.520974,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521171020_b_0_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521171020_b_0_0_0",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v33",
-      "vertex_start": "v34",
-      "wall_ratio_end": 0.520974,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_lintel_door_1781521423913",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521423913_twin",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v35",
-      "vertex_start": "v34",
-      "wall_ratio_end": 0.713774,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.520974
-    },
-    {
-      "id": "he_lintel_door_1781521423913_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_lintel_door_1781521423913",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v34",
-      "vertex_start": "v35",
-      "wall_ratio_end": 0.713774,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.520974
-    },
-    {
-      "id": "he_in_split_weld_1781521171020_b_0_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521171020_b_0_0_2_twin",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v36",
-      "vertex_start": "v35",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.713774
-    },
-    {
-      "id": "he_in_split_weld_1781521171020_b_0_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521171020_b_0_0_2",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "vertex_end": "v35",
-      "vertex_start": "v36",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.713774
-    },
-    {
-      "id": "he_out_split_split_ws_wc_0_a_0_a_0_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin",
-      "wall_id": "split_split_ws_wc_0_a_0_a_0",
-      "vertex_end": "v10",
-      "vertex_start": "v37",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_0_a_0_a_0_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_0_a_0_a_0_0_0",
-      "wall_id": "split_split_ws_wc_0_a_0_a_0",
-      "vertex_end": "v37",
-      "vertex_start": "v10",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_0_a_0_b_0_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin",
-      "wall_id": "split_split_ws_wc_0_a_0_b_0",
-      "vertex_end": "v38",
-      "vertex_start": "v10",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_0_a_0_b_0_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_0_a_0_b_0_0_0",
-      "wall_id": "split_split_ws_wc_0_a_0_b_0",
-      "vertex_end": "v10",
-      "vertex_start": "v38",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_16_b_0_a_0_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_16_b_0_a_0_0_0_twin",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "vertex_end": "v39",
-      "vertex_start": "v38",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_16_b_0_a_0_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_16_b_0_a_0_0_0",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "vertex_end": "v38",
-      "vertex_start": "v39",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_16_b_0_b_0_0_0",
-      "side": "left",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_16_b_0_b_0_0_0_twin",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "vertex_end": "v40",
-      "vertex_start": "v39",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_out_split_split_ws_wc_16_b_0_b_0_0_0_twin",
-      "side": "right",
-      "type": "WallOuter",
-      "twin_id": "he_out_split_split_ws_wc_16_b_0_b_0_0_0",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "vertex_end": "v39",
-      "vertex_start": "v40",
-      "wall_ratio_end": 1,
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_0_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v42",
-      "vertex_start": "v41",
-      "wall_ratio_end": 0.136723,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_0",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v41",
-      "vertex_start": "v42",
-      "wall_ratio_end": 0.136723,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_window_window_1781521467919",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_window_window_1781521467919_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v43",
-      "vertex_start": "v42",
-      "wall_ratio_end": 0.861583,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.136723
-    },
-    {
-      "id": "he_window_window_1781521467919_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_window_window_1781521467919",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v42",
-      "vertex_start": "v43",
-      "wall_ratio_end": 0.861583,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.136723
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_2_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v20",
-      "vertex_start": "v43",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.861583
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_a_0_2",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "vertex_end": "v43",
-      "vertex_start": "v20",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.861583
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_0",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_0_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v44",
-      "vertex_start": "v20",
-      "wall_ratio_end": 0.074109,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_0_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_0",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v20",
-      "vertex_start": "v44",
-      "wall_ratio_end": 0.074109,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0
-    },
-    {
-      "id": "he_window_window_1781521452295",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_window_window_1781521452295_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v45",
-      "vertex_start": "v44",
-      "wall_ratio_end": 0.915417,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.074109
-    },
-    {
-      "id": "he_window_window_1781521452295_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_window_window_1781521452295",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v44",
-      "vertex_start": "v45",
-      "wall_ratio_end": 0.915417,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.074109
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_2",
-      "side": "left",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_2_twin",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v46",
-      "vertex_start": "v45",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.915417
-    },
-    {
-      "id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_2_twin",
-      "side": "right",
-      "type": "WallInner",
-      "twin_id": "he_in_split_weld_1781521132139_1781606564844_start_b_0_2",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "vertex_end": "v45",
-      "vertex_start": "v46",
-      "wall_ratio_end": 1,
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.915417
-    }
-  ],
-  "project_info": {
-    "scale_unit": "mm",
-    "layout_type": "Korean_Standard_3Room_Apartment",
-    "reference_coordinate_system": "UE_Z_Up_Y_Right"
-  },
-  "surface_measurements": [
-    {
-      "id": "surface_ws_wc_17_left_left_manual_1781607213174_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607213174_1",
-      "wall_id": "ws_wc_17",
-      "end_point": {
-        "x": 6111.369,
-        "y": -6207.032
-      },
-      "start_point": {
-        "x": 6111.369,
-        "y": -4583.783
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 53.783,
-      "end_distance_mm": 1677.032,
-      "length_mm": 2180.0
-    },
-    {
-      "id": "surface_ws_wc_17_right_right_manual_1781607241570_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607241570_1",
-      "wall_id": "ws_wc_17",
-      "end_point": {
-        "x": 6111.369,
-        "y": -5409.524
-      },
-      "start_point": {
-        "x": 6111.369,
-        "y": -4597.899
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 67.899,
-      "end_distance_mm": 879.524,
-      "length_mm": 1240.0
-    },
-    {
-      "id": "surface_ws_wc_1_left_left_manual_1781605029996_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605029996_1",
-      "wall_id": "ws_wc_1",
-      "end_point": {
-        "x": 7556.21,
-        "y": -1370.0
-      },
-      "start_point": {
-        "x": 6327.257,
-        "y": -1370.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 37.256,
-      "end_distance_mm": 1266.209,
-      "length_mm": 1800.0
-    },
-    {
-      "id": "surface_ws_wc_9_right_right_manual_1781607252521_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607252521_1",
-      "wall_id": "ws_wc_9",
-      "end_point": {
-        "x": 7163.99,
-        "y": -5490.0
-      },
-      "start_point": {
-        "x": 6161.809,
-        "y": -5490.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 41.809,
-      "end_distance_mm": 1043.989,
-      "length_mm": 1240.0
-    },
-    {
-      "id": "surface_ws_wc_13_left_left_manual_1781605616161_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605616161_1",
-      "wall_id": "ws_wc_13",
-      "end_point": {
-        "x": 7609.777,
-        "y": -3364.514
-      },
-      "start_point": {
-        "x": 7600.206,
-        "y": -1412.232
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 42.233,
-      "end_distance_mm": 1994.538,
-      "length_mm": 2880.0
-    },
-    {
-      "id": "surface_ws_wc_14_left_left_manual_1781607230710_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607230710_1",
-      "wall_id": "ws_wc_14",
-      "end_point": {
-        "x": 7220.0,
-        "y": -5395.407
-      },
-      "start_point": {
-        "x": 7220.0,
-        "y": -4576.726
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 46.726,
-      "end_distance_mm": 865.407,
-      "length_mm": 1240.0
-    },
-    {
-      "id": "surface_ws_wc_14_right_right_manual_1781607074298_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607074298_1",
-      "wall_id": "ws_wc_14",
-      "end_point": {
-        "x": 7219.999,
-        "y": -5490.0
-      },
-      "start_point": {
-        "x": 7220.0,
-        "y": -4530.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 960.0,
-      "length_mm": 1440.0
-    },
-    {
-      "id": "surface_ws_wc_15_right_right_manual_1781607026065_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607026065_1",
-      "wall_id": "ws_wc_15",
-      "end_point": {
-        "x": 6885.0,
-        "y": -6228.204
-      },
-      "start_point": {
-        "x": 6885.0,
-        "y": -5543.617
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 43.617,
-      "end_distance_mm": 728.204,
-      "length_mm": 940.0
-    },
-    {
-      "id": "surface_ws_wc_19_left_left_manual_1781603138136_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781603138136_1",
-      "wall_id": "ws_wc_19",
-      "end_point": {
-        "x": 4592.862,
-        "y": -3363.751
-      },
-      "start_point": {
-        "x": 4590.0,
-        "y": -2010.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 1353.754,
-      "length_mm": 1980.0
-    },
-    {
-      "id": "surface_ws_wc_19_right_right_manual_1781607301882_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607301882_1",
-      "wall_id": "ws_wc_19",
-      "end_point": {
-        "x": 4592.861,
-        "y": -3363.032
-      },
-      "start_point": {
-        "x": 4590.13,
-        "y": -2071.467
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 61.467,
-      "end_distance_mm": 1353.035,
-      "length_mm": 1900.0
-    },
-    {
-      "id": "surface_weld_1781521216547_left_left_manual_1781606177414_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606177414_1",
-      "wall_id": "weld_1781521216547",
-      "end_point": {
-        "x": 6234.838,
-        "y": -2012.854
-      },
-      "start_point": {
-        "x": 4635.321,
-        "y": -2010.062
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 35.321,
-      "end_distance_mm": 1634.84,
-      "length_mm": 1490.0
-    },
-    {
-      "id": "surface_weld_1781521216547_right_right_manual_1781606167206_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606167206_1",
-      "wall_id": "weld_1781521216547",
-      "end_point": {
-        "x": 6235.133,
-        "y": -2012.854
-      },
-      "start_point": {
-        "x": 4600.0,
-        "y": -2010.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 1635.135,
-      "length_mm": 1590.0
-    },
-    {
-      "id": "surface_split_weld_1781521207074_a_0_left_left_manual_1781604241295_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604241295_1",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "end_point": {
-        "x": 4592.965,
-        "y": -3412.3
-      },
-      "start_point": {
-        "x": 357.295,
-        "y": -3412.3
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 66.389,
-      "end_distance_mm": 4302.059,
-      "length_mm": 6350.0
-    },
-    {
-      "id": "surface_split_weld_1781521207074_a_0_right_right_manual_1781604341828_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781604341828_1",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "end_point": {
-        "x": 4517.184,
-        "y": -3412.3
-      },
-      "start_point": {
-        "x": 325.873,
-        "y": -3412.3
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 34.967,
-      "end_distance_mm": 4226.279,
-      "length_mm": 6250.0
-    },
-    {
-      "id": "surface_split_weld_1781521207074_b_0_left_left_manual_1781606879058_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606879058_1",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "end_point": {
-        "x": 8321.436,
-        "y": -3422.3
-      },
-      "start_point": {
-        "x": 4602.965,
-        "y": -3422.3
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 3718.471,
-      "length_mm": 5740.0
-    },
-    {
-      "id": "surface_split_weld_1781521207074_b_0_right_right_manual_1781607313926_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607313926_1",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "end_point": {
-        "x": 6232.386,
-        "y": -3422.3
-      },
-      "start_point": {
-        "x": 4644.425,
-        "y": -3422.3
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 41.46,
-      "end_distance_mm": 1629.422,
-      "length_mm": 1490.0
-    },
-    {
-      "id": "surface_split_wall_1781521261257_1781521309700_start_a_left_left_manual_1781607152618_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607152618_1",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "end_point": {
-        "x": 6111.369,
-        "y": -4530.0
-      },
-      "start_point": {
-        "x": 7220.0,
-        "y": -4530.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 1108.631,
-      "length_mm": 2000.0
-    },
-    {
-      "id": "surface_split_wall_1781521261257_1781521309700_start_b_left_left_manual_1781607164033_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607164033_1",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_b",
-      "end_point": {
-        "x": 5581.719,
-        "y": -4530.0
-      },
-      "start_point": {
-        "x": 6111.369,
-        "y": -4530.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 0.0,
-      "end_distance_mm": 529.65,
-      "length_mm": 460.0
-    },
-    {
-      "id": "surface_split_ws_wc_10_1781521314021_end_a_right_right_manual_1781606700845_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606700845_1",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "end_point": {
-        "x": 3705.765,
-        "y": -6275.0
-      },
-      "start_point": {
-        "x": 332.231,
-        "y": -6275.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 32.23,
-      "end_distance_mm": 3405.764,
-      "length_mm": 5180.0
-    },
-    {
-      "id": "surface_split_ws_wc_10_1781521314021_end_a_right_right_manual_1781606744684_2",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606744684_2",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "end_point": {
-        "x": 6070.062,
-        "y": -6275.0
-      },
-      "start_point": {
-        "x": 3783.399,
-        "y": -6275.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 3483.398,
-      "end_distance_mm": 5770.061,
-      "length_mm": 3340.0
-    },
-    {
-      "id": "surface_split_ws_wc_10_1781521314021_end_b_right_right_manual_1781606982729_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606982729_1",
-      "wall_id": "split_ws_wc_10_1781521314021_end_b",
-      "end_point": {
-        "x": 8307.321,
-        "y": -6275.0
-      },
-      "start_point": {
-        "x": 6916.973,
-        "y": -6275.0
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 805.604,
-      "end_distance_mm": 2195.951,
-      "length_mm": 2000.0
-    },
-    {
-      "id": "surface_split_weld_1781521171020_b_0_left_left_manual_1781606927060_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606927060_1",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "end_point": {
-        "x": 8354.998,
-        "y": -6192.915
-      },
-      "start_point": {
-        "x": 8354.998,
-        "y": -3461.626
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 49.326,
-      "end_distance_mm": 2780.615,
-      "length_mm": 4080.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_0_a_0_a_0_left_left_manual_1781604796422_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604796422_1",
-      "wall_id": "split_split_ws_wc_0_a_0_a_0",
-      "end_point": {
-        "x": 4541.609,
-        "y": -515.19
-      },
-      "start_point": {
-        "x": 328.22,
-        "y": -515.19
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 26.397,
-      "end_distance_mm": 4239.786,
-      "length_mm": 6250.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_0_a_0_b_0_left_left_manual_1781604911078_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604911078_1",
-      "wall_id": "split_split_ws_wc_0_a_0_b_0",
-      "end_point": {
-        "x": 6246.522,
-        "y": -515.19
-      },
-      "start_point": {
-        "x": 4627.353,
-        "y": -515.19
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 34.804,
-      "end_distance_mm": 1653.973,
-      "length_mm": 2350.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_16_b_0_a_0_left_left_manual_1781604969394_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604969394_1",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "end_point": {
-        "x": 6284.674,
-        "y": -1953.752
-      },
-      "start_point": {
-        "x": 6289.197,
-        "y": -554.345
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 39.155,
-      "end_distance_mm": 1438.57,
-      "length_mm": 2050.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_16_b_0_a_0_right_right_manual_1781605652883_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781605652883_1",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "end_point": {
-        "x": 6284.586,
-        "y": -1981.038
-      },
-      "start_point": {
-        "x": 6286.458,
-        "y": -1401.751
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 886.566,
-      "end_distance_mm": 1465.856,
-      "length_mm": 900.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_16_b_0_b_0_left_left_manual_1781605526794_1",
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605526794_1",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "end_point": {
-        "x": 6280.023,
-        "y": -3392.831
-      },
-      "start_point": {
-        "x": 6284.355,
-        "y": -2052.52
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 44.567,
-      "end_distance_mm": 1384.884,
-      "length_mm": 1900.0
-    },
-    {
-      "id": "surface_split_split_ws_wc_16_b_0_b_0_right_right_manual_1781605722064_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781605722064_1",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "end_point": {
-        "x": 6280.027,
-        "y": -3391.656
-      },
-      "start_point": {
-        "x": 6284.39,
-        "y": -2041.626
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 33.672,
-      "end_distance_mm": 1383.709,
-      "length_mm": 1980.0
-    },
-    {
-      "id": "surface_split_weld_1781521132139_1781606564844_start_a_right_right_manual_1781606620652_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606620652_1",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "end_point": {
-        "x": 290.926,
-        "y": -3348.671
-      },
-      "start_point": {
-        "x": 291.804,
-        "y": -575.032
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 59.843,
-      "end_distance_mm": 2833.481,
-      "length_mm": 4150.0
-    },
-    {
-      "id": "surface_split_weld_1781521132139_1781606564844_start_b_right_right_manual_1781606667327_1",
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606667327_1",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "end_point": {
-        "x": 290.013,
-        "y": -6228.172
-      },
-      "start_point": {
-        "x": 290.89,
-        "y": -3461.592
-      },
-      "surface_type": "wall_side",
-      "start_distance_mm": 49.292,
-      "end_distance_mm": 2815.872,
-      "length_mm": 4280.0
-    }
-  ],
-  "wall_side_measurements": [
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607213174_1",
-      "wall_id": "ws_wc_17",
-      "end_ratio": 0.966589,
-      "start_ratio": 0.030999,
-      "length_mm": 2180.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607241570_1",
-      "wall_id": "ws_wc_17",
-      "end_ratio": 0.50693,
-      "start_ratio": 0.039135,
-      "length_mm": 1240.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605029996_1",
-      "wall_id": "ws_wc_1",
-      "end_ratio": 0.966573,
-      "start_ratio": 0.02844,
-      "length_mm": 1800.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607252521_1",
-      "wall_id": "ws_wc_9",
-      "end_ratio": 0.949082,
-      "start_ratio": 0.038008,
-      "length_mm": 1240.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605616161_1",
-      "wall_id": "ws_wc_13",
-      "end_ratio": 0.977703,
-      "start_ratio": 0.020702,
-      "length_mm": 2880.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607230710_1",
-      "wall_id": "ws_wc_14",
-      "end_ratio": 0.901466,
-      "start_ratio": 0.048673,
-      "length_mm": 1240.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607074298_1",
-      "wall_id": "ws_wc_14",
-      "end_ratio": 1,
-      "start_ratio": 0,
-      "length_mm": 1440.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607026065_1",
-      "wall_id": "ws_wc_15",
-      "end_ratio": 0.958163,
-      "start_ratio": 0.057391,
-      "length_mm": 940.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781603138136_1",
-      "wall_id": "ws_wc_19",
-      "end_ratio": 0.965379,
-      "start_ratio": 0,
-      "length_mm": 1980.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607301882_1",
-      "wall_id": "ws_wc_19",
-      "end_ratio": 0.964866,
-      "start_ratio": 0.043833,
-      "length_mm": 1900.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606177414_1",
-      "wall_id": "weld_1781521216547",
-      "end_ratio": 0.98088,
-      "start_ratio": 0.021192,
-      "length_mm": 1490.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606167206_1",
-      "wall_id": "weld_1781521216547",
-      "end_ratio": 0.981057,
-      "start_ratio": 0,
-      "length_mm": 1590.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604241295_1",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "end_ratio": 1,
-      "start_ratio": 0.015432,
-      "length_mm": 6350.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781604341828_1",
-      "wall_id": "split_weld_1781521207074_a_0",
-      "end_ratio": 0.982385,
-      "start_ratio": 0.008128,
-      "length_mm": 6250.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606879058_1",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "end_ratio": 0.991055,
-      "start_ratio": 0,
-      "length_mm": 5740.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781607313926_1",
-      "wall_id": "split_weld_1781521207074_b_0",
-      "end_ratio": 0.434277,
-      "start_ratio": 0.01105,
-      "length_mm": 1490.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607152618_1",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_a",
-      "end_ratio": 1,
-      "start_ratio": 0,
-      "length_mm": 2000.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781607164033_1",
-      "wall_id": "split_wall_1781521261257_1781521309700_start_b",
-      "end_ratio": 1,
-      "start_ratio": 0,
-      "length_mm": 460.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606700845_1",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "end_ratio": 0.586052,
-      "start_ratio": 0.005546,
-      "length_mm": 5180.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606744684_2",
-      "wall_id": "split_ws_wc_10_1781521314021_end_a",
-      "end_ratio": 0.992892,
-      "start_ratio": 0.599411,
-      "length_mm": 3340.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606982729_1",
-      "wall_id": "split_ws_wc_10_1781521314021_end_b",
-      "end_ratio": 0.97875,
-      "start_ratio": 0.359063,
-      "length_mm": 2000.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781606927060_1",
-      "wall_id": "split_weld_1781521171020_b_0",
-      "end_ratio": 0.974731,
-      "start_ratio": 0.017291,
-      "length_mm": 4080.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604796422_1",
-      "wall_id": "split_split_ws_wc_0_a_0_a_0",
-      "end_ratio": 0.988128,
-      "start_ratio": 0.006152,
-      "length_mm": 6250.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604911078_1",
-      "wall_id": "split_split_ws_wc_0_a_0_b_0",
-      "end_ratio": 0.974775,
-      "start_ratio": 0.020512,
-      "length_mm": 2350.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781604969394_1",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "end_ratio": 0.96369,
-      "start_ratio": 0.02623,
-      "length_mm": 2050.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781605652883_1",
-      "wall_id": "split_split_ws_wc_16_b_0_a_0",
-      "end_ratio": 0.981969,
-      "start_ratio": 0.593906,
-      "length_mm": 900.0
-    },
-    {
-      "side": "left",
-      "status": "valid",
-      "span_id": "left_manual_1781605526794_1",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "end_ratio": 0.99485,
-      "start_ratio": 0.032015,
-      "length_mm": 1900.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781605722064_1",
-      "wall_id": "split_split_ws_wc_16_b_0_b_0",
-      "end_ratio": 0.994006,
-      "start_ratio": 0.024189,
-      "length_mm": 1980.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606620652_1",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_a",
-      "end_ratio": 0.978037,
-      "start_ratio": 0.020656,
-      "length_mm": 4150.0
-    },
-    {
-      "side": "right",
-      "status": "valid",
-      "span_id": "right_manual_1781606667327_1",
-      "wall_id": "split_weld_1781521132139_1781606564844_start_b",
-      "end_ratio": 0.98709,
-      "start_ratio": 0.017279,
-      "length_mm": 4280.0
+      "id": "door_1",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_1",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_2",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_3",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_3",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_11",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_4",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_15",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_5",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_20",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_6",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_19",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_7",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_28",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "door_8",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_6",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
+    },
+    {
+      "id": "window_9",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_26",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
+    },
+    {
+      "id": "window_10",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_14",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
+    },
+    {
+      "id": "window_11",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_21",
+      "offset_from": "start",
+      "offset_to_center": 1500.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
+    },
+    {
+      "id": "window_12",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_27",
+      "offset_from": "start",
+      "offset_to_center": 1500.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
+    },
+    {
+      "id": "window_13",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_17",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
+    },
+    {
+      "id": "door_14",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_13",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 1000,
+      "height": 2100,
+      "bottom": 0
     }
   ]
 }

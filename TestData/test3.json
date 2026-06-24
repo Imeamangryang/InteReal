@@ -1,1887 +1,415 @@
 ﻿{
-  "project_info": {
-    "layout_type": "korean_3room_apartment",
-    "scale_unit": "mm",
-    "reference_coordinate_system": "UE_Z_UP_Y_RIGHT"
+  "schema_version": "3.1",
+  "unit": "mm",
+  "coordinate_system": {
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "rotation_degrees": 0
   },
-  "vertices": [
+  "plan": {
+    "id": 3,
+    "version": 1,
+    "name": "Korean_Apt_39m2_2Room"
+  },
+  "levels": [
     {
-      "id": "v0",
-      "x": 0.0,
-      "y": 900.0
-    },
-    {
-      "id": "v1",
-      "x": 600.0,
-      "y": 900.0
-    },
-    {
-      "id": "v2",
-      "x": 2200.0,
-      "y": 900.0
-    },
-    {
-      "id": "v3",
-      "x": 2600.0,
-      "y": 900.0
-    },
-    {
-      "id": "v4",
-      "x": 2600.0,
-      "y": 2550.0
-    },
-    {
-      "id": "v5",
-      "x": 2600.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v6",
-      "x": 0.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v7",
-      "x": 0.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v8",
-      "x": 2500.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v9",
-      "x": 3150.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v10",
-      "x": 3300.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v11",
-      "x": 3300.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v12",
-      "x": 2400.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v13",
-      "x": 1000.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v14",
-      "x": 0.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v15",
-      "x": 7200.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v16",
-      "x": 7200.0,
-      "y": 4900.0
-    },
-    {
-      "id": "v17",
-      "x": 7200.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v18",
-      "x": 8000.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v19",
-      "x": 9300.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v20",
-      "x": 9800.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v21",
-      "x": 9800.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v22",
-      "x": 1500.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v23",
-      "x": 1500.0,
-      "y": 3700.0
-    },
-    {
-      "id": "v24",
-      "x": 1500.0,
-      "y": 4300.0
-    },
-    {
-      "id": "v25",
-      "x": 5600.0,
-      "y": 1800.0
-    },
-    {
-      "id": "v26",
-      "x": 7200.0,
-      "y": 1800.0
-    },
-    {
-      "id": "v27",
-      "x": 7200.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v28",
-      "x": 6100.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v29",
-      "x": 5600.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v30",
-      "x": 4550.0,
-      "y": 900.0
-    },
-    {
-      "id": "v31",
-      "x": 5150.0,
-      "y": 900.0
-    },
-    {
-      "id": "v32",
-      "x": 5600.0,
-      "y": 900.0
-    },
-    {
-      "id": "v33",
-      "x": 5600.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v34",
-      "x": 4200.0,
-      "y": 7600.0
-    },
-    {
-      "id": "v35",
-      "x": 0.0,
-      "y": 0.0
-    },
-    {
-      "id": "v36",
-      "x": 600.0,
-      "y": 0.0
-    },
-    {
-      "id": "v37",
-      "x": 2200.0,
-      "y": 0.0
-    },
-    {
-      "id": "v38",
-      "x": 2600.0,
-      "y": 0.0
-    },
-    {
-      "id": "v39",
-      "x": 3000.0,
-      "y": 0.0
-    },
-    {
-      "id": "v40",
-      "x": 4200.0,
-      "y": 0.0
-    },
-    {
-      "id": "v41",
-      "x": 5200.0,
-      "y": 0.0
-    },
-    {
-      "id": "v42",
-      "x": 5200.0,
-      "y": 300.0
-    },
-    {
-      "id": "v43",
-      "x": 5900.0,
-      "y": 300.0
-    },
-    {
-      "id": "v44",
-      "x": 6900.0,
-      "y": 300.0
-    },
-    {
-      "id": "v45",
-      "x": 7200.0,
-      "y": 300.0
-    },
-    {
-      "id": "v46",
-      "x": 7600.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v47",
-      "x": 8200.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v48",
-      "x": 8800.0,
-      "y": 3100.0
-    },
-    {
-      "id": "v49",
-      "x": 8800.0,
-      "y": 4300.0
+      "id": "level_1",
+      "name": "1F",
+      "elevation": 0,
+      "default_height": 2400
     }
   ],
-  "half_edges": [
-    {
-      "id": "he_outer_left_top",
-      "wall_id": "wall_outer_left_top",
-      "side": "left",
-      "vertex_start": "v35",
-      "vertex_end": "v0",
-      "twin_id": "he_outer_left_top_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_top_twin",
-      "wall_id": "wall_outer_left_top",
-      "side": "right",
-      "vertex_start": "v0",
-      "vertex_end": "v35",
-      "twin_id": "he_outer_left_top",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bedroom1",
-      "wall_id": "wall_outer_left_bedroom1",
-      "side": "left",
-      "vertex_start": "v0",
-      "vertex_end": "v6",
-      "twin_id": "he_outer_left_bedroom1_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bedroom1_twin",
-      "wall_id": "wall_outer_left_bedroom1",
-      "side": "right",
-      "vertex_start": "v6",
-      "vertex_end": "v0",
-      "twin_id": "he_outer_left_bedroom1",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bath",
-      "wall_id": "wall_outer_left_bath",
-      "side": "left",
-      "vertex_start": "v6",
-      "vertex_end": "v7",
-      "twin_id": "he_outer_left_bath_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bath_twin",
-      "wall_id": "wall_outer_left_bath",
-      "side": "right",
-      "vertex_start": "v7",
-      "vertex_end": "v6",
-      "twin_id": "he_outer_left_bath",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bedroom2",
-      "wall_id": "wall_outer_left_bedroom2",
-      "side": "left",
-      "vertex_start": "v7",
-      "vertex_end": "v14",
-      "twin_id": "he_outer_left_bedroom2_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_left_bedroom2_twin",
-      "wall_id": "wall_outer_left_bedroom2",
-      "side": "right",
-      "vertex_start": "v14",
-      "vertex_end": "v7",
-      "twin_id": "he_outer_left_bedroom2",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_solid_l",
-      "wall_id": "wall_outer_top_balcony1_solid_l",
-      "side": "left",
-      "vertex_start": "v35",
-      "vertex_end": "v36",
-      "twin_id": "he_outer_top_balcony1_solid_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_solid_l_twin",
-      "wall_id": "wall_outer_top_balcony1_solid_l",
-      "side": "right",
-      "vertex_start": "v36",
-      "vertex_end": "v35",
-      "twin_id": "he_outer_top_balcony1_solid_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_window",
-      "wall_id": "wall_outer_top_balcony1_window",
-      "side": "left",
-      "vertex_start": "v36",
-      "vertex_end": "v37",
-      "twin_id": "he_outer_top_balcony1_window_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_window_twin",
-      "wall_id": "wall_outer_top_balcony1_window",
-      "side": "right",
-      "vertex_start": "v37",
-      "vertex_end": "v36",
-      "twin_id": "he_outer_top_balcony1_window",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_solid_r",
-      "wall_id": "wall_outer_top_balcony1_solid_r",
-      "side": "left",
-      "vertex_start": "v37",
-      "vertex_end": "v38",
-      "twin_id": "he_outer_top_balcony1_solid_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony1_solid_r_twin",
-      "wall_id": "wall_outer_top_balcony1_solid_r",
-      "side": "right",
-      "vertex_start": "v38",
-      "vertex_end": "v37",
-      "twin_id": "he_outer_top_balcony1_solid_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_l",
-      "wall_id": "wall_outer_top_balcony2_solid_l",
-      "side": "left",
-      "vertex_start": "v38",
-      "vertex_end": "v39",
-      "twin_id": "he_outer_top_balcony2_solid_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_l_twin",
-      "wall_id": "wall_outer_top_balcony2_solid_l",
-      "side": "right",
-      "vertex_start": "v39",
-      "vertex_end": "v38",
-      "twin_id": "he_outer_top_balcony2_solid_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_window_a",
-      "wall_id": "wall_outer_top_balcony2_window_a",
-      "side": "left",
-      "vertex_start": "v39",
-      "vertex_end": "v40",
-      "twin_id": "he_outer_top_balcony2_window_a_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_window_a_twin",
-      "wall_id": "wall_outer_top_balcony2_window_a",
-      "side": "right",
-      "vertex_start": "v40",
-      "vertex_end": "v39",
-      "twin_id": "he_outer_top_balcony2_window_a",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_mid",
-      "wall_id": "wall_outer_top_balcony2_solid_mid",
-      "side": "left",
-      "vertex_start": "v40",
-      "vertex_end": "v41",
-      "twin_id": "he_outer_top_balcony2_solid_mid_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_mid_twin",
-      "wall_id": "wall_outer_top_balcony2_solid_mid",
-      "side": "right",
-      "vertex_start": "v41",
-      "vertex_end": "v40",
-      "twin_id": "he_outer_top_balcony2_solid_mid",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_step_balcony2",
-      "wall_id": "wall_outer_step_balcony2",
-      "side": "left",
-      "vertex_start": "v41",
-      "vertex_end": "v42",
-      "twin_id": "he_outer_step_balcony2_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_step_balcony2_twin",
-      "wall_id": "wall_outer_step_balcony2",
-      "side": "right",
-      "vertex_start": "v42",
-      "vertex_end": "v41",
-      "twin_id": "he_outer_step_balcony2",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_b_l",
-      "wall_id": "wall_outer_top_balcony2_solid_b_l",
-      "side": "left",
-      "vertex_start": "v42",
-      "vertex_end": "v43",
-      "twin_id": "he_outer_top_balcony2_solid_b_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_b_l_twin",
-      "wall_id": "wall_outer_top_balcony2_solid_b_l",
-      "side": "right",
-      "vertex_start": "v43",
-      "vertex_end": "v42",
-      "twin_id": "he_outer_top_balcony2_solid_b_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_window_b",
-      "wall_id": "wall_outer_top_balcony2_window_b",
-      "side": "left",
-      "vertex_start": "v43",
-      "vertex_end": "v44",
-      "twin_id": "he_outer_top_balcony2_window_b_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_window_b_twin",
-      "wall_id": "wall_outer_top_balcony2_window_b",
-      "side": "right",
-      "vertex_start": "v44",
-      "vertex_end": "v43",
-      "twin_id": "he_outer_top_balcony2_window_b",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_b_r",
-      "wall_id": "wall_outer_top_balcony2_solid_b_r",
-      "side": "left",
-      "vertex_start": "v44",
-      "vertex_end": "v45",
-      "twin_id": "he_outer_top_balcony2_solid_b_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_top_balcony2_solid_b_r_twin",
-      "wall_id": "wall_outer_top_balcony2_solid_b_r",
-      "side": "right",
-      "vertex_start": "v45",
-      "vertex_end": "v44",
-      "twin_id": "he_outer_top_balcony2_solid_b_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_right_balcony2",
-      "wall_id": "wall_outer_right_balcony2",
-      "side": "left",
-      "vertex_start": "v45",
-      "vertex_end": "v26",
-      "twin_id": "he_outer_right_balcony2_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_right_balcony2_twin",
-      "wall_id": "wall_outer_right_balcony2",
-      "side": "right",
-      "vertex_start": "v26",
-      "vertex_end": "v45",
-      "twin_id": "he_outer_right_balcony2",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_right_bath2",
-      "wall_id": "wall_outer_right_bath2",
-      "side": "left",
-      "vertex_start": "v26",
-      "vertex_end": "v27",
-      "twin_id": "he_outer_right_bath2_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_right_bath2_twin",
-      "wall_id": "wall_outer_right_bath2",
-      "side": "right",
-      "vertex_start": "v27",
-      "vertex_end": "v26",
-      "twin_id": "he_outer_right_bath2",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_top_l",
-      "wall_id": "wall_outer_entry_top_l",
-      "side": "left",
-      "vertex_start": "v27",
-      "vertex_end": "v46",
-      "twin_id": "he_outer_entry_top_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_top_l_twin",
-      "wall_id": "wall_outer_entry_top_l",
-      "side": "right",
-      "vertex_start": "v46",
-      "vertex_end": "v27",
-      "twin_id": "he_outer_entry_top_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_door",
-      "wall_id": "wall_outer_entry_door",
-      "side": "left",
-      "vertex_start": "v46",
-      "vertex_end": "v47",
-      "twin_id": "he_outer_entry_door_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_door_twin",
-      "wall_id": "wall_outer_entry_door",
-      "side": "right",
-      "vertex_start": "v47",
-      "vertex_end": "v46",
-      "twin_id": "he_outer_entry_door",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_top_r",
-      "wall_id": "wall_outer_entry_top_r",
-      "side": "left",
-      "vertex_start": "v47",
-      "vertex_end": "v48",
-      "twin_id": "he_outer_entry_top_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_top_r_twin",
-      "wall_id": "wall_outer_entry_top_r",
-      "side": "right",
-      "vertex_start": "v48",
-      "vertex_end": "v47",
-      "twin_id": "he_outer_entry_top_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_right",
-      "wall_id": "wall_outer_entry_right",
-      "side": "left",
-      "vertex_start": "v48",
-      "vertex_end": "v49",
-      "twin_id": "he_outer_entry_right_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_entry_right_twin",
-      "wall_id": "wall_outer_entry_right",
-      "side": "right",
-      "vertex_start": "v49",
-      "vertex_end": "v48",
-      "twin_id": "he_outer_entry_right",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bedroom3_top",
-      "wall_id": "wall_outer_bedroom3_top",
-      "side": "left",
-      "vertex_start": "v49",
-      "vertex_end": "v21",
-      "twin_id": "he_outer_bedroom3_top_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bedroom3_top_twin",
-      "wall_id": "wall_outer_bedroom3_top",
-      "side": "right",
-      "vertex_start": "v21",
-      "vertex_end": "v49",
-      "twin_id": "he_outer_bedroom3_top",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bedroom3_right",
-      "wall_id": "wall_outer_bedroom3_right",
-      "side": "left",
-      "vertex_start": "v21",
-      "vertex_end": "v20",
-      "twin_id": "he_outer_bedroom3_right_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bedroom3_right_twin",
-      "wall_id": "wall_outer_bedroom3_right",
-      "side": "right",
-      "vertex_start": "v20",
-      "vertex_end": "v21",
-      "twin_id": "he_outer_bedroom3_right",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_solid_l",
-      "wall_id": "wall_outer_bottom_bedroom3_solid_l",
-      "side": "left",
-      "vertex_start": "v20",
-      "vertex_end": "v19",
-      "twin_id": "he_outer_bottom_bedroom3_solid_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_solid_l_twin",
-      "wall_id": "wall_outer_bottom_bedroom3_solid_l",
-      "side": "right",
-      "vertex_start": "v19",
-      "vertex_end": "v20",
-      "twin_id": "he_outer_bottom_bedroom3_solid_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_window",
-      "wall_id": "wall_outer_bottom_bedroom3_window",
-      "side": "left",
-      "vertex_start": "v19",
-      "vertex_end": "v18",
-      "twin_id": "he_outer_bottom_bedroom3_window_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_window_twin",
-      "wall_id": "wall_outer_bottom_bedroom3_window",
-      "side": "right",
-      "vertex_start": "v18",
-      "vertex_end": "v19",
-      "twin_id": "he_outer_bottom_bedroom3_window",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_solid_r",
-      "wall_id": "wall_outer_bottom_bedroom3_solid_r",
-      "side": "left",
-      "vertex_start": "v18",
-      "vertex_end": "v17",
-      "twin_id": "he_outer_bottom_bedroom3_solid_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom3_solid_r_twin",
-      "wall_id": "wall_outer_bottom_bedroom3_solid_r",
-      "side": "right",
-      "vertex_start": "v17",
-      "vertex_end": "v18",
-      "twin_id": "he_outer_bottom_bedroom3_solid_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_solid_r",
-      "wall_id": "wall_outer_bottom_living_solid_r",
-      "side": "left",
-      "vertex_start": "v17",
-      "vertex_end": "v33",
-      "twin_id": "he_outer_bottom_living_solid_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_solid_r_twin",
-      "wall_id": "wall_outer_bottom_living_solid_r",
-      "side": "right",
-      "vertex_start": "v33",
-      "vertex_end": "v17",
-      "twin_id": "he_outer_bottom_living_solid_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_window",
-      "wall_id": "wall_outer_bottom_living_window",
-      "side": "left",
-      "vertex_start": "v33",
-      "vertex_end": "v34",
-      "twin_id": "he_outer_bottom_living_window_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_window_twin",
-      "wall_id": "wall_outer_bottom_living_window",
-      "side": "right",
-      "vertex_start": "v34",
-      "vertex_end": "v33",
-      "twin_id": "he_outer_bottom_living_window",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_solid_l",
-      "wall_id": "wall_outer_bottom_living_solid_l",
-      "side": "left",
-      "vertex_start": "v34",
-      "vertex_end": "v11",
-      "twin_id": "he_outer_bottom_living_solid_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_living_solid_l_twin",
-      "wall_id": "wall_outer_bottom_living_solid_l",
-      "side": "right",
-      "vertex_start": "v11",
-      "vertex_end": "v34",
-      "twin_id": "he_outer_bottom_living_solid_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_solid_r",
-      "wall_id": "wall_outer_bottom_bedroom2_solid_r",
-      "side": "left",
-      "vertex_start": "v11",
-      "vertex_end": "v12",
-      "twin_id": "he_outer_bottom_bedroom2_solid_r_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_solid_r_twin",
-      "wall_id": "wall_outer_bottom_bedroom2_solid_r",
-      "side": "right",
-      "vertex_start": "v12",
-      "vertex_end": "v11",
-      "twin_id": "he_outer_bottom_bedroom2_solid_r",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_window",
-      "wall_id": "wall_outer_bottom_bedroom2_window",
-      "side": "left",
-      "vertex_start": "v12",
-      "vertex_end": "v13",
-      "twin_id": "he_outer_bottom_bedroom2_window_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_window_twin",
-      "wall_id": "wall_outer_bottom_bedroom2_window",
-      "side": "right",
-      "vertex_start": "v13",
-      "vertex_end": "v12",
-      "twin_id": "he_outer_bottom_bedroom2_window",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_solid_l",
-      "wall_id": "wall_outer_bottom_bedroom2_solid_l",
-      "side": "left",
-      "vertex_start": "v13",
-      "vertex_end": "v14",
-      "twin_id": "he_outer_bottom_bedroom2_solid_l_twin",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_outer_bottom_bedroom2_solid_l_twin",
-      "wall_id": "wall_outer_bottom_bedroom2_solid_l",
-      "side": "right",
-      "vertex_start": "v14",
-      "vertex_end": "v13",
-      "twin_id": "he_outer_bottom_bedroom2_solid_l",
-      "wall_thickness": 200.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallOuter"
-    },
-    {
-      "id": "he_partition_balcony1_bedroom1_l",
-      "wall_id": "wall_partition_balcony1_bedroom1_l",
-      "side": "left",
-      "vertex_start": "v0",
-      "vertex_end": "v1",
-      "twin_id": "he_partition_balcony1_bedroom1_l_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_balcony1_bedroom1_l_twin",
-      "wall_id": "wall_partition_balcony1_bedroom1_l",
-      "side": "right",
-      "vertex_start": "v1",
-      "vertex_end": "v0",
-      "twin_id": "he_partition_balcony1_bedroom1_l",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_window_bedroom1_balcony",
-      "wall_id": "wall_window_bedroom1_balcony",
-      "side": "left",
-      "vertex_start": "v1",
-      "vertex_end": "v2",
-      "twin_id": "he_window_bedroom1_balcony_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_window_bedroom1_balcony_twin",
-      "wall_id": "wall_window_bedroom1_balcony",
-      "side": "right",
-      "vertex_start": "v2",
-      "vertex_end": "v1",
-      "twin_id": "he_window_bedroom1_balcony",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_balcony1_bedroom1_r",
-      "wall_id": "wall_partition_balcony1_bedroom1_r",
-      "side": "left",
-      "vertex_start": "v2",
-      "vertex_end": "v3",
-      "twin_id": "he_partition_balcony1_bedroom1_r_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_balcony1_bedroom1_r_twin",
-      "wall_id": "wall_partition_balcony1_bedroom1_r",
-      "side": "right",
-      "vertex_start": "v3",
-      "vertex_end": "v2",
-      "twin_id": "he_partition_balcony1_bedroom1_r",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_left_balcony_split",
-      "wall_id": "wall_partition_left_balcony_split",
-      "side": "left",
-      "vertex_start": "v38",
-      "vertex_end": "v3",
-      "twin_id": "he_partition_left_balcony_split_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_left_balcony_split_twin",
-      "wall_id": "wall_partition_left_balcony_split",
-      "side": "right",
-      "vertex_start": "v3",
-      "vertex_end": "v38",
-      "twin_id": "he_partition_left_balcony_split",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_bedroom1_kitchen_top",
-      "wall_id": "wall_partition_bedroom1_kitchen_top",
-      "side": "left",
-      "vertex_start": "v3",
-      "vertex_end": "v4",
-      "twin_id": "he_partition_bedroom1_kitchen_top_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_partition_bedroom1_kitchen_top_twin",
-      "wall_id": "wall_partition_bedroom1_kitchen_top",
-      "side": "right",
-      "vertex_start": "v4",
-      "vertex_end": "v3",
-      "twin_id": "he_partition_bedroom1_kitchen_top",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bedroom1",
-      "wall_id": "wall_door_bedroom1",
-      "side": "left",
-      "vertex_start": "v4",
-      "vertex_end": "v5",
-      "twin_id": "he_door_bedroom1_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bedroom1_twin",
-      "wall_id": "wall_door_bedroom1",
-      "side": "right",
-      "vertex_start": "v5",
-      "vertex_end": "v4",
-      "twin_id": "he_door_bedroom1",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath1_top",
-      "wall_id": "wall_bath1_top",
-      "side": "left",
-      "vertex_start": "v6",
-      "vertex_end": "v22",
-      "twin_id": "he_bath1_top_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath1_top_twin",
-      "wall_id": "wall_bath1_top",
-      "side": "right",
-      "vertex_start": "v22",
-      "vertex_end": "v6",
-      "twin_id": "he_bath1_top",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath1_living_solid",
-      "wall_id": "wall_bath1_living_solid",
-      "side": "left",
-      "vertex_start": "v22",
-      "vertex_end": "v23",
-      "twin_id": "he_bath1_living_solid_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath1_living_solid_twin",
-      "wall_id": "wall_bath1_living_solid",
-      "side": "right",
-      "vertex_start": "v23",
-      "vertex_end": "v22",
-      "twin_id": "he_bath1_living_solid",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bath1",
-      "wall_id": "wall_door_bath1",
-      "side": "left",
-      "vertex_start": "v23",
-      "vertex_end": "v24",
-      "twin_id": "he_door_bath1_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bath1_twin",
-      "wall_id": "wall_door_bath1",
-      "side": "right",
-      "vertex_start": "v24",
-      "vertex_end": "v23",
-      "twin_id": "he_door_bath1",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_top_left",
-      "wall_id": "wall_bedroom2_top_left",
-      "side": "left",
-      "vertex_start": "v7",
-      "vertex_end": "v8",
-      "twin_id": "he_bedroom2_top_left_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_top_left_twin",
-      "wall_id": "wall_bedroom2_top_left",
-      "side": "right",
-      "vertex_start": "v8",
-      "vertex_end": "v7",
-      "twin_id": "he_bedroom2_top_left",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bedroom2",
-      "wall_id": "wall_door_bedroom2",
-      "side": "left",
-      "vertex_start": "v8",
-      "vertex_end": "v9",
-      "twin_id": "he_door_bedroom2_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bedroom2_twin",
-      "wall_id": "wall_door_bedroom2",
-      "side": "right",
-      "vertex_start": "v9",
-      "vertex_end": "v8",
-      "twin_id": "he_door_bedroom2",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_top_right",
-      "wall_id": "wall_bedroom2_top_right",
-      "side": "left",
-      "vertex_start": "v9",
-      "vertex_end": "v10",
-      "twin_id": "he_bedroom2_top_right_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_top_right_twin",
-      "wall_id": "wall_bedroom2_top_right",
-      "side": "right",
-      "vertex_start": "v10",
-      "vertex_end": "v9",
-      "twin_id": "he_bedroom2_top_right",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_living_right",
-      "wall_id": "wall_bedroom2_living_right",
-      "side": "left",
-      "vertex_start": "v10",
-      "vertex_end": "v11",
-      "twin_id": "he_bedroom2_living_right_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom2_living_right_twin",
-      "wall_id": "wall_bedroom2_living_right",
-      "side": "right",
-      "vertex_start": "v11",
-      "vertex_end": "v10",
-      "twin_id": "he_bedroom2_living_right",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_balcony2_bottom_l",
-      "wall_id": "wall_kitchen_balcony2_bottom_l",
-      "side": "left",
-      "vertex_start": "v3",
-      "vertex_end": "v30",
-      "twin_id": "he_kitchen_balcony2_bottom_l_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_balcony2_bottom_l_twin",
-      "wall_id": "wall_kitchen_balcony2_bottom_l",
-      "side": "right",
-      "vertex_start": "v30",
-      "vertex_end": "v3",
-      "twin_id": "he_kitchen_balcony2_bottom_l",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_kitchen_balcony2",
-      "wall_id": "wall_door_kitchen_balcony2",
-      "side": "left",
-      "vertex_start": "v30",
-      "vertex_end": "v31",
-      "twin_id": "he_door_kitchen_balcony2_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_kitchen_balcony2_twin",
-      "wall_id": "wall_door_kitchen_balcony2",
-      "side": "right",
-      "vertex_start": "v31",
-      "vertex_end": "v30",
-      "twin_id": "he_door_kitchen_balcony2",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_balcony2_bottom_r",
-      "wall_id": "wall_kitchen_balcony2_bottom_r",
-      "side": "left",
-      "vertex_start": "v31",
-      "vertex_end": "v32",
-      "twin_id": "he_kitchen_balcony2_bottom_r_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_balcony2_bottom_r_twin",
-      "wall_id": "wall_kitchen_balcony2_bottom_r",
-      "side": "right",
-      "vertex_start": "v32",
-      "vertex_end": "v31",
-      "twin_id": "he_kitchen_balcony2_bottom_r",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_bath2_left",
-      "wall_id": "wall_kitchen_bath2_left",
-      "side": "left",
-      "vertex_start": "v32",
-      "vertex_end": "v25",
-      "twin_id": "he_kitchen_bath2_left_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_kitchen_bath2_left_twin",
-      "wall_id": "wall_kitchen_bath2_left",
-      "side": "right",
-      "vertex_start": "v25",
-      "vertex_end": "v32",
-      "twin_id": "he_kitchen_bath2_left",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_balcony2_bath2_top",
-      "wall_id": "wall_balcony2_bath2_top",
-      "side": "left",
-      "vertex_start": "v25",
-      "vertex_end": "v26",
-      "twin_id": "he_balcony2_bath2_top_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_balcony2_bath2_top_twin",
-      "wall_id": "wall_balcony2_bath2_top",
-      "side": "right",
-      "vertex_start": "v26",
-      "vertex_end": "v25",
-      "twin_id": "he_balcony2_bath2_top",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath2_kitchen_living_left",
-      "wall_id": "wall_bath2_kitchen_living_left",
-      "side": "left",
-      "vertex_start": "v25",
-      "vertex_end": "v29",
-      "twin_id": "he_bath2_kitchen_living_left_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath2_kitchen_living_left_twin",
-      "wall_id": "wall_bath2_kitchen_living_left",
-      "side": "right",
-      "vertex_start": "v29",
-      "vertex_end": "v25",
-      "twin_id": "he_bath2_kitchen_living_left",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bath2",
-      "wall_id": "wall_door_bath2",
-      "side": "left",
-      "vertex_start": "v29",
-      "vertex_end": "v28",
-      "twin_id": "he_door_bath2_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_door_bath2_twin",
-      "wall_id": "wall_door_bath2",
-      "side": "right",
-      "vertex_start": "v28",
-      "vertex_end": "v29",
-      "twin_id": "he_door_bath2",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath2_living_bottom",
-      "wall_id": "wall_bath2_living_bottom",
-      "side": "left",
-      "vertex_start": "v28",
-      "vertex_end": "v27",
-      "twin_id": "he_bath2_living_bottom_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bath2_living_bottom_twin",
-      "wall_id": "wall_bath2_living_bottom",
-      "side": "right",
-      "vertex_start": "v27",
-      "vertex_end": "v28",
-      "twin_id": "he_bath2_living_bottom",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_left_door",
-      "wall_id": "wall_bedroom3_left_door",
-      "side": "left",
-      "vertex_start": "v15",
-      "vertex_end": "v16",
-      "twin_id": "he_bedroom3_left_door_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_left_door_twin",
-      "wall_id": "wall_bedroom3_left_door",
-      "side": "right",
-      "vertex_start": "v16",
-      "vertex_end": "v15",
-      "twin_id": "he_bedroom3_left_door",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_left_solid",
-      "wall_id": "wall_bedroom3_left_solid",
-      "side": "left",
-      "vertex_start": "v16",
-      "vertex_end": "v17",
-      "twin_id": "he_bedroom3_left_solid_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_left_solid_twin",
-      "wall_id": "wall_bedroom3_left_solid",
-      "side": "right",
-      "vertex_start": "v17",
-      "vertex_end": "v16",
-      "twin_id": "he_bedroom3_left_solid",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_top_shared",
-      "wall_id": "wall_bedroom3_top_shared",
-      "side": "left",
-      "vertex_start": "v15",
-      "vertex_end": "v49",
-      "twin_id": "he_bedroom3_top_shared_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom3_top_shared_twin",
-      "wall_id": "wall_bedroom3_top_shared",
-      "side": "right",
-      "vertex_start": "v49",
-      "vertex_end": "v15",
-      "twin_id": "he_bedroom3_top_shared",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom1_bottom_hall",
-      "wall_id": "wall_bedroom1_bottom_hall",
-      "side": "left",
-      "vertex_start": "v22",
-      "vertex_end": "v5",
-      "twin_id": "he_bedroom1_bottom_hall_twin",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
-    },
-    {
-      "id": "he_bedroom1_bottom_hall_twin",
-      "wall_id": "wall_bedroom1_bottom_hall",
-      "side": "right",
-      "vertex_start": "v5",
-      "vertex_end": "v22",
-      "twin_id": "he_bedroom1_bottom_hall",
-      "wall_thickness": 100.0,
-      "wall_ratio_start": 0.0,
-      "wall_ratio_end": 1.0,
-      "type": "WallInner"
+  "walls": [
+    {
+      "id": "wall_1",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 0,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_2",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 2000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_3",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 2000,
+          "y": 6000
+        },
+        {
+          "x": 4000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_4",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 2000,
+          "y": 0
+        },
+        {
+          "x": 4000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_5",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 7000,
+          "y": 0
+        },
+        {
+          "x": 7000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_6",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 4000,
+          "y": 0
+        },
+        {
+          "x": 7000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_7",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 4000,
+          "y": 0
+        },
+        {
+          "x": 4000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_8",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 2000,
+          "y": 4000
+        },
+        {
+          "x": 2000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_9",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 100,
+      "centerline": [
+        {
+          "x": 2000,
+          "y": 4000
+        },
+        {
+          "x": 4000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_10",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 6000
+        },
+        {
+          "x": 2000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_11",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 4000,
+          "y": 4000
+        },
+        {
+          "x": 7000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "wall_12",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 2000,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_13",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 4000,
+          "y": 4000
+        },
+        {
+          "x": 4000,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "wall_14",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 200,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 4000
+        }
+      ]
     }
   ],
-  "wall_side_measurements": [],
-  "surface_measurements": [],
+  "spaces": [
+    {
+      "id": "living",
+      "level_id": "level_1",
+      "kind": "living_room",
+      "name": "거실겸주방",
+      "boundary": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 4000,
+          "y": 0
+        },
+        {
+          "x": 4000,
+          "y": 4000
+        },
+        {
+          "x": 0,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "bed1",
+      "level_id": "level_1",
+      "kind": "bedroom",
+      "name": "침실",
+      "boundary": [
+        {
+          "x": 4000,
+          "y": 0
+        },
+        {
+          "x": 7000,
+          "y": 0
+        },
+        {
+          "x": 7000,
+          "y": 4000
+        },
+        {
+          "x": 4000,
+          "y": 4000
+        }
+      ]
+    },
+    {
+      "id": "bath",
+      "level_id": "level_1",
+      "kind": "bathroom",
+      "name": "욕실",
+      "boundary": [
+        {
+          "x": 0,
+          "y": 4000
+        },
+        {
+          "x": 2000,
+          "y": 4000
+        },
+        {
+          "x": 2000,
+          "y": 6000
+        },
+        {
+          "x": 0,
+          "y": 6000
+        }
+      ]
+    },
+    {
+      "id": "entrance",
+      "level_id": "level_1",
+      "kind": "entrance",
+      "name": "현관",
+      "boundary": [
+        {
+          "x": 2000,
+          "y": 4000
+        },
+        {
+          "x": 4000,
+          "y": 4000
+        },
+        {
+          "x": 4000,
+          "y": 6000
+        },
+        {
+          "x": 2000,
+          "y": 6000
+        }
+      ]
+    }
+  ],
   "openings": [
     {
-      "id": "window_balcony_1_outer",
-      "type": "Window",
-      "target_edge_id": "he_outer_top_balcony1_window",
-      "width_mm": 1600.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
+      "id": "door_1",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_7",
+      "offset_from": "start",
+      "offset_to_center": 2000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
     },
     {
-      "id": "window_balcony_2_outer_a",
-      "type": "Window",
-      "target_edge_id": "he_outer_top_balcony2_window_a",
-      "width_mm": 1200.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
+      "id": "door_2",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_2",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
     },
     {
-      "id": "window_balcony_2_outer_b",
-      "type": "Window",
-      "target_edge_id": "he_outer_top_balcony2_window_b",
-      "width_mm": 1000.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
+      "id": "door_3",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_9",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 900,
+      "height": 2100,
+      "bottom": 0
     },
     {
-      "id": "door_entrance_main",
-      "type": "Door",
-      "target_edge_id": "he_outer_entry_door",
-      "width_mm": 600.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
+      "id": "window_4",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_4",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
     },
     {
-      "id": "window_bedroom_3",
-      "type": "Window",
-      "target_edge_id": "he_outer_bottom_bedroom3_window",
-      "width_mm": 1300.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
+      "id": "window_5",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_6",
+      "offset_from": "start",
+      "offset_to_center": 1500.0,
+      "width": 1500,
+      "height": 1200,
+      "bottom": 900
     },
     {
-      "id": "window_living",
-      "type": "Window",
-      "target_edge_id": "he_outer_bottom_living_window",
-      "width_mm": 1400.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
-    },
-    {
-      "id": "window_bedroom_2",
-      "type": "Window",
-      "target_edge_id": "he_outer_bottom_bedroom2_window",
-      "width_mm": 1400.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
-    },
-    {
-      "id": "window_bedroom_1_balcony",
-      "type": "Window",
-      "target_edge_id": "he_window_bedroom1_balcony",
-      "width_mm": 1600.0,
-      "height_mm": 1200.0,
-      "z_offset_mm": 1000.0
-    },
-    {
-      "id": "door_bedroom_1",
-      "type": "Door",
-      "target_edge_id": "he_door_bedroom1",
-      "width_mm": 550.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_bathroom_1",
-      "type": "Door",
-      "target_edge_id": "he_door_bath1",
-      "width_mm": 600.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_bedroom_2",
-      "type": "Door",
-      "target_edge_id": "he_door_bedroom2",
-      "width_mm": 650.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_balcony_2_kitchen",
-      "type": "Door",
-      "target_edge_id": "he_door_kitchen_balcony2",
-      "width_mm": 600.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_bathroom_2",
-      "type": "Door",
-      "target_edge_id": "he_door_bath2",
-      "width_mm": 500.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "id": "door_bedroom_3",
-      "type": "Door",
-      "target_edge_id": "he_bedroom3_left_door",
-      "width_mm": 600.0,
-      "height_mm": 2100.0,
-      "z_offset_mm": 0.0
-    }
-  ],
-  "faces": [
-    {
-      "face_id": "room_bedroom_1_top_left",
-      "label": "침실 1",
-      "contour_vertex_ids": [
-        "v0",
-        "v1",
-        "v2",
-        "v3",
-        "v4",
-        "v5",
-        "v6"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_bedroom_2_bottom_left",
-      "label": "침실 2",
-      "contour_vertex_ids": [
-        "v7",
-        "v8",
-        "v9",
-        "v10",
-        "v11",
-        "v12",
-        "v13",
-        "v14"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_bedroom_3_right",
-      "label": "침실 3",
-      "contour_vertex_ids": [
-        "v15",
-        "v16",
-        "v17",
-        "v18",
-        "v19",
-        "v20",
-        "v21"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_bathroom_1_left",
-      "label": "화장실 1",
-      "contour_vertex_ids": [
-        "v6",
-        "v22",
-        "v23",
-        "v24",
-        "v7"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_bathroom_2_top_right",
-      "label": "화장실 2",
-      "contour_vertex_ids": [
-        "v25",
-        "v26",
-        "v27",
-        "v28",
-        "v29"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_kitchen_dining",
-      "label": "주방식당",
-      "contour_vertex_ids": [
-        "v3",
-        "v30",
-        "v31",
-        "v32",
-        "v25",
-        "v29",
-        "v5",
-        "v4"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_living",
-      "label": "거실",
-      "contour_vertex_ids": [
-        "v22",
-        "v5",
-        "v29",
-        "v28",
-        "v27",
-        "v15",
-        "v16",
-        "v17",
-        "v33",
-        "v34",
-        "v11",
-        "v10",
-        "v9",
-        "v8",
-        "v24",
-        "v23"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_balcony_1_left",
-      "label": "발코니 1",
-      "contour_vertex_ids": [
-        "v35",
-        "v36",
-        "v37",
-        "v38",
-        "v3",
-        "v2",
-        "v1",
-        "v0"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_balcony_2_top_right",
-      "label": "발코니 2",
-      "contour_vertex_ids": [
-        "v38",
-        "v39",
-        "v40",
-        "v41",
-        "v42",
-        "v43",
-        "v44",
-        "v45",
-        "v26",
-        "v25",
-        "v32",
-        "v31",
-        "v30",
-        "v3"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
-    },
-    {
-      "face_id": "room_entry",
-      "label": "현관",
-      "contour_vertex_ids": [
-        "v27",
-        "v46",
-        "v47",
-        "v48",
-        "v49",
-        "v15"
-      ],
-      "height_mm": 2600.0,
-      "z_offset_mm": 0.0
+      "id": "door_6",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_13",
+      "offset_from": "start",
+      "offset_to_center": 1000.0,
+      "width": 1000,
+      "height": 2100,
+      "bottom": 0
     }
   ]
 }

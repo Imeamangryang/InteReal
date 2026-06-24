@@ -239,7 +239,23 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
         
         TArray<int32> CeilTopVIds;
         TArray<int32> CeilBottomVIds;
-        
+
+        // Find the maximum wall height from adjacent boundary walls
+        if (Face.boundary_wall_ids.Num() > 0)
+        {
+            for (const FString& WallId : Face.boundary_wall_ids)
+            {
+                for (const FTopologyHalfEdge& HalfEdge : FloorData.half_edges)
+                {
+                    if (HalfEdge.wall_id == WallId && HalfEdge.wall_height > 0.0f)
+                    {
+                        DynamicWallHeight = FMath::Max(DynamicWallHeight, static_cast<double>(HalfEdge.wall_height));
+                        break;
+                    }
+                }
+            }
+        }
+
         double CeilingBottomZ = Face.z_offset + DynamicWallHeight; 
         double CeilingTopZ = CeilingBottomZ + SlabThickness; 
 
@@ -341,12 +357,13 @@ void UHarnessGeneratorComponent::FabricateDynamicPlanes(const FHarnessFloorData&
             // ?ㅼ젣 寃뚯엫?먮뒗 蹂댁씠吏 ?딄퀬 洹몃┝?먮쭔 洹몃━?꾨줉 ?ㅼ젙?⑸땲??
             CeilingShadowBlocker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
             CeilingShadowBlocker->SetVisibility(true, true);
-            CeilingShadowBlocker->SetHiddenInGame(false, true);
-            CeilingShadowBlocker->SetRenderInMainPass(false);
+            CeilingShadowBlocker->SetHiddenInGame(true, true);
+            CeilingShadowBlocker->SetRenderInMainPass(true);
             CeilingShadowBlocker->SetVisibleInRayTracing(true);
             CeilingShadowBlocker->CastShadow = true;
             CeilingShadowBlocker->bCastHiddenShadow = true;
             CeilingShadowBlocker->bCastShadowAsTwoSided = true;
+            CeilingShadowBlocker->BoundsScale = 10000.0f; // 1인칭 시점에서 프러스텀 컬링으로 인해 그림자가 사라지는 현상 방지
             CeilingShadowBlocker->NotifyMeshUpdated();
 
             SpawnedComponents.Add(CeilingShadowBlocker);

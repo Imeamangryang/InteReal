@@ -144,6 +144,10 @@ public:
 	// ===== 현재 배치 불가 이유 (UI 표시용) =====
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Placement")
 	EPlacementInvalidReason InvalidReason = EPlacementInvalidReason::None;
+	
+	// ===== 자유배치 모드 =====
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Placement")
+	bool bFreePlacementMode = false;
 
 	// ===== 핸들러가 접근하는 공유 상태 Getter =====
 	AGridSpaceManager* GetGrid() const { return Grid; }
@@ -157,6 +161,7 @@ public:
 	TArray<AFurniture*>& GetPlacedFurnituresMutable() { return PlacedFurnitures; }
 	FVector2D& GetPreviewGridAnchor() { return PreviewGridAnchor; }
 	FVector2D& GetCurrentDimensions() { return CurrentDimensions; }
+	const FFurnitureDataRow& GetCurrentFurnitureRow() const { return CurrentFurnitureRow; }
 	FVector& GetLastRayPosition() { return LastRayPosition; }
 	EPlacementSurfaceType GetCurrentSurfaceType() const { return CurrentPreviewSurfaceType; }
 
@@ -171,6 +176,16 @@ public:
 	bool IsPointInsideFloor(FVector2D Point) const;
 
 	FRotator GetPreviewRotation() const { return PreviewRotation; }
+	
+	UFUNCTION(BlueprintPure, Category = "Placement|FreePlacement")
+	bool IsFreePlacementMode() const { return bFreePlacementMode; }
+
+	UFUNCTION(BlueprintCallable, Category = "Placement|FreePlacement")
+	void SetFreePlacementMode(bool bEnable);
+
+	UFUNCTION(BlueprintCallable, Category = "Placement|FreePlacement")
+	void ToggleFreePlacementMode() { SetFreePlacementMode(!bFreePlacementMode); }
+
 
 private:
 	// ===== 핸들러 =====

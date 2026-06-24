@@ -111,6 +111,14 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 
 void AFurniture::SetSelected(bool bSelected)
 {
+	
+	UE_LOG(LogTemp, Warning, TEXT("[Furniture::SetSelected][Before] Furniture=%s bSelected=%d Mesh=%s CollisionEnabled=%d VisibilityResponse=%d"),
+		*GetNameSafe(this),
+		bSelected,
+		*GetNameSafe(MeshComponent),
+		MeshComponent ? static_cast<int32>(MeshComponent->GetCollisionEnabled()) : -1,
+		MeshComponent ? static_cast<int32>(MeshComponent->GetCollisionResponseToChannel(ECC_Visibility)) : -1);
+
 	SetMeshesCustomDepth(bSelected, 1);
 	CollisionBoxComponent->SetHiddenInGame(true);
 	
@@ -126,6 +134,13 @@ void AFurniture::SetSelected(bool bSelected)
 		// CollisionBoxComponent->LineThickness = 0.5f;
 		CollisionBoxComponent->MarkRenderStateDirty();
 	}*/
+	
+	UE_LOG(LogTemp, Warning, TEXT("[Furniture::SetSelected][After] Furniture=%s bSelected=%d Mesh=%s CollisionEnabled=%d VisibilityResponse=%d"),
+		*GetNameSafe(this),
+		bSelected,
+		*GetNameSafe(MeshComponent),
+		MeshComponent ? static_cast<int32>(MeshComponent->GetCollisionEnabled()) : -1,
+		MeshComponent ? static_cast<int32>(MeshComponent->GetCollisionResponseToChannel(ECC_Visibility)) : -1);
 }
 
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)

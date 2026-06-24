@@ -1,7 +1,7 @@
 ﻿#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 
 #include "Components/DynamicMeshComponent.h"
-#include "Components/PointLightComponent.h" 
+
 #include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessSaveManagerComponent.h"
 
@@ -73,25 +73,14 @@ FHarnessFloorData UHarnessGeneratorComponent::MakeRuntimeFloorData(const FHarnes
         Edge.wall_thickness *= PlanScale;
     }
 
-    for (FTopologyWallSideMeasurement& Measurement : RuntimeFloorData.wall_side_measurements)
-    {
-        Measurement.length_cm *= PlanScale;
-    }
 
-    for (FTopologySurfaceMeasurement& Measurement : RuntimeFloorData.surface_measurements)
-    {
-        Measurement.start_distance_cm *= PlanScale;
-        Measurement.end_distance_cm *= PlanScale;
-        Measurement.length_cm *= PlanScale;
-        Measurement.start_point.x *= PlanScale;
-        Measurement.start_point.y *= PlanScale;
-        Measurement.end_point.x *= PlanScale;
-        Measurement.end_point.y *= PlanScale;
-    }
 
     for (FTopologyOpening& Opening : RuntimeFloorData.openings)
     {
         Opening.width_cm *= PlanScale;
+        Opening.height_cm *= PlanScale;
+        Opening.z_offset_cm *= PlanScale;
+        Opening.offset_to_center_cm *= PlanScale;
     }
 
     return RuntimeFloorData;
@@ -117,8 +106,7 @@ void UHarnessGeneratorComponent::ClearHarness()
     AnimatedWalls.Reset(); 
     VertexCache.Reset();
     EdgeCache.Reset();
-    WallSideMeasurementCache.Reset();
-    SurfaceMeasurementCache.Reset();
+
 
     bIsSpawning = false;
 }
@@ -132,10 +120,7 @@ void UHarnessGeneratorComponent::RebuildHarnessFromRuntimeData(const FHarnessFlo
     FabricateDynamicPlanes(FloorData);
     InstallOpeningComponents(FloorData);
 
-    if (bEnableInteriorLights)
-    {
-        InstallInteriorLights(FloorData);
-    }
+
 
     if (AnimatedWalls.Num() > 0)
     {
@@ -150,8 +135,7 @@ void UHarnessGeneratorComponent::RebuildHarnessFromRuntimeData(const FHarnessFlo
 // ==============================================================================
 void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& FloorData)
 {
-    WallSideMeasurementCache = FloorData.wall_side_measurements;
-    SurfaceMeasurementCache = FloorData.surface_measurements;
+
 
     for (const FTopologyVertex& V : FloorData.vertices)
     {
@@ -269,97 +253,9 @@ void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickT
                 }
             }
             
+            
             bIsSpawning = false;
-            SetComponentTickEnabled(false); // Tick ?ル굝利?(?源낅뮟 筌ㅼ뮇???
         }
-    }
-}
-
-// ==============================================================================
-// 揶?獄쎻뫗???얜떯苡뜸빳臾믩뼎???④쑴沅??뤿연 ??산땀 鈺곌퀡梨?Point Light)??獄쏄퀣???몃빍??
-// ==============================================================================
-void UHarnessGeneratorComponent::InstallInteriorLights(const FHarnessFloorData& FloorData)
-{
-    auto DoesOpeningTargetFace = [&](const FTopologyOpening& Opening, const FTopologyFace& Face) -> bool
-    {
-        if (!Opening.type.Equals(TEXT("Window"), ESearchCase::IgnoreCase))
-        {
-            return false;
-        }
-
-        const int32 NumVerts = Face.contour_vertex_ids.Num();
-        for (int32 i = 0; i < NumVerts; ++i)
-        {
-            const FString& CurrId = Face.contour_vertex_ids[i];
-            const FString& NextId = Face.contour_vertex_ids[(i + 1) % NumVerts];
-
-            for (const FTopologyHalfEdge& Edge : FloorData.half_edges)
-            {
-                const bool bSameSegment =
-                    (Edge.vertex_start == CurrId && Edge.vertex_end == NextId) ||
-                    (Edge.vertex_start == NextId && Edge.vertex_end == CurrId);
-
-                if (bSameSegment && (Opening.target_edge_id == Edge.id || Opening.target_edge_id == Edge.twin_id))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    };
-
-    for (const FTopologyFace& Face : FloorData.faces)
-    {
-        if (Face.contour_vertex_ids.Num() < 3) continue;
-
-        bool bHasWindow = false;
-        for (const FTopologyOpening& Opening : FloorData.openings)
-        {
-            if (DoesOpeningTargetFace(Opening, Face))
-            {
-                bHasWindow = true;
-                break;
-            }
-        }
-
-        if (!bHasWindow)
-        {
-            continue;
-        }
-
-        float DynamicWallHeight = Face.height_cm;
-
-        FVector2D Centroid(0.0, 0.0);
-        int32 ValidPts = 0;
-
-        for (const FString& VId : Face.contour_vertex_ids)
-        {
-            if (VertexCache.Contains(VId))
-            {
-                Centroid += VertexCache[VId];
-                ValidPts++;
-            }
-        }
-        
-        if (ValidPts == 0) continue;
-        Centroid /= ValidPts;
-
-        // 筌ｌ뮇??癒?퐣 30cm ?袁⑥삋 筌왖?癒?퓠 鈺곌퀡梨??獄쏄퀣???뤿연 揶쏄쑴??鈺곌퀡梨???ｋ궢???醫딅즲??몃빍??
-        FVector LightPos(Centroid.X, Centroid.Y, Face.z_offset + DynamicWallHeight - 30.0f);
-
-        UPointLightComponent* PointLight = NewObject<UPointLightComponent>(GetOwner());
-        PointLight->SetMobility(EComponentMobility::Movable);
-        PointLight->RegisterComponent();
-        PointLight->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-        PointLight->SetRelativeLocation(LightPos);
-        PointLight->SetIntensity(2500.0f);
-        PointLight->SetAttenuationRadius(1000.0f);
-        PointLight->SetCastShadows(true);
-        PointLight->LightColor = FColor(255, 245, 230); // ?怨뺤몴????ㅺ컶???怨몄뒠
-        PointLight->ComponentTags.Add(TEXT("InteriorLight"));
-
-        SpawnedComponents.Add(PointLight);
     }
 }
 
@@ -425,4 +321,133 @@ void UHarnessGeneratorComponent::UpdateCeilingHeight(FString FaceId, float NewHe
     }
     
     RebuildHarnessFromRuntimeData(CachedFloorData);
+}
+
+FVector UHarnessGeneratorComponent::GetSafeSpawnLocation() const
+{
+    FVector LocalSpawnPos = FVector::ZeroVector;
+    bool bFoundSafeLocation = false;
+
+    // 1. 방(Face) 데이터가 있다면 첫 번째 유효한 방의 가장 긴 벽에서 안쪽으로 들어온 위치 사용
+    // (단순 중심점은 L자형 방에서 벽에 걸칠 수 있음)
+    if (!bFoundSafeLocation && CachedFloorData.faces.Num() > 0)
+    {
+        for (const FTopologyFace& Face : CachedFloorData.faces)
+        {
+            if (Face.contour_vertex_ids.Num() < 3) continue;
+
+            TArray<FVector2D> Pts;
+            for (const FString& VId : Face.contour_vertex_ids)
+            {
+                if (VertexCache.Contains(VId))
+                {
+                    Pts.Add(VertexCache[VId]);
+                }
+            }
+            
+            if (Pts.Num() >= 3)
+            {
+                // 다각형의 대략적인 중심점 계산
+                FVector2D Centroid(0.0, 0.0);
+                for (const FVector2D& Pt : Pts)
+                {
+                    Centroid += Pt;
+                }
+                Centroid /= Pts.Num();
+
+                // 가장 긴 선분(벽) 찾기
+                float MaxLenSq = -1.0f;
+                FVector2D BestMid(0.0, 0.0);
+                FVector2D BestEdgeDir(0.0, 0.0);
+
+                for (int i = 0; i < Pts.Num(); ++i)
+                {
+                    FVector2D V0 = Pts[i];
+                    FVector2D V1 = Pts[(i + 1) % Pts.Num()];
+                    float LenSq = FVector2D::DistSquared(V0, V1);
+                    if (LenSq > MaxLenSq)
+                    {
+                        MaxLenSq = LenSq;
+                        BestMid = (V0 + V1) * 0.5f;
+                        BestEdgeDir = (V1 - V0).GetSafeNormal();
+                    }
+                }
+
+                if (MaxLenSq > 0.0f)
+                {
+                    // 가장 긴 벽의 중앙에서 중심점 방향을 향하는 수직 벡터(방 안쪽 방향) 계산
+                    FVector2D InwardDir = (Centroid - BestMid).GetSafeNormal();
+                    FVector2D Normal1(-BestEdgeDir.Y, BestEdgeDir.X);
+                    FVector2D Normal2(BestEdgeDir.Y, -BestEdgeDir.X);
+                    FVector2D EdgeNormal = (FVector2D::DotProduct(Normal1, InwardDir) > 0.0f) ? Normal1 : Normal2;
+
+                    // 벽에서 100cm(1미터) 안쪽으로 들어온 위치를 안전 소환 지점으로 결정
+                    FVector2D SpawnPos2D = BestMid + EdgeNormal * 100.0f;
+                    LocalSpawnPos = FVector(SpawnPos2D.X, SpawnPos2D.Y, 150.0f);
+                    bFoundSafeLocation = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 2. 방 데이터가 없는 경우(Test5 등), 전체 벽면(Half-Edge) 중에서 가장 긴 벽을 찾아 건물 안쪽으로 이동
+    if (!bFoundSafeLocation && CachedFloorData.half_edges.Num() > 0)
+    {
+        FVector2D MinBounds, MaxBounds;
+        GetFloorBounds(MinBounds, MaxBounds);
+        FVector2D BoundsCenter = (MinBounds + MaxBounds) * 0.5f;
+
+        float MaxLenSq = -1.0f;
+        FVector2D BestMid(0.0, 0.0);
+        FVector2D BestEdgeDir(0.0, 0.0);
+
+        for (const FTopologyHalfEdge& Edge : CachedFloorData.half_edges)
+        {
+            if (VertexCache.Contains(Edge.vertex_start) && VertexCache.Contains(Edge.vertex_end))
+            {
+                FVector2D V0 = VertexCache[Edge.vertex_start];
+                FVector2D V1 = VertexCache[Edge.vertex_end];
+                float LenSq = FVector2D::DistSquared(V0, V1);
+                if (LenSq > MaxLenSq)
+                {
+                    MaxLenSq = LenSq;
+                    BestMid = (V0 + V1) * 0.5f;
+                    BestEdgeDir = (V1 - V0).GetSafeNormal();
+                }
+            }
+        }
+
+        if (MaxLenSq > 0.0f)
+        {
+            // 가장 긴 벽에서 도면 중심점(BoundsCenter)을 향하는 방향을 안쪽(실내)으로 간주
+            FVector2D InwardDir = (BoundsCenter - BestMid).GetSafeNormal();
+            FVector2D Normal1(-BestEdgeDir.Y, BestEdgeDir.X);
+            FVector2D Normal2(BestEdgeDir.Y, -BestEdgeDir.X);
+            FVector2D EdgeNormal = (FVector2D::DotProduct(Normal1, InwardDir) > 0.0f) ? Normal1 : Normal2;
+
+            // 벽에서 120cm 안쪽으로 들어온 위치 (외벽 두께 등을 고려하여 120cm로 넉넉히 설정)
+            FVector2D SpawnPos2D = BestMid + EdgeNormal * 120.0f;
+            LocalSpawnPos = FVector(SpawnPos2D.X, SpawnPos2D.Y, 150.0f);
+            bFoundSafeLocation = true;
+        }
+    }
+
+    // 3. 어떠한 데이터도 사용할 수 없는 최후의 경우 Bounding Box 중심 사용
+    if (!bFoundSafeLocation)
+    {
+        FVector2D MinBounds, MaxBounds;
+        GetFloorBounds(MinBounds, MaxBounds);
+
+        if (MinBounds.IsZero() && MaxBounds.IsZero())
+        {
+            return GetOwner() ? GetOwner()->GetActorLocation() : FVector::ZeroVector;
+        }
+
+        FVector2D Center2D = (MinBounds + MaxBounds) * 0.5f;
+        LocalSpawnPos = FVector(Center2D.X, Center2D.Y, 150.0f);
+    }
+
+    // 구해진 Local 좌표를 현재 액터의 Transform(World 공간)으로 변환하여 반환
+    return GetOwner() ? GetOwner()->GetTransform().TransformPosition(LocalSpawnPos) : LocalSpawnPos;
 }

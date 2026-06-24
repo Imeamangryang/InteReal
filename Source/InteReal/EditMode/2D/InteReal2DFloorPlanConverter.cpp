@@ -103,8 +103,24 @@ FInteReal2DFloorPlanDocument FInteReal2DFloorPlanConverter::ConvertFromHarness(c
 
         FInteReal2DFloorPlanOpening NewOpening;
         NewOpening.Type = Opening.type;
-        NewOpening.Start = *StartPoint;
-        NewOpening.End = *EndPoint;
+        const FVector2D WallSegment = *EndPoint - *StartPoint;
+        const float WallLength = WallSegment.Size();
+        if (WallLength <= KINDA_SMALL_NUMBER)
+        {
+            continue;
+        }
+
+        const FVector2D WallDirection = WallSegment / WallLength;
+        float CenterDistance = FMath::Clamp(Opening.offset_to_center_cm, 0.0f, WallLength);
+        if (Opening.offset_from.Equals(TEXT("end"), ESearchCase::IgnoreCase))
+        {
+            CenterDistance = WallLength - CenterDistance;
+        }
+
+        const FVector2D Center = *StartPoint + (WallDirection * CenterDistance);
+        const float HalfWidth = FMath::Max(Opening.width_cm * 0.5f, 1.0f);
+        NewOpening.Start = Center - (WallDirection * HalfWidth);
+        NewOpening.End = Center + (WallDirection * HalfWidth);
 
         Document.Openings.Add(NewOpening);
     }

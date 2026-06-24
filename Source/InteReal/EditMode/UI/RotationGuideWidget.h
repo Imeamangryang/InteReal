@@ -37,7 +37,10 @@ public:
 	FVector2D GuideScreenSize = FVector2D(120.0f, 48.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RotationGuide")
-	bool bShowRadialSlider = false;
+	bool bShowRadialSlider = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RotationGuide")
+	float RadialSliderRevealThresholdDegrees = 0.5f;
 
 private:
 	UPROPERTY(meta=(BindWidget))
@@ -47,6 +50,7 @@ private:
 	URadialSlider* RS_Angle;
 
 	float BaseYawDegrees = 0.0f;
+	bool bUpdatingRadialSliderFromCode = false;
 
 	UFUNCTION()
 	void HandleSliderValueChanged(float Value);

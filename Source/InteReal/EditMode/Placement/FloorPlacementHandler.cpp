@@ -293,8 +293,11 @@ void UFloorPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Cursor,
 	bool bValid = true;
 	EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
 
-	const FVector WorldCenter = Grid->ToWorldPosition(
-		FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
+	// 자유배치 모드: 그리드 셀 중심으로 스냅하지 않고 커서가 가리키는 연속 좌표를 그대로 사용.
+	// 충돌/범위 판정은 여전히 셀 단위(AnchorX/Y)로 근사해서 처리한다.
+	const FVector WorldCenter = Subsystem->IsFreePlacementMode()
+		? DesiredMeshCenter
+		: Grid->ToWorldPosition(FVector2D(AnchorX + L * 0.5f - 0.5f, AnchorY + B * 0.5f - 0.5f));
 	if (Axis == EGizmoTransformAxis::MoveZ)
 	{
 		FVector ActorLocation = Target->GetActorLocation();

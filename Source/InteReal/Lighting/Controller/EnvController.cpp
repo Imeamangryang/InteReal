@@ -77,14 +77,14 @@ void AEnvController::BeginPlay()
         // 1. 반사광 배율을 0으로 설정 (Specular Scale)
         SunLight->SetSpecularScale(0.0f);
 
-        // 2. 그림자 기울기 편향을 0으로 설정 (Shadow Slope Bias)
-        SunLight->SetShadowSlopeBias(0.0f);
+        // 2. 그림자 얼룩(Shadow Acne) 방지를 위해 기울기 편향을 기본값 수준으로 복구
+        SunLight->SetShadowSlopeBias(0.5f);
 
-        // 3. 미세한 틈새의 빛샘 방지를 위해 컨택트 섀도 적용 (Contact Shadow Length)
-        SunLight->ContactShadowLength = 0.08f;
+        // 3. 노이즈(Artifact) 유발로 인해 컨택트 섀도 비활성화 유지
+        SunLight->ContactShadowLength = 0.0f;
 
-        // 4. 그림자 시작 지점을 물체에 더 가깝게 당김 (Shadow Bias)
-        SunLight->SetShadowBias(0.1f);
+        // 4. 그림자 시작 지점을 물체에 살짝 당기되 얼룩이 지지 않도록 0.3 설정 (기본값 0.5)
+        SunLight->SetShadowBias(0.3f);
     }
 }
 

@@ -2,6 +2,7 @@
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Placement/FloorPlacementHandler.h"
+#include "InteReal/EditMode/Placement/DoorWindowPlacementHandler.h"
 #include "InteReal/EditMode/Placement/WallPlacementHandler.h"
 #include "InteReal/EditMode/Placement/CeilingPlacementHandler.h"
 #include "InteReal/EditMode/Placement/SurfacePlacementHandler.h"
@@ -13,7 +14,7 @@ void UInteriorPlacementSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 {
 	Super::Initialize(Collection);
 
-	// Surface → Wall → Ceiling → Floor 순 (구체적인 것부터 CanHandle)
+	// Surface → Door/Window → Wall → Ceiling → Floor 순 (구체적인 것부터 CanHandle)
 	auto AddHandler = [&](auto* Handler)
 	{
 		Handler->Initialize(this);
@@ -21,6 +22,7 @@ void UInteriorPlacementSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 	};
 
 	AddHandler(NewObject<USurfacePlacementHandler>(this));
+	AddHandler(NewObject<UDoorWindowPlacementHandler>(this));
 	AddHandler(NewObject<UWallPlacementHandler>(this));
 	AddHandler(NewObject<UCeilingPlacementHandler>(this));
 	AddHandler(NewObject<UFloorPlacementHandler>(this));
@@ -160,6 +162,12 @@ void UInteriorPlacementSubsystem::SetGridVisible(bool bVisible)
 	{
 		Visualizer->SetGridVisible(bVisible);
 	}
+}
+
+void UInteriorPlacementSubsystem::SetFreePlacementMode(bool bEnable)
+{
+	bFreePlacementMode = bEnable;
+	SetGridVisible(!bFreePlacementMode);
 }
 
 // ===== 프리뷰 =====
@@ -1028,12 +1036,6 @@ void UInteriorPlacementSubsystem::BuildFloorPolygon(const FHarnessFloorData& Flo
 void UInteriorPlacementSubsystem::BuildWallSegments(const FHarnessFloorData& FloorData)
 {
 	WallSegments.Empty();
-	TSet<FString> OpeningEdgeIds;
-	for (const FTopologyOpening& Opening : FloorData.openings)
-	{
-		OpeningEdgeIds.Add(Opening.target_edge_id);
-		OpeningEdgeIds.Add(Opening.target_edge_id + TEXT("_twin"));
-	}
 
 	TMap<FString, FVector2D> VMap;
 	for (const FTopologyVertex& V : FloorData.vertices)
@@ -1058,7 +1060,7 @@ void UInteriorPlacementSubsystem::BuildWallSegments(const FHarnessFloorData& Flo
 		{
 			continue;
 		}
-		if (ProcessedTwinIds.Contains(Edge.id) || OpeningEdgeIds.Contains(Edge.id))
+		if (ProcessedTwinIds.Contains(Edge.id))
 		{
 			continue;
 		}

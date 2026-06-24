@@ -59,6 +59,12 @@ void AViewModeManager::Tick(float DeltaTime)
 void AViewModeManager::SetViewMode(EHarnessViewMode NewMode)
 {
 	CurrentMode = NewMode;
+
+	if (CurrentMode != EHarnessViewMode::FirstPerson)
+	{
+		FocusOnBuilding();
+	}
+
 	UpdateTargetParameters();
 }
 
@@ -243,7 +249,7 @@ void AViewModeManager::SetFloorPlanPanelOffset(bool bPanelOpen)
 		switch (CurrentMode)
 		{
 		case EHarnessViewMode::TopDown:
-			TargetLocation = FVector(800.f, 700.f, 1000.f);
+			TargetLocation = FVector(800.f, 700.f, 2000.f);
 			break;
 
 		case EHarnessViewMode::Isometric:

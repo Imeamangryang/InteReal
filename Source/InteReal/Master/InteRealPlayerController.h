@@ -58,7 +58,12 @@ public:
 
 	UFUNCTION()
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
+	
+	UFUNCTION()
 	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
+	
+	UFUNCTION()
+	void HandlePipelineLoadFinished();
 
 	UFUNCTION()
 	void HandleFloorPlanPanelOpenChanged(bool bOpen);
@@ -95,10 +100,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
 	void DeleteFurnitureForFloorPlanSync(AFurniture* Furniture);
+	
+	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
+	void ClearFurnitureSelectionForFloorPlanSync();
 
 	void SnapshotPlacedFurnitureActorsForFloorPlanSync(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const;
 	AFurniture* ResolveConfirmedFurnitureActorForFloorPlanSync(AFurniture* PreviousPreviewFurniture, const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys) const;
-
+	AFurniture* ConfirmActivePreviewFurnitureForFloorPlanSync(bool bContinuePlacement);
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
 	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
 
@@ -108,9 +118,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
 	float GizmoTraceRadius = 18.0f;
 	
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Gizmo")
+	void ToggleFreePlacementMode();
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Gizmo")
+	void ToggleGizmoDisplayMode();
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Gizmo")
+	void SetGizmoShowMove(bool bShow);
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Gizmo")
+	void SetGizmoShowRotate(bool bShow);
+
+	UFUNCTION(BlueprintPure, Category = "EditMode|Gizmo")
+	bool IsGizmoShowingMove() const;
+
+	UFUNCTION(BlueprintPure, Category = "EditMode|Gizmo")
+	bool IsGizmoShowingRotate() const;
+	
 protected:
 	void UpdateCursorHit();
 	void ToggleGrid();
+	void OnToggleFreePlacementKey();
+	void OnToggleGizmoDisplayModeKey();
+	void ApplyGizmoDisplayFlags(bool bShowMove, bool bShowRotate);
+
 
 	void OnPlaceKey();
 	void OnPlaceReleasedKey();
@@ -278,6 +310,7 @@ private:
 		const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys
 	) const;
 	void DeleteFurnitureActor(AFurniture* FurnitureActor);
+	void ClearFurnitureSelectionInternal(bool bSyncFloorPlan2D);
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;

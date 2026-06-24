@@ -10,6 +10,11 @@ UInteRealFloorPlanPlacementSyncComponent::UInteRealFloorPlanPlacementSyncCompone
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UInteRealFloorPlanPlacementSyncComponent::RequestRebuildFloorPlan2DFromPlacedFurniture()
+{
+	RebuildFloorPlan2DFromPlacedFurniture();
+}
+
 void UInteRealFloorPlanPlacementSyncComponent::Initialize(AInteRealPlayerController* InOwnerController)
 {
 	OwnerController = InOwnerController;
@@ -103,6 +108,7 @@ void UInteRealFloorPlanPlacementSyncComponent::BindFloorPlan2DEvents()
 	FloorPlan2DWidget->OnPlacedFurnitureMoveEnded2D.AddUniqueDynamic(this, &UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureMoveEnded);
 	FloorPlan2DWidget->OnPlacedFurnitureDeleted2D.AddUniqueDynamic(this, &UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureDeleted);
 	FloorPlan2DWidget->OnPlacedFurnituresCleared2D.AddUniqueDynamic(this, &UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnituresCleared);
+	FloorPlan2DWidget->OnPlacedFurnitureSelectionCleared2D.AddUniqueDynamic(this, &UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureSelectionCleared);
 }
 
 void UInteRealFloorPlanPlacementSyncComponent::RegisterFloorPlan2DFurnitureActor(const FGuid& FloorPlanFurnitureGuid, AFurniture* FurnitureActor)
@@ -145,6 +151,12 @@ void UInteRealFloorPlanPlacementSyncComponent::RegisterConfirmedFurnitureToFloor
 	}
 
 	BindFloorPlan2DEvents();
+
+	if (!IsValid(ConfirmedFurniture))
+	{
+		RebuildFloorPlan2DFromPlacedFurniture();
+		return;
+	}
 
 	const FGuid AddedFloorPlanGuid = FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(FurnitureRow, FVector2D(ConfirmedWorldLocation.X, ConfirmedWorldLocation.Y), ConfirmedYaw);
 	RegisterFloorPlan2DFurnitureActor(AddedFloorPlanGuid, ConfirmedFurniture);
@@ -278,6 +290,7 @@ void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureS
 	TWeakObjectPtr<AFurniture>* FurnitureActorPtr = FloorPlan2DFurnitureActors.Find(Furniture.InstanceGuid);
 	if (!FurnitureActorPtr || !FurnitureActorPtr->IsValid())
 	{
+		RebuildFloorPlan2DFromPlacedFurniture();
 		return;
 	}
 
@@ -508,6 +521,18 @@ void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitures
 	}
 
 	ClearSyncSource(EInteRealFloorPlanSyncSource::DeleteFrom2D);
+}
+
+void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureSelectionCleared()
+{
+	if (!OwnerController || !IsEditMode() || CurrentSyncSource == EInteRealFloorPlanSyncSource::From3D || CurrentSyncSource == EInteRealFloorPlanSyncSource::From2D)
+	{
+		return;
+	}
+
+	SetSyncSource(EInteRealFloorPlanSyncSource::From2D);
+	OwnerController->ClearFurnitureSelectionForFloorPlanSync();
+	ClearSyncSource(EInteRealFloorPlanSyncSource::From2D);
 }
 
 void UInteRealFloorPlanPlacementSyncComponent::RebuildFloorPlan2DFromPlacedFurniture()

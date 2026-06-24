@@ -24,10 +24,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
     TObjectPtr<UMaterialInterface> DefaultFallbackMaterial = nullptr;
 
-    // 에디터에서 즉시 끄고 켤 수 있는 인테리어 조명 토글
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Lighting")
-    bool bEnableInteriorLights = false;
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Scale", meta=(ClampMin="0.01", UIMin="0.1", UIMax="10.0", DisplayName="Editor Plan Scale"))
     float EditorPlanScale = 1.0f;
 
@@ -59,12 +55,21 @@ public:
     // 💡 천장 높이 동적 수정 기능
     UFUNCTION(BlueprintCallable, Category="Harness")
     void UpdateCeilingHeight(FString FaceId, float NewHeight);
+
+    UFUNCTION(BlueprintCallable, Category="Harness")
+    FVector GetSafeSpawnLocation() const;
     
     TMap<FString, FVector2D> VertexCache;
     TMap<FString, FTopologyHalfEdge> EdgeCache;
-    TArray<FTopologyWallSideMeasurement> WallSideMeasurementCache;
-    TArray<FTopologySurfaceMeasurement> SurfaceMeasurementCache;
 
+
+    // 생성된 모든 컴포넌트를 추적하여 도면 교체 시 메모리 누수 방지
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UActorComponent>> SpawnedComponents;
+    
+    // 💡 [추가] 스케일 애니메이션(Z축 솟아오름)을 적용할 벽 메쉬 컴포넌트 전용 추적 배열
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UDynamicMeshComponent>> AnimatedWalls;
 private:
     float CalculateEffectivePlanScale(const FHarnessFloorData& FloorData) const;
     FHarnessFloorData MakeRuntimeFloorData(const FHarnessFloorData& FloorData, float PlanScale) const;
@@ -79,20 +84,11 @@ private:
     void FabricateDynamicPlanes(const FHarnessFloorData& FloorData);
     void InstallOpeningComponents(const FHarnessFloorData& FloorData);
 
-    // 생성된 모든 컴포넌트를 추적하여 도면 교체 시 메모리 누수 방지
-    UPROPERTY(Transient)
-    TArray<TObjectPtr<UActorComponent>> SpawnedComponents;
-    
-    // 💡 [추가] 스케일 애니메이션(Z축 솟아오름)을 적용할 벽 메쉬 컴포넌트 전용 추적 배열
-    UPROPERTY(Transient)
-    TArray<TObjectPtr<UDynamicMeshComponent>> AnimatedWalls;
-
     // 텔레포트 시 방 좌표를 찾기 위해 원본 JSON 데이터를 저장해둘 멤버 변수
     FHarnessFloorData CachedFloorData;
     FHarnessFloorData SourceFloorData;
 
-    // 각 방의 중앙에 임시 조명을 배치하는 함수
-    void InstallInteriorLights(const FHarnessFloorData& FloorData);
+
 
     // 💡 [추가] 애니메이션 상태 머신 추적 변수들
     bool bIsSpawning = false;       // 새로운 벽이 솟아오르는 중인가?

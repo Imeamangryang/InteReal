@@ -19,6 +19,35 @@ enum class EPlacementSurfaceType : uint8
 	Ceiling = 0x08 UMETA(DisplayName = "천장"),
 };
 
+UENUM(BlueprintType)
+enum class EPlacementAssetKind : uint8
+{
+	Generic UMETA(DisplayName = "일반"),
+	Door UMETA(DisplayName = "문"),
+	Window UMETA(DisplayName = "창문"),
+	EntranceDoor UMETA(DisplayName = "현관문"),
+	SlidingDoor UMETA(DisplayName = "미닫이문"),
+};
+
+UENUM(BlueprintType)
+enum class EFurnitureAssetCategory : uint8
+{
+	None UMETA(DisplayName = "미분류"),
+	Bed UMETA(DisplayName = "침대"),
+	Seating UMETA(DisplayName = "의자/소파"),
+	TableDesk UMETA(DisplayName = "책상"),
+	Storage UMETA(DisplayName = "수납"),
+	Lighting UMETA(DisplayName = "조명"),
+	Electronics UMETA(DisplayName = "전자제품"),
+	Kitchen UMETA(DisplayName = "주방"),
+	Bathroom UMETA(DisplayName = "욕실"),
+	Decor UMETA(DisplayName = "장식/소품"),
+	Mirror UMETA(DisplayName = "거울"),
+	Plant UMETA(DisplayName = "식물"),
+	Rug UMETA(DisplayName = "러그"),
+	Shelf UMETA(DisplayName = "선반/책장"),
+};
+
 USTRUCT(BlueprintType)
 struct FFurnitureDataRow : public FTableRowBase
 {
@@ -29,6 +58,9 @@ struct FFurnitureDataRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText DisplayName = FText::FromString(TEXT("Furniture"));
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Search")
+	EFurnitureAssetCategory Category = EFurnitureAssetCategory::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UTexture2D> DisplayImage = nullptr;
@@ -47,6 +79,15 @@ struct FFurnitureDataRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Size", meta = (ClampMin = "0.0", Units = "cm"))
 	float Height = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Opening")
+	EPlacementAssetKind AssetKind = EPlacementAssetKind::Generic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Opening", meta = (ClampMin = "0.0", Units = "cm"))
+	float OpeningBottom = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Opening")
+	bool bFitToOpeningSlot = true;
 
 	// 이 가구를 배치할 수 있는 표면 (복수 선택 가능)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Bitmask, BitmaskEnum = "/Script/InteReal.EPlacementSurfaceType"))

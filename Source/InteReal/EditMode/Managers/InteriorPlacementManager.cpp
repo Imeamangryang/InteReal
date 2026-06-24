@@ -346,17 +346,10 @@ void AInteriorPlacementManager::BuildWallSegments(const FHarnessFloorData& Floor
 {
 	InnerWallSegments.Empty();
 
-	TSet<FString> OpeningEdgeIds;
-	for (const FTopologyOpening& Opening : FloorData.openings)
-	{
-		OpeningEdgeIds.Add(Opening.target_edge_id);
-		OpeningEdgeIds.Add(Opening.target_edge_id + TEXT("_twin"));
-	}
-
 	TMap<FString, FVector2D> VMap;
 	for (const FTopologyVertex& V : FloorData.vertices)
 	{
-		VMap.Add(V.id, FVector2D(V.y, V.x));
+		VMap.Add(V.id, FloorData.ToHarnessPoint(V));
 	}
 
 	TSet<FString> ProcessedTwinIds;
@@ -365,7 +358,6 @@ void AInteriorPlacementManager::BuildWallSegments(const FHarnessFloorData& Floor
 		// 踰媛援≪옄, 肄섏꽱대꼍/몃꼍 紐⑤몢 遺李媛		// ImpactNormal긽 ㅻ궡 諛⑺뼢대씪 몃꼍대씪"ㅻ궡 履踰쎈㈃"遺숈쓬
 		if (Edge.type != TEXT("WallInner") && Edge.type != TEXT("WallOuter")) continue;
 		if (ProcessedTwinIds.Contains(Edge.id)) continue;
-		if (OpeningEdgeIds.Contains(Edge.id)) continue;
 
 		ProcessedTwinIds.Add(Edge.twin_id);
 

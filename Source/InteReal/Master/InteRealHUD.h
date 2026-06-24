@@ -6,6 +6,7 @@
 #include "InteReal/EditMode/UI/PlacementTooltipWidget.h"
 #include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/UI/UserGuideWidget.h"
+#include "InteReal/EditMode/UI/EditModeToolbarWidget.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteRealPlayerController.h"
 #include "InteRealHUD.generated.h"
@@ -109,6 +110,14 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<UEditModeLayoutWidget> EditModeLayoutWidgetInstance = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
+	TSubclassOf<UEditModeToolbarWidget> EditModeToolbarWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UEditModeToolbarWidget> EditModeToolbarInstance = nullptr;
+
+	void ShowEditModeToolbar(bool bVisible);
 
 	// ===== View Mode UI =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")

@@ -92,6 +92,12 @@ void AInteRealPlayerController::BeginPlay()
 		FloorPlanPlacementSyncComponent->Initialize(this);
 		FloorPlanPlacementSyncComponent->BindFloorPlan2DEvents();
 	}
+	
+	if (UHarnessPipelineManager* Pipeline = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		Pipeline->OnPipelineLoadFinished.RemoveDynamic(this, &AInteRealPlayerController::HandlePipelineLoadFinished);
+		Pipeline->OnPipelineLoadFinished.AddDynamic(this, &AInteRealPlayerController::HandlePipelineLoadFinished);
+	}
 
 	if (CachedViewModeManager)
 	{
@@ -488,6 +494,14 @@ void AInteRealPlayerController::HandleWallMaterialChanged(UMaterialInterface* Ne
 	ApplyMaterialToSelectedSurface(NewMaterial);
 }
 
+void AInteRealPlayerController::HandlePipelineLoadFinished()
+{
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->RebuildFloorPlan2DFromPlacedFurniture();
+	}
+}
+
 void AInteRealPlayerController::SelectSurface(UMeshComponent* SurfaceComponent)
 {
 	if (SelectedSurfaceComponent == SurfaceComponent)
@@ -755,7 +769,10 @@ void AInteRealPlayerController::UpdateCursorHit()
 	if (SpawnedGizmo)
 	{
 		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+		if (!DeprojectMousePositionToWorld(WorldOrigin, WorldDir) || WorldDir.SizeSquared() < KINDA_SMALL_NUMBER)
+		{
+			return;
+		}
 
 		FCollisionQueryParams GizmoParams(NAME_None, true);
 		if (APawn* P = GetPawn())
@@ -816,7 +833,10 @@ void AInteRealPlayerController::UpdateCursorHit()
 
 	{
 		FVector WorldOrigin, WorldDir;
-		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+		if (!DeprojectMousePositionToWorld(WorldOrigin, WorldDir) || WorldDir.SizeSquared() < KINDA_SMALL_NUMBER)
+		{
+			return;
+		}
 		const FVector TraceEnd = WorldOrigin + WorldDir * 100000.f;
 		
 		FCollisionQueryParams Params(NAME_None, true);
@@ -924,6 +944,84 @@ void AInteRealPlayerController::ToggleGrid()
 	PS->SetGridVisible(bGridVisible);
 }
 
+void AInteRealPlayerController::ToggleFreePlacementMode()
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+	{
+		PS->ToggleFreePlacementMode();
+	}
+}
+
+void AInteRealPlayerController::ToggleGizmoDisplayMode()
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SpawnedGizmo) return;
+
+	switch (SpawnedGizmo->GetDisplayMode())
+	{
+	case EInteRealGizmoDisplayMode::All:
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Move);
+		break;
+	case EInteRealGizmoDisplayMode::Move:
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Rotation);
+		break;
+	case EInteRealGizmoDisplayMode::Rotation:
+	default:
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::All);
+		break;
+	}
+}
+
+void AInteRealPlayerController::SetGizmoShowMove(bool bShow)
+{
+	if (!SpawnedGizmo) return;
+	ApplyGizmoDisplayFlags(bShow, IsGizmoShowingRotate());
+}
+
+void AInteRealPlayerController::SetGizmoShowRotate(bool bShow)
+{
+	if (!SpawnedGizmo) return;
+	ApplyGizmoDisplayFlags(IsGizmoShowingMove(), bShow);
+}
+
+bool AInteRealPlayerController::IsGizmoShowingMove() const
+{
+	if (!SpawnedGizmo) return false;
+	const EInteRealGizmoDisplayMode Mode = SpawnedGizmo->GetDisplayMode();
+	return Mode == EInteRealGizmoDisplayMode::All || Mode == EInteRealGizmoDisplayMode::Move;
+}
+
+bool AInteRealPlayerController::IsGizmoShowingRotate() const
+{
+	if (!SpawnedGizmo) return false;
+	const EInteRealGizmoDisplayMode Mode = SpawnedGizmo->GetDisplayMode();
+	return Mode == EInteRealGizmoDisplayMode::All || Mode == EInteRealGizmoDisplayMode::Rotation;
+}
+
+void AInteRealPlayerController::ApplyGizmoDisplayFlags(bool bShowMove, bool bShowRotate)
+{
+	if (!SpawnedGizmo) return;
+
+	if (bShowMove && bShowRotate)
+	{
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::All);
+	}
+	else if (bShowMove)
+	{
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Move);
+	}
+	else if (bShowRotate)
+	{
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Rotation);
+	}
+	else
+	{
+		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::None);
+	}
+}
+
+
 void AInteRealPlayerController::OnPlaceKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
@@ -934,57 +1032,27 @@ void AInteRealPlayerController::OnPlaceKey()
 	{
 		if (bIsHitting)
 		{
-			TSet<TObjectKey<AFurniture>> PreviouslyPlacedFurnitureKeys;
-			SnapshotPlacedFurnitureActors(PreviouslyPlacedFurnitureKeys);
-
 			AFurniture* PreviewFurniture = PS->GetPreviewFurniture();
 			const int32 FurnitureID = PreviewFurniture ? PreviewFurniture->FurnitureID : 0;
 			const FFurnitureDataRow* FurnitureRow = PS->FindFurnitureRowByID(FurnitureID);
-
-			FVector ConfirmedWorldLocation = FVector::ZeroVector;
-			float ConfirmedYaw = 0.0f;
-
-			if (PreviewFurniture)
-			{
-				ConfirmedWorldLocation = PreviewFurniture->GetActorLocation();
-				ConfirmedYaw = PreviewFurniture->GetActorRotation().Yaw;
-			}
-
 			const bool bContinuePlacement = bContinuousModifierHeld;
-			PS->ConfirmFurniture(bContinuePlacement);
 
-			AFurniture* ConfirmedFurniture = ResolveConfirmedFurnitureActor(
-				PreviewFurniture,
-				PreviouslyPlacedFurnitureKeys
-			);
+			ConfirmActivePreviewFurnitureForFloorPlanSync(bContinuePlacement);
 
-			if (FurnitureRow)
+			if (FloorPlanPlacementSyncComponent)
 			{
-				if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
+				if (bContinuePlacement && FurnitureRow)
 				{
-					if (UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = InteRealHUD->GetFloorPlan2DWidget())
-					{
-						if (FloorPlanPlacementSyncComponent)
-						{
-							FloorPlanPlacementSyncComponent->RegisterConfirmedFurnitureToFloorPlan(*FurnitureRow, ConfirmedWorldLocation, ConfirmedYaw, ConfirmedFurniture);
-						}
-
-						if (FloorPlanPlacementSyncComponent)
-						{
-							if (bContinuePlacement)
-							{
-								FloorPlanPlacementSyncComponent->StartFloorPlan2DPlacement(*FurnitureRow);
-							}
-							else
-							{
-								FloorPlanPlacementSyncComponent->CancelFloorPlan2DPlacement();
-								FloorPlanPlacementSyncComponent->ClearFloorPlan2DSelection();
-							}
-						}
-					}
+					FloorPlanPlacementSyncComponent->StartFloorPlan2DPlacement(*FurnitureRow);
+				}
+				else
+				{
+					FloorPlanPlacementSyncComponent->CancelFloorPlan2DPlacement();
+					FloorPlanPlacementSyncComponent->ClearFloorPlan2DSelection();
 				}
 			}
 		}
+
 		return;
 	}
 
@@ -1054,14 +1122,26 @@ void AInteRealPlayerController::OnPlaceKey()
 		{
 			if (SelectedFurniture == HitFurniture)
 			{
-				// �택가구� �시 �릭 �동 �래규작
+				if (FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
+				{
+					FloorPlanPlacementSyncComponent->SelectFloorPlan2DForFurniture(SelectedFurniture);
+				}
+
+				if (!SpawnedGizmo)
+				{
+					SelectFurniture(HitFurniture);
+					return;
+				}
+
 				bIsMovingFurniture = true;
 				DragStartFurnitureLocation = SelectedFurniture->GetActorLocation();
 				MoveDragOffset = DragStartFurnitureLocation - CurrentCursorWorldLoc;
 				MoveDragOffset.Z = 0.0f;
 
 				if (UInteriorPlacementSubsystem* PSMove = GetPlacementSubsystem())
+				{
 					PSMove->BeginGizmoMove(SelectedFurniture);
+				}
 				return;
 			}
 
@@ -1295,7 +1375,21 @@ void AInteRealPlayerController::SelectFurnitureForFloorPlanSync(AFurniture* Furn
 void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
-	if (SelectedFurniture == Furniture) return;
+
+	if (!IsValid(Furniture))
+	{
+		DeselectFurniture();
+		return;
+	}
+
+	if (SelectedFurniture == Furniture)
+	{
+		if (FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
+		{
+			FloorPlanPlacementSyncComponent->SelectFloorPlan2DForFurniture(SelectedFurniture);
+		}
+		return;
+	}
 
 	DeselectSurface();
 	DeselectFurniture();
@@ -1348,18 +1442,7 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 
 void AInteRealPlayerController::DeselectFurniture()
 {
-	if (SpawnedGizmo)
-	{
-		SpawnedGizmo->Destroy();
-		SpawnedGizmo = nullptr;
-	}
-	
-	if (SelectedFurniture)
-	{
-		SelectedFurniture->SetSelected(false);
-		SelectedFurniture = nullptr;
-	}
-	bIsMovingFurniture = false;
+	ClearFurnitureSelectionInternal(true);
 }
 
 void AInteRealPlayerController::ReceiveWebCommand(const FString& JsonString)
@@ -1468,7 +1551,14 @@ void AInteRealPlayerController::ReceiveWebCommand(const FString& JsonString)
 	{
 		FString Payload;
 		if (Root->TryGetStringField(TEXT("data"), Payload))
+		{
 			PS->ImportPlacedFurnituresJson(Payload);
+
+			if (FloorPlanPlacementSyncComponent)
+			{
+				FloorPlanPlacementSyncComponent->RequestRebuildFloorPlan2DFromPlacedFurniture();
+			}
+		}
 	}
 	else
 	{
@@ -1515,25 +1605,37 @@ void AInteRealPlayerController::SetViewMode(EHarnessViewMode NewMode)
 	FindViewModeManager();
 	if (!CachedViewModeManager) return;
 
-	// SetControlMode(EInteRealControlMode::View);
-	CachedViewModeManager->SetFloorPlanPanelOffset(false);
 	CachedViewModeManager->SetViewMode(NewMode);
-	
-	if (AInteRealHUD* HUD = GetInteRealHUD())
+
+	if (NewMode != EHarnessViewMode::FirstPerson)
 	{
-		if (UEditModeLayoutWidget* LayoutWidget = HUD->EditModeLayoutWidgetInstance)
+		if (CurrentControlMode == EInteRealControlMode::Edit)
 		{
-			if (CurrentControlMode != EInteRealControlMode::View)
+			if (AInteRealHUD* HUD = GetInteRealHUD())
 			{
-				CachedViewModeManager->SetFloorPlanPanelOffset(LayoutWidget->IsFloorPlanPanelOpen());
+				if (UEditModeLayoutWidget* LayoutWidget = HUD->EditModeLayoutWidgetInstance)
+				{
+					CachedViewModeManager->SetFloorPlanPanelOffset(LayoutWidget->IsFloorPlanPanelOpen());
+				}
+				else
+				{
+					CachedViewModeManager->SetFloorPlanPanelOffset(false);
+				}
 			}
+			else
+			{
+				CachedViewModeManager->SetFloorPlanPanelOffset(false);
+			}
+		}
+		else
+		{
+			CachedViewModeManager->SetFloorPlanPanelOffset(false);
 		}
 	}
 
 	if (UGameInstance* GI = GetGameInstance())
 	{
-		if (UInteRealUISubSystem* UISubsystem =
-			GI->GetSubsystem<UInteRealUISubSystem>())
+		if (UInteRealUISubSystem* UISubsystem = GI->GetSubsystem<UInteRealUISubSystem>())
 		{
 			UISubsystem->NotifyViewModeChanged(NewMode);
 		}
@@ -1621,7 +1723,6 @@ void AInteRealPlayerController::OnIsometricKey()
 void AInteRealPlayerController::OnFirstPersonKey()
 {
 	SetViewMode(EHarnessViewMode::FirstPerson);
-	
 }
 
 void AInteRealPlayerController::OnToggleModeKey()
@@ -1848,31 +1949,39 @@ void AInteRealPlayerController::OnPasteKey()
 
 	PS->CreatePreviewFurnitureFromRow(CurrentCursorWorldLoc, CopiedFurnitureRotation, CopiedFurnitureRow);
 	PS->UpdatePreviewLocation(LastCursorHit);
-	PS->ConfirmFurniture();
+
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->StartFloorPlan2DPlacement(CopiedFurnitureRow);
+		FloorPlanPlacementSyncComponent->SyncPreview2DFromActivePreview();
+	}
 }
 
 void AInteRealPlayerController::OnDuplicateKey()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
-	if (!SelectedFurniture) return;
+	if (!bHasCopiedFurniture) return;
+	if (!bIsHitting) return;
+
 	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
 	if (!PS) return;
 
-	OnCopyKey();
-	if (!bHasCopiedFurniture) return;
-
-	FVector PasteLocation = bIsHitting
-		? CurrentCursorWorldLoc
-		: SelectedFurniture->GetActorLocation() + FVector(100.0f, 100.0f, 0.0f);
-
-	if (PS->HasActivePreview()) PS->CancelPreview();
-
-	PS->CreatePreviewFurnitureFromRow(PasteLocation, CopiedFurnitureRotation, CopiedFurnitureRow);
-	if (bIsHitting)
+	if (PS->HasActivePreview())
 	{
-		PS->UpdatePreviewLocation(LastCursorHit);
+		PS->CancelPreview();
 	}
-	PS->ConfirmFurniture();
+
+	DeselectFurniture();
+	DeselectSurface();
+
+	PS->CreatePreviewFurnitureFromRow(CurrentCursorWorldLoc, CopiedFurnitureRotation, CopiedFurnitureRow);
+	PS->UpdatePreviewLocation(LastCursorHit);
+
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->StartFloorPlan2DPlacement(CopiedFurnitureRow);
+		FloorPlanPlacementSyncComponent->SyncPreview2DFromActivePreview();
+	}
 }
 
 void AInteRealPlayerController::OnSaveKey()
@@ -1897,14 +2006,19 @@ void AInteRealPlayerController::HandleFloorPlanPanelOpenChanged(bool bOpen)
 {
 	if (!CachedViewModeManager) return;
 
-	// ★ Edit 모드일 때만 패널 오프셋 적용
-	if (CurrentControlMode != EInteRealControlMode::Edit)
+	if (CachedViewModeManager->GetCurrentViewMode() == EHarnessViewMode::FirstPerson)
 	{
-		CachedViewModeManager->SetFloorPlanPanelOffset(false);
 		return;
 	}
 
-	CachedViewModeManager->SetFloorPlanPanelOffset(bOpen);
+	if (CurrentControlMode == EInteRealControlMode::Edit)
+	{
+		CachedViewModeManager->SetFloorPlanPanelOffset(bOpen);
+	}
+	else
+	{
+		CachedViewModeManager->SetFloorPlanPanelOffset(false);
+	}
 }
 
 void AInteRealPlayerController::SnapshotPlacedFurnitureActorsForFloorPlanSync(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const
@@ -1936,6 +2050,47 @@ void AInteRealPlayerController::SnapshotPlacedFurnitureActors(
 AFurniture* AInteRealPlayerController::ResolveConfirmedFurnitureActorForFloorPlanSync(AFurniture* PreviousPreviewFurniture, const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys) const
 {
 	return ResolveConfirmedFurnitureActor(PreviousPreviewFurniture, PreviouslyPlacedFurnitureKeys);
+}
+
+AFurniture* AInteRealPlayerController::ConfirmActivePreviewFurnitureForFloorPlanSync(bool bContinuePlacement)
+{
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS || !PS->HasActivePreview())
+	{
+		return nullptr;
+	}
+
+	AFurniture* PreviewFurniture = PS->GetPreviewFurniture();
+	if (!PreviewFurniture)
+	{
+		return nullptr;
+	}
+
+	const int32 FurnitureID = PreviewFurniture->FurnitureID;
+	const FFurnitureDataRow* FurnitureRow = PS->FindFurnitureRowByID(FurnitureID);
+	if (!FurnitureRow)
+	{
+		return nullptr;
+	}
+
+	const FVector ConfirmedWorldLocation = PreviewFurniture->GetActorLocation();
+	const float ConfirmedYaw = PreviewFurniture->GetActorRotation().Yaw;
+
+	TSet<TObjectKey<AFurniture>> PreviouslyPlacedFurnitureKeys;
+	SnapshotPlacedFurnitureActorsForFloorPlanSync(PreviouslyPlacedFurnitureKeys);
+
+	AFurniture* PreviewFurnitureBeforeConfirm = PreviewFurniture;
+
+	PS->ConfirmFurniture(bContinuePlacement);
+
+	AFurniture* ConfirmedFurniture = ResolveConfirmedFurnitureActorForFloorPlanSync(PreviewFurnitureBeforeConfirm, PreviouslyPlacedFurnitureKeys);
+
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->RegisterConfirmedFurnitureToFloorPlan(*FurnitureRow, ConfirmedWorldLocation, ConfirmedYaw, ConfirmedFurniture);
+	}
+
+	return ConfirmedFurniture;
 }
 
 AFurniture* AInteRealPlayerController::ResolveConfirmedFurnitureActor(
@@ -1976,6 +2131,11 @@ void AInteRealPlayerController::DeleteFurnitureForFloorPlanSync(AFurniture* Furn
 	DeleteFurnitureActor(Furniture);
 }
 
+void AInteRealPlayerController::ClearFurnitureSelectionForFloorPlanSync()
+{
+	ClearFurnitureSelectionInternal(false);
+}
+
 void AInteRealPlayerController::DeleteFurnitureActor(AFurniture* FurnitureActor)
 {
 	if (!IsValid(FurnitureActor))
@@ -1999,6 +2159,35 @@ void AInteRealPlayerController::DeleteFurnitureActor(AFurniture* FurnitureActor)
 	}
 }
 
+void AInteRealPlayerController::ClearFurnitureSelectionInternal(bool bSyncFloorPlan2D)
+{
+	if (SpawnedGizmo)
+	{
+		if (SpawnedGizmo->IsDragging())
+		{
+			SpawnedGizmo->EndDrag();
+		}
+
+		SpawnedGizmo->Destroy();
+		SpawnedGizmo = nullptr;
+	}
+	
+	if (SelectedFurniture)
+	{
+		SelectedFurniture->SetSelected(false);
+		SelectedFurniture = nullptr;
+	}
+
+	bIsMovingFurniture = false;
+	bIsGizmoRotationWidgetActive = false;
+	DragStartFurnitureLocation = FVector::ZeroVector;
+	MoveDragOffset = FVector::ZeroVector;
+
+	if (bSyncFloorPlan2D && FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
+	{
+		FloorPlanPlacementSyncComponent->ClearFloorPlan2DSelection();
+	}
+}
 void AInteRealPlayerController::OnGizmoRotationChanged(float NewYawDegrees)
 {
 	if (!SelectedFurniture) return;

@@ -17,6 +17,65 @@
 
 namespace
 {
+	bool HarnessSave_IsDoorLikeKind(EPlacementAssetKind Kind)
+	{
+		return Kind == EPlacementAssetKind::Door ||
+		       Kind == EPlacementAssetKind::EntranceDoor ||
+		       Kind == EPlacementAssetKind::SlidingDoor;
+	}
+
+	bool HarnessSave_IsWindowLikeName(const FString& Label)
+	{
+		return Label.Contains(TEXT("window")) ||
+		       Label.Contains(TEXT("\ucc3d\ubb38")) ||
+		       Label.Contains(TEXT("\ucc3d\ud638")) ||
+		       Label.Contains(TEXT("\ucc3d"));
+	}
+
+	bool HarnessSave_IsDoorLikeName(const FString& Label)
+	{
+		return Label.Contains(TEXT("door")) ||
+		       Label.Contains(TEXT("\ubb38")) ||
+		       Label.Contains(TEXT("\ud604\uad00")) ||
+		       Label.Contains(TEXT("\ubbf8\ub2eb")) ||
+		       Label.Contains(TEXT("\uc2ac\ub77c\uc774\ub529"));
+	}
+
+	bool HarnessSave_IsOpeningFurnitureRow(const FFurnitureDataRow& Row)
+	{
+		if (Row.AssetKind != EPlacementAssetKind::Generic)
+		{
+			return true;
+		}
+
+		const FString Label = Row.DisplayName.ToString().ToLower();
+		return HarnessSave_IsDoorLikeName(Label) || HarnessSave_IsWindowLikeName(Label);
+	}
+
+	bool HarnessSave_IsWindowFurnitureRow(const FFurnitureDataRow& Row)
+	{
+		if (Row.AssetKind == EPlacementAssetKind::Window)
+		{
+			return true;
+		}
+		if (HarnessSave_IsDoorLikeKind(Row.AssetKind))
+		{
+			return false;
+		}
+		return HarnessSave_IsWindowLikeName(Row.DisplayName.ToString().ToLower());
+	}
+
+	void HarnessSave_RestoreOpeningFurnitureTags(AFurniture* Furniture, const FFurnitureDataRow& Row)
+	{
+		if (!Furniture || !HarnessSave_IsOpeningFurnitureRow(Row))
+		{
+			return;
+		}
+
+		Furniture->Tags.AddUnique(FName(TEXT("OpeningAsset")));
+		Furniture->Tags.AddUnique(FName(HarnessSave_IsWindowFurnitureRow(Row) ? TEXT("WindowAsset") : TEXT("DoorAsset")));
+	}
+
 	FString FindHarnessSurfaceId(const UMeshComponent* MeshComp)
 	{
 		if (!MeshComp)
@@ -180,8 +239,9 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 						: Delta.Dimensions;
 					SpawnedActor->SetPlacedSurfaceType(static_cast<EPlacementSurfaceType>(Delta.SurfaceType));
 					SpawnedActor->WallNormalAtPlacement = Delta.WallNormal;
-					SpawnedActor->Tags.Add(TEXT("InteriorFurniture"));
-					SpawnedActor->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), FurnitureID)));
+					SpawnedActor->Tags.AddUnique(FName(TEXT("InteriorFurniture")));
+					SpawnedActor->Tags.AddUnique(FName(FString::Printf(TEXT("ID_%d"), FurnitureID)));
+					HarnessSave_RestoreOpeningFurnitureTags(SpawnedActor, *Row);
 					SpawnedActor->SetPlacementState(EPlacementState::Placed);
 					PlacementSubsystem->GetPlacedFurnituresMutable().Add(SpawnedActor);
 
@@ -248,8 +308,9 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 						SpawnedActor->SetPlacementState(EPlacementState::Placed);
 						
 						// 저장용 태그 복구
-						SpawnedActor->Tags.Add(TEXT("InteriorFurniture"));
-						SpawnedActor->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), FurnID)));
+						SpawnedActor->Tags.AddUnique(FName(TEXT("InteriorFurniture")));
+						SpawnedActor->Tags.AddUnique(FName(FString::Printf(TEXT("ID_%d"), FurnID)));
+						HarnessSave_RestoreOpeningFurnitureTags(SpawnedActor, *Row);
 					}
 				}
 			}

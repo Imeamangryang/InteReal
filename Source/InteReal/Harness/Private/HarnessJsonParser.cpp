@@ -2,317 +2,571 @@
 
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
-#include "JsonObjectConverter.h"
 #include "Misc/FileHelper.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 namespace
 {
-    bool DeserializeJsonObject(const FString& JsonString, TSharedPtr<FJsonObject>& OutObject)
-    {
-        const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
-        return FJsonSerializer::Deserialize(Reader, OutObject) && OutObject.IsValid();
-    }
+constexpr float MmToCm = 0.1f;
 
-    bool LooksLikeFloorDataObject(const TSharedPtr<FJsonObject>& Object)
-    {
-        return Object.IsValid() && (
-            Object->Values.Contains(TEXT("vertices")) ||
-            Object->Values.Contains(TEXT("half_edges")) ||
-            Object->Values.Contains(TEXT("faces")) ||
-            Object->Values.Contains(TEXT("nodes")) ||
-            Object->Values.Contains(TEXT("edges")) ||
-            Object->Values.Contains(TEXT("spaces")));
-    }
+// Spatial merge tolerance: 0.3 cm = 3 mm
+constexpr float VertexMergeTolerance = 0.3f;
 
-    bool TryJsonValueToObject(const TSharedPtr<FJsonValue>& Value, TSharedPtr<FJsonObject>& OutObject)
-    {
-        if (!Value.IsValid() || Value->Type == EJson::Null)
-        {
-            return false;
-        }
+// Grid cell size for spatial hash (slightly larger than tolerance)
+constexpr float SpatialCellSize = 0.5f;
 
-        if (Value->Type == EJson::Object)
-        {
-            OutObject = Value->AsObject();
-            return OutObject.IsValid();
-        }
+// ---------------------------------------------------------------------------
+//  JSON helpers
+// ---------------------------------------------------------------------------
 
-        if (Value->Type == EJson::String)
-        {
-            return DeserializeJsonObject(Value->AsString(), OutObject);
-        }
+bool DeserializeJsonObject(const FString& JsonString, TSharedPtr<FJsonObject>& OutObject)
+{
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+	return FJsonSerializer::Deserialize(Reader, OutObject) && OutObject.IsValid();
+}
 
-        return false;
-    }
+bool ReadPointMm(const TSharedPtr<FJsonObject>& Object, FVector2D& OutPointCm)
+{
+	if (!Object.IsValid())
+	{
+		return false;
+	}
 
-    TSharedPtr<FJsonObject> ExtractFloorDataObject(const TSharedPtr<FJsonObject>& RootObject)
-    {
-        if (LooksLikeFloorDataObject(RootObject))
-        {
-            return RootObject;
-        }
+	double X = 0.0;
+	double Y = 0.0;
+	if (!Object->TryGetNumberField(TEXT("x"), X) || !Object->TryGetNumberField(TEXT("y"), Y))
+	{
+		return false;
+	}
 
-        static const TArray<FString> CandidateFields = {
-            TEXT("ue_topology_json"),
-            TEXT("topology_json"),
-            TEXT("topology"),
-            TEXT("base_json"),
-            TEXT("base"),
-            TEXT("json"),
-            TEXT("data")
-        };
+	OutPointCm = FVector2D(static_cast<float>(X) * MmToCm, static_cast<float>(Y) * MmToCm);
+	return true;
+}
 
-        for (const FString& Field : CandidateFields)
-        {
-            if (const TSharedPtr<FJsonValue>* Value = RootObject->Values.Find(Field))
-            {
-                TSharedPtr<FJsonObject> CandidateObject;
-                if (TryJsonValueToObject(*Value, CandidateObject) && LooksLikeFloorDataObject(CandidateObject))
-                {
-                    return CandidateObject;
-                }
-            }
-        }
+float ReadNumberMmAsCm(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, float DefaultCm = 0.0f)
+{
+	if (!Object.IsValid())
+	{
+		return DefaultCm;
+	}
 
-        const TSharedPtr<FJsonObject>* DataObject = nullptr;
-        if (RootObject->TryGetObjectField(TEXT("data"), DataObject) && DataObject && DataObject->IsValid())
-        {
-            for (const FString& Field : CandidateFields)
-            {
-                if (const TSharedPtr<FJsonValue>* Value = (*DataObject)->Values.Find(Field))
-                {
-                    TSharedPtr<FJsonObject> CandidateObject;
-                    if (TryJsonValueToObject(*Value, CandidateObject) && LooksLikeFloorDataObject(CandidateObject))
-                    {
-                        return CandidateObject;
-                    }
-                }
-            }
-        }
+	double ValueMm = 0.0;
+	return Object->TryGetNumberField(Field, ValueMm)
+		? static_cast<float>(ValueMm) * MmToCm
+		: DefaultCm;
+}
 
-        return RootObject;
-    }
+FString ReadStringField(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, const FString& DefaultValue = FString())
+{
+	if (!Object.IsValid())
+	{
+		return DefaultValue;
+	}
 
-    void CopyFieldIfMissing(const TSharedPtr<FJsonObject>& Object, const FString& TargetField, const TArray<FString>& AliasFields)
-    {
-        if (!Object.IsValid() || Object->Values.Contains(TargetField))
-        {
-            return;
-        }
+	FString Value;
+	return Object->TryGetStringField(Field, Value) ? Value : DefaultValue;
+}
 
-        for (const FString& AliasField : AliasFields)
-        {
-            if (const TSharedPtr<FJsonValue>* Value = Object->Values.Find(AliasField))
-            {
-                Object->SetField(TargetField, *Value);
-                return;
-            }
-        }
-    }
+// ---------------------------------------------------------------------------
+//  Spatial hash for vertex merging
+// ---------------------------------------------------------------------------
 
-    struct FJsonFieldAlias
-    {
-        FString TargetField;
-        TArray<FString> AliasFields;
-    };
+struct FSpatialVertexHash
+{
+	TMap<int64, TArray<int32>> CellMap; // cell key → indices into VertexArray
+	TArray<FTopologyVertex>* VertexArray = nullptr;
 
-    FJsonFieldAlias MakeFieldAlias(const FString& TargetField, const FString& AliasField)
-    {
-        FJsonFieldAlias Result;
-        Result.TargetField = TargetField;
-        Result.AliasFields.Add(AliasField);
-        return Result;
-    }
+	void Init(TArray<FTopologyVertex>& InVertices)
+	{
+		VertexArray = &InVertices;
+	}
 
-    void NormalizeObjectFields(const TSharedPtr<FJsonObject>& Object, const TArray<FJsonFieldAlias>& FieldAliases)
-    {
-        if (!Object.IsValid())
-        {
-            return;
-        }
+	static int64 MakeCellKey(int32 CellX, int32 CellY)
+	{
+		return (static_cast<int64>(CellX) << 32) | static_cast<int64>(static_cast<uint32>(CellY));
+	}
 
-        for (const FJsonFieldAlias& FieldAlias : FieldAliases)
-        {
-            CopyFieldIfMissing(Object, FieldAlias.TargetField, FieldAlias.AliasFields);
-        }
-    }
+	static int32 ToCell(float Coord)
+	{
+		return FMath::FloorToInt32(Coord / SpatialCellSize);
+	}
 
-    void NormalizeArrayObjectFields(const TSharedPtr<FJsonObject>& Object, const FString& ArrayField, const TArray<FJsonFieldAlias>& FieldAliases)
-    {
-        if (!Object.IsValid())
-        {
-            return;
-        }
+	/**
+	 * Find or add a vertex at the given position. If an existing vertex is within
+	 * VertexMergeTolerance, returns its ID. Otherwise adds a new vertex with NewId.
+	 */
+	FString FindOrAdd(float X, float Y, const FString& NewId)
+	{
+		const int32 CX = ToCell(X);
+		const int32 CY = ToCell(Y);
 
-        const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
-        if (!Object->TryGetArrayField(ArrayField, Values) || !Values)
-        {
-            return;
-        }
+		// Search the 3×3 neighbourhood
+		for (int32 DX = -1; DX <= 1; ++DX)
+		{
+			for (int32 DY = -1; DY <= 1; ++DY)
+			{
+				const int64 Key = MakeCellKey(CX + DX, CY + DY);
+				if (const TArray<int32>* Indices = CellMap.Find(Key))
+				{
+					for (const int32 Idx : *Indices)
+					{
+						const FTopologyVertex& Existing = (*VertexArray)[Idx];
+						const float DistSq = FMath::Square(Existing.x - X) + FMath::Square(Existing.y - Y);
+						if (DistSq <= FMath::Square(VertexMergeTolerance))
+						{
+							return Existing.id;
+						}
+					}
+				}
+			}
+		}
 
-        for (const TSharedPtr<FJsonValue>& Value : *Values)
-        {
-            if (Value.IsValid() && Value->Type == EJson::Object)
-            {
-                NormalizeObjectFields(Value->AsObject(), FieldAliases);
-            }
-        }
-    }
+		// No match – add new vertex
+		FTopologyVertex NewVertex;
+		NewVertex.id = NewId;
+		NewVertex.x = X;
+		NewVertex.y = Y;
 
-    void NormalizeFloorDataObject(const TSharedPtr<FJsonObject>& Object)
-    {
-        CopyFieldIfMissing(Object, TEXT("project_info"), { TEXT("projectInfo"), TEXT("project") });
-        CopyFieldIfMissing(Object, TEXT("vertices"), { TEXT("nodes") });
-        CopyFieldIfMissing(Object, TEXT("half_edges"), { TEXT("halfEdges"), TEXT("edges") });
-        CopyFieldIfMissing(Object, TEXT("faces"), { TEXT("spaces"), TEXT("rooms") });
-        CopyFieldIfMissing(Object, TEXT("wall_side_measurements"), { TEXT("wallSideMeasurements") });
-        CopyFieldIfMissing(Object, TEXT("surface_measurements"), { TEXT("surfaceMeasurements") });
+		const int32 NewIndex = VertexArray->Add(NewVertex);
 
-        NormalizeArrayObjectFields(Object, TEXT("openings"), {
-            MakeFieldAlias(TEXT("width_cm"), TEXT("width_mm")),
-            MakeFieldAlias(TEXT("height_cm"), TEXT("height_mm")),
-            MakeFieldAlias(TEXT("z_offset_cm"), TEXT("z_offset_mm"))
-        });
+		const int64 Key = MakeCellKey(CX, CY);
+		CellMap.FindOrAdd(Key).Add(NewIndex);
 
-        NormalizeArrayObjectFields(Object, TEXT("faces"), {
-            MakeFieldAlias(TEXT("height_cm"), TEXT("height_mm")),
-            MakeFieldAlias(TEXT("z_offset"), TEXT("z_offset_mm"))
-        });
+		return NewId;
+	}
+};
 
-        NormalizeArrayObjectFields(Object, TEXT("half_edges"), {
-            MakeFieldAlias(TEXT("wall_thickness"), TEXT("wall_thickness_mm"))
-        });
+// ---------------------------------------------------------------------------
+//  Validation
+// ---------------------------------------------------------------------------
 
-        NormalizeArrayObjectFields(Object, TEXT("wall_side_measurements"), {
-            MakeFieldAlias(TEXT("length_cm"), TEXT("length_mm"))
-        });
+bool ValidateV31Root(const TSharedPtr<FJsonObject>& RootObject, FString& OutError)
+{
+	FString Unit;
+	if (!RootObject->TryGetStringField(TEXT("unit"), Unit) || !Unit.Equals(TEXT("mm"), ESearchCase::IgnoreCase))
+	{
+		OutError = TEXT("Unsupported topology unit. Harness v3.1 requires unit='mm'.");
+		return false;
+	}
 
-        NormalizeArrayObjectFields(Object, TEXT("surface_measurements"), {
-            MakeFieldAlias(TEXT("start_distance_cm"), TEXT("start_distance_mm")),
-            MakeFieldAlias(TEXT("end_distance_cm"), TEXT("end_distance_mm")),
-            MakeFieldAlias(TEXT("length_cm"), TEXT("length_mm"))
-        });
-    }
+	const TSharedPtr<FJsonObject>* CoordinateSystem = nullptr;
+	if (!RootObject->TryGetObjectField(TEXT("coordinate_system"), CoordinateSystem) || !CoordinateSystem || !CoordinateSystem->IsValid())
+	{
+		OutError = TEXT("Missing required coordinate_system object.");
+		return false;
+	}
 
-    float GetLengthUnitToCentimeters(const FString& Unit)
-    {
-        if (Unit.Equals(TEXT("mm"), ESearchCase::IgnoreCase) ||
-            Unit.Equals(TEXT("millimeter"), ESearchCase::IgnoreCase) ||
-            Unit.Equals(TEXT("millimeters"), ESearchCase::IgnoreCase))
-        {
-            return 0.1f;
-        }
+	const FString Origin = ReadStringField(*CoordinateSystem, TEXT("origin"));
+	const FString XAxis = ReadStringField(*CoordinateSystem, TEXT("x_axis"));
+	const FString YAxis = ReadStringField(*CoordinateSystem, TEXT("y_axis"));
+	double RotationDegrees = 0.0;
+	(*CoordinateSystem)->TryGetNumberField(TEXT("rotation_degrees"), RotationDegrees);
 
-        if (Unit.Equals(TEXT("m"), ESearchCase::IgnoreCase) ||
-            Unit.Equals(TEXT("meter"), ESearchCase::IgnoreCase) ||
-            Unit.Equals(TEXT("meters"), ESearchCase::IgnoreCase))
-        {
-            return 100.0f;
-        }
+	if (!Origin.Equals(TEXT("top_left"), ESearchCase::IgnoreCase) ||
+		!XAxis.Equals(TEXT("right"), ESearchCase::IgnoreCase) ||
+		!YAxis.Equals(TEXT("down"), ESearchCase::IgnoreCase) ||
+		!FMath::IsNearlyZero(static_cast<float>(RotationDegrees), KINDA_SMALL_NUMBER))
+	{
+		OutError = TEXT("Unsupported coordinate_system. Harness v3.1 requires top_left, x_axis=right, y_axis=down, rotation_degrees=0.");
+		return false;
+	}
 
-        return 1.0f;
-    }
+	const TArray<TSharedPtr<FJsonValue>>* Walls = nullptr;
+	const TArray<TSharedPtr<FJsonValue>>* Spaces = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("walls"), Walls) || !Walls || Walls->Num() == 0)
+	{
+		OutError = TEXT("Missing required non-empty walls array.");
+		return false;
+	}
+	if (!RootObject->TryGetArrayField(TEXT("spaces"), Spaces) || !Spaces || Spaces->Num() == 0)
+	{
+		OutError = TEXT("Missing required non-empty spaces array.");
+		return false;
+	}
 
-    void ConvertFloorDataToCentimeters(FHarnessFloorData& Data)
-    {
-        const float UnitToCmScale = GetLengthUnitToCentimeters(Data.project_info.scale_unit);
-        if (FMath::IsNearlyEqual(UnitToCmScale, 1.0f, UE_SMALL_NUMBER))
-        {
-            Data.project_info.scale_unit = TEXT("cm");
-            return;
-        }
+	return true;
+}
 
-        for (FTopologyVertex& Vertex : Data.vertices)
-        {
-            Vertex.x *= UnitToCmScale;
-            Vertex.y *= UnitToCmScale;
-        }
+// ---------------------------------------------------------------------------
+//  ID helpers
+// ---------------------------------------------------------------------------
 
-        for (FTopologyHalfEdge& Edge : Data.half_edges)
-        {
-            Edge.wall_thickness *= UnitToCmScale;
-        }
+FString MakeWallStartVertexId(const FString& WallId)
+{
+	return FString::Printf(TEXT("%s_start"), *WallId);
+}
 
-        for (FTopologyOpening& Opening : Data.openings)
-        {
-            Opening.width_cm *= UnitToCmScale;
-            Opening.height_cm *= UnitToCmScale;
-            Opening.z_offset_cm *= UnitToCmScale;
-        }
+FString MakeWallEndVertexId(const FString& WallId)
+{
+	return FString::Printf(TEXT("%s_end"), *WallId);
+}
 
-        for (FTopologyFace& Face : Data.faces)
-        {
-            Face.height_cm *= UnitToCmScale;
-            Face.z_offset *= UnitToCmScale;
-        }
+FString MakeWallEdgeId(const FString& WallId)
+{
+	return FString::Printf(TEXT("%s_edge"), *WallId);
+}
 
-        for (FTopologyWallSideMeasurement& Measurement : Data.wall_side_measurements)
-        {
-            Measurement.length_cm *= UnitToCmScale;
-        }
+FString MakeWallTwinEdgeId(const FString& WallId)
+{
+	return FString::Printf(TEXT("%s_edge_twin"), *WallId);
+}
 
-        for (FTopologySurfaceMeasurement& Measurement : Data.surface_measurements)
-        {
-            Measurement.start_distance_cm *= UnitToCmScale;
-            Measurement.end_distance_cm *= UnitToCmScale;
-            Measurement.length_cm *= UnitToCmScale;
-            Measurement.start_point.x *= UnitToCmScale;
-            Measurement.start_point.y *= UnitToCmScale;
-            Measurement.end_point.x *= UnitToCmScale;
-            Measurement.end_point.y *= UnitToCmScale;
-        }
+FString NormalizeOpeningKindToType(const FString& Kind)
+{
+	return Kind.Equals(TEXT("window"), ESearchCase::IgnoreCase) ? TEXT("Window") : TEXT("Door");
+}
 
-        Data.project_info.scale_unit = TEXT("cm");
-    }
+FString NormalizeWallKindToType(const FString& Kind)
+{
+	return Kind.Equals(TEXT("outer"), ESearchCase::IgnoreCase) ? TEXT("WallOuter") : TEXT("WallInner");
+}
+
+// ---------------------------------------------------------------------------
+//  Level lookup helpers
+// ---------------------------------------------------------------------------
+
+float ResolveLevelElevationCm(const TMap<FString, float>& LevelElevationById, const FString& LevelId)
+{
+	if (const float* Elevation = LevelElevationById.Find(LevelId))
+	{
+		return *Elevation;
+	}
+	return 0.0f;
+}
+
+float ResolveLevelHeightCm(const TMap<FString, float>& LevelHeightById, const FString& LevelId)
+{
+	if (const float* Height = LevelHeightById.Find(LevelId))
+	{
+		return *Height;
+	}
+	return 240.0f;
+}
+
+// ---------------------------------------------------------------------------
+//  Main conversion: v3.1 JSON → FHarnessFloorData
+// ---------------------------------------------------------------------------
+
+bool ConvertV31TopologyToFloorData(const TSharedPtr<FJsonObject>& RootObject, FHarnessFloorData& OutData, FString& OutError)
+{
+	OutData = FHarnessFloorData();
+	OutData.schema_version = ReadStringField(RootObject, TEXT("schema_version"), TEXT("3.1"));
+
+	// Plan info (optional top-level fields)
+	const TSharedPtr<FJsonObject>* PlanObject = nullptr;
+	if (RootObject->TryGetObjectField(TEXT("plan"), PlanObject) && PlanObject && PlanObject->IsValid())
+	{
+		double PlanId = 0.0;
+		if ((*PlanObject)->TryGetNumberField(TEXT("id"), PlanId))
+		{
+			OutData.plan.id = static_cast<int32>(PlanId);
+		}
+		double PlanVersion = 1.0;
+		if ((*PlanObject)->TryGetNumberField(TEXT("version"), PlanVersion))
+		{
+			OutData.plan.version = static_cast<int32>(PlanVersion);
+		}
+		OutData.plan.name = ReadStringField(*PlanObject, TEXT("name"));
+	}
+
+	// -----------------------------------------------------------------------
+	//  Levels
+	// -----------------------------------------------------------------------
+	TMap<FString, float> LevelElevationById;
+	TMap<FString, float> LevelHeightById;
+	const TArray<TSharedPtr<FJsonValue>>* Levels = nullptr;
+	if (RootObject->TryGetArrayField(TEXT("levels"), Levels) && Levels)
+	{
+		for (const TSharedPtr<FJsonValue>& LevelValue : *Levels)
+		{
+			const TSharedPtr<FJsonObject> LevelObject = LevelValue.IsValid() ? LevelValue->AsObject() : nullptr;
+			if (!LevelObject.IsValid())
+			{
+				continue;
+			}
+
+			const FString LevelId = ReadStringField(LevelObject, TEXT("id"));
+			if (LevelId.IsEmpty())
+			{
+				continue;
+			}
+
+			FTopologyLevel Level;
+			Level.id = LevelId;
+			Level.name = ReadStringField(LevelObject, TEXT("name"));
+			Level.elevation_cm = ReadNumberMmAsCm(LevelObject, TEXT("elevation"), 0.0f);
+			Level.default_height_cm = ReadNumberMmAsCm(LevelObject, TEXT("default_height"), 240.0f);
+			OutData.levels.Add(Level);
+
+			LevelElevationById.Add(LevelId, Level.elevation_cm);
+			LevelHeightById.Add(LevelId, Level.default_height_cm);
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	//  Spatial hash for vertex merging
+	// -----------------------------------------------------------------------
+	FSpatialVertexHash VertexHash;
+	VertexHash.Init(OutData.vertices);
+
+	// -----------------------------------------------------------------------
+	//  Walls → Vertices + Half-edges
+	// -----------------------------------------------------------------------
+	const TArray<TSharedPtr<FJsonValue>>* Walls = nullptr;
+	RootObject->TryGetArrayField(TEXT("walls"), Walls);
+	for (const TSharedPtr<FJsonValue>& WallValue : *Walls)
+	{
+		const TSharedPtr<FJsonObject> WallObject = WallValue.IsValid() ? WallValue->AsObject() : nullptr;
+		if (!WallObject.IsValid())
+		{
+			continue;
+		}
+
+		const FString WallId = ReadStringField(WallObject, TEXT("id"));
+		if (WallId.IsEmpty())
+		{
+			OutError = TEXT("A wall is missing required id.");
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* Centerline = nullptr;
+		if (!WallObject->TryGetArrayField(TEXT("centerline"), Centerline) || !Centerline || Centerline->Num() < 2)
+		{
+			OutError = FString::Printf(TEXT("Wall '%s' must contain a centerline with at least two points."), *WallId);
+			return false;
+		}
+
+		FVector2D StartCm;
+		FVector2D EndCm;
+		if (!ReadPointMm((*Centerline)[0]->AsObject(), StartCm) ||
+			!ReadPointMm((*Centerline)[1]->AsObject(), EndCm))
+		{
+			OutError = FString::Printf(TEXT("Wall '%s' contains invalid centerline point data."), *WallId);
+			return false;
+		}
+
+		// Merge or create vertices via spatial hash
+		const FString StartVertexId = VertexHash.FindOrAdd(StartCm.X, StartCm.Y, MakeWallStartVertexId(WallId));
+		const FString EndVertexId = VertexHash.FindOrAdd(EndCm.X, EndCm.Y, MakeWallEndVertexId(WallId));
+
+		// Build half-edge pair
+		const FString EdgeId = MakeWallEdgeId(WallId);
+		const FString TwinId = MakeWallTwinEdgeId(WallId);
+		const FString Kind = ReadStringField(WallObject, TEXT("kind"), TEXT("inner"));
+		const FString LevelId = ReadStringField(WallObject, TEXT("level_id"));
+		const float ThicknessCm = ReadNumberMmAsCm(WallObject, TEXT("thickness"), 20.0f);
+		const float HeightCm = ReadNumberMmAsCm(WallObject, TEXT("height"), ResolveLevelHeightCm(LevelHeightById, LevelId));
+
+		FTopologyHalfEdge Edge;
+		Edge.id = EdgeId;
+		Edge.wall_id = WallId;
+		Edge.vertex_start = StartVertexId;
+		Edge.vertex_end = EndVertexId;
+		Edge.twin_id = TwinId;
+		Edge.wall_thickness = ThicknessCm;
+		Edge.wall_height = HeightCm;
+		Edge.type = NormalizeWallKindToType(Kind);
+		OutData.half_edges.Add(Edge);
+
+		FTopologyHalfEdge TwinEdge;
+		TwinEdge.id = TwinId;
+		TwinEdge.wall_id = WallId;
+		TwinEdge.vertex_start = EndVertexId;
+		TwinEdge.vertex_end = StartVertexId;
+		TwinEdge.twin_id = EdgeId;
+		TwinEdge.wall_thickness = ThicknessCm;
+		TwinEdge.wall_height = HeightCm;
+		TwinEdge.type = NormalizeWallKindToType(Kind);
+		OutData.half_edges.Add(TwinEdge);
+	}
+
+	// -----------------------------------------------------------------------
+	//  Spaces → Vertices + Faces
+	// -----------------------------------------------------------------------
+	const TArray<TSharedPtr<FJsonValue>>* Spaces = nullptr;
+	RootObject->TryGetArrayField(TEXT("spaces"), Spaces);
+	for (const TSharedPtr<FJsonValue>& SpaceValue : *Spaces)
+	{
+		const TSharedPtr<FJsonObject> SpaceObject = SpaceValue.IsValid() ? SpaceValue->AsObject() : nullptr;
+		if (!SpaceObject.IsValid())
+		{
+			continue;
+		}
+
+		const FString SpaceId = ReadStringField(SpaceObject, TEXT("id"));
+		if (SpaceId.IsEmpty())
+		{
+			OutError = TEXT("A space is missing required id.");
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* Boundary = nullptr;
+		if (!SpaceObject->TryGetArrayField(TEXT("boundary"), Boundary) || !Boundary || Boundary->Num() < 3)
+		{
+			OutError = FString::Printf(TEXT("Space '%s' must contain at least three boundary points."), *SpaceId);
+			return false;
+		}
+
+		const FString LevelId = ReadStringField(SpaceObject, TEXT("level_id"));
+		const FString SpaceKind = ReadStringField(SpaceObject, TEXT("kind"));
+
+		FTopologyFace Face;
+		Face.face_id = SpaceId;
+		Face.kind = SpaceKind;
+		Face.label = ReadStringField(SpaceObject, TEXT("name"), SpaceKind.IsEmpty() ? SpaceId : SpaceKind);
+		Face.height_cm = ResolveLevelHeightCm(LevelHeightById, LevelId);
+		Face.z_offset = ResolveLevelElevationCm(LevelElevationById, LevelId);
+		Face.floor_material = ReadStringField(SpaceObject, TEXT("floor_material"));
+
+		// Boundary vertices
+		for (int32 PointIndex = 0; PointIndex < Boundary->Num(); ++PointIndex)
+		{
+			FVector2D PointCm;
+			if (!ReadPointMm((*Boundary)[PointIndex]->AsObject(), PointCm))
+			{
+				OutError = FString::Printf(TEXT("Space '%s' contains invalid boundary point data."), *SpaceId);
+				return false;
+			}
+
+			const FString BoundaryVertexId = FString::Printf(TEXT("%s_boundary_%d"), *SpaceId, PointIndex);
+
+			FTopologyVertex Vertex;
+			Vertex.id = BoundaryVertexId;
+			Vertex.x = PointCm.X;
+			Vertex.y = PointCm.Y;
+			OutData.vertices.Add(Vertex);
+
+			Face.contour_vertex_ids.Add(BoundaryVertexId);
+		}
+
+		// Boundary wall references
+		const TArray<TSharedPtr<FJsonValue>>* BoundaryWalls = nullptr;
+		if (SpaceObject->TryGetArrayField(TEXT("boundary_walls"), BoundaryWalls) && BoundaryWalls)
+		{
+			for (const TSharedPtr<FJsonValue>& WallRef : *BoundaryWalls)
+			{
+				FString WallRefId;
+				if (WallRef.IsValid() && WallRef->TryGetString(WallRefId) && !WallRefId.IsEmpty())
+				{
+					Face.boundary_wall_ids.Add(WallRefId);
+				}
+			}
+		}
+
+		OutData.faces.Add(Face);
+	}
+
+	// -----------------------------------------------------------------------
+	//  Openings
+	// -----------------------------------------------------------------------
+	const TArray<TSharedPtr<FJsonValue>>* Openings = nullptr;
+	if (RootObject->TryGetArrayField(TEXT("openings"), Openings) && Openings)
+	{
+		for (const TSharedPtr<FJsonValue>& OpeningValue : *Openings)
+		{
+			const TSharedPtr<FJsonObject> OpeningObject = OpeningValue.IsValid() ? OpeningValue->AsObject() : nullptr;
+			if (!OpeningObject.IsValid())
+			{
+				continue;
+			}
+
+			const FString OpeningId = ReadStringField(OpeningObject, TEXT("id"));
+			const FString HostWallId = ReadStringField(OpeningObject, TEXT("host_wall_id"));
+			if (OpeningId.IsEmpty() || HostWallId.IsEmpty())
+			{
+				OutError = TEXT("An opening is missing required id or host_wall_id.");
+				return false;
+			}
+
+			const FString OpeningKind = ReadStringField(OpeningObject, TEXT("kind"), TEXT("door"));
+			const FString OpeningType = NormalizeOpeningKindToType(OpeningKind);
+
+			FTopologyOpening Opening;
+			Opening.id = OpeningId;
+			Opening.type = OpeningType;
+			Opening.kind = OpeningKind;
+			Opening.target_edge_id = MakeWallEdgeId(HostWallId);
+			Opening.host_wall_id = HostWallId;
+			Opening.offset_from = ReadStringField(OpeningObject, TEXT("offset_from"), TEXT("start"));
+			Opening.offset_to_center_cm = ReadNumberMmAsCm(OpeningObject, TEXT("offset_to_center"), 0.0f);
+			Opening.width_cm = ReadNumberMmAsCm(OpeningObject, TEXT("width"), 90.0f);
+			Opening.height_cm = ReadNumberMmAsCm(OpeningObject, TEXT("height"), OpeningType == TEXT("Window") ? 120.0f : 210.0f);
+			Opening.z_offset_cm = ReadNumberMmAsCm(OpeningObject, TEXT("bottom"), OpeningType == TEXT("Window") ? 90.0f : 0.0f);
+
+			// Connects array (space IDs this opening connects)
+			const TArray<TSharedPtr<FJsonValue>>* ConnectsArray = nullptr;
+			if (OpeningObject->TryGetArrayField(TEXT("connects"), ConnectsArray) && ConnectsArray)
+			{
+				for (const TSharedPtr<FJsonValue>& ConnectValue : *ConnectsArray)
+				{
+					FString ConnectId;
+					if (ConnectValue.IsValid() && ConnectValue->TryGetString(ConnectId) && !ConnectId.IsEmpty())
+					{
+						Opening.connects.Add(ConnectId);
+					}
+				}
+			}
+
+			// Swing sub-object
+			const TSharedPtr<FJsonObject>* SwingObject = nullptr;
+			if (OpeningObject->TryGetObjectField(TEXT("swing"), SwingObject) && SwingObject && SwingObject->IsValid())
+			{
+				Opening.swing.direction = ReadStringField(*SwingObject, TEXT("direction"), TEXT("none"));
+				Opening.swing.hinge = ReadStringField(*SwingObject, TEXT("hinge"), TEXT("none"));
+				double SwingAngle = 90.0;
+				if ((*SwingObject)->TryGetNumberField(TEXT("angle"), SwingAngle))
+				{
+					Opening.swing.angle = static_cast<float>(SwingAngle);
+				}
+			}
+
+			OutData.openings.Add(Opening);
+		}
+	}
+
+	return true;
+}
 }
 
 bool FHarnessJsonParser::LoadFloorDataFromJsonFile(const FString& FilePath, FHarnessFloorData& OutData, FString& OutError)
 {
-    FString JsonString;
-    if (!FFileHelper::LoadFileToString(JsonString, *FilePath))
-    {
-        OutError = FString::Printf(TEXT("Failed to load file from path: %s"), *FilePath);
-        return false;
-    }
+	FString JsonString;
+	if (!FFileHelper::LoadFileToString(JsonString, *FilePath))
+	{
+		OutError = FString::Printf(TEXT("Failed to load file from path: %s"), *FilePath);
+		return false;
+	}
 
-    return ParseFloorDataFromJsonString(JsonString, OutData, OutError);
+	return ParseFloorDataFromJsonString(JsonString, OutData, OutError);
 }
 
 bool FHarnessJsonParser::ParseFloorDataFromJsonString(const FString& JsonString, FHarnessFloorData& OutData, FString& OutError)
 {
-    OutData = FHarnessFloorData();
+	OutData = FHarnessFloorData();
 
-    TSharedPtr<FJsonObject> RootObject;
-    if (!DeserializeJsonObject(JsonString, RootObject))
-    {
-        OutError = TEXT("JSON Deserialization failed. Invalid JSON format.");
-        return false;
-    }
+	TSharedPtr<FJsonObject> RootObject;
+	if (!DeserializeJsonObject(JsonString, RootObject))
+	{
+		OutError = TEXT("JSON deserialization failed. Invalid JSON format.");
+		return false;
+	}
 
-    TSharedPtr<FJsonObject> FloorDataObject = ExtractFloorDataObject(RootObject);
-    NormalizeFloorDataObject(FloorDataObject);
+	if (!ValidateV31Root(RootObject, OutError))
+	{
+		return false;
+	}
 
-    if (!FJsonObjectConverter::JsonObjectToUStruct(FloorDataObject.ToSharedRef(), FHarnessFloorData::StaticStruct(), &OutData, 0, 0))
-    {
-        OutError = TEXT("Failed to map JSON fields to Topology Graph structure. Schema mismatch.");
-        return false;
-    }
+	if (!ConvertV31TopologyToFloorData(RootObject, OutData, OutError))
+	{
+		return false;
+	}
 
-    if (OutData.vertices.Num() == 0)
-    {
-        OutError = TEXT("Data integrity warning: Parsed topology contains zero vertices.");
-        return false;
-    }
+	if (OutData.vertices.IsEmpty() || OutData.half_edges.IsEmpty() || OutData.faces.IsEmpty())
+	{
+		OutError = TEXT("Invalid v3.1 topology. Converted floor data is missing vertices, walls, or spaces.");
+		return false;
+	}
 
-    if (OutData.half_edges.Num() == 0)
-    {
-        OutError = TEXT("Data integrity warning: Parsed topology contains zero half_edges.");
-        return false;
-    }
-
-    ConvertFloorDataToCentimeters(OutData);
-
-    return true;
+	return true;
 }

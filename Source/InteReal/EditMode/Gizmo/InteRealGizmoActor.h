@@ -16,7 +16,8 @@ enum class EInteRealGizmoDisplayMode : uint8
 {
 	All,
 	Move,
-	Rotation
+	Rotation,
+	None
 };
 
 UCLASS()
@@ -82,8 +83,7 @@ public:
 	// MoveX/Y/Z 아웃라인 → 흰색
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
 	int32 MoveOutlineStencil = 2;
-
-	// RotatePitch/Yaw/Roll 아웃라인 → 베이지
+	
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
 	int32 RotateOutlineStencil = 3;
 
@@ -105,6 +105,7 @@ private:
 	FString GetAxisTagFromHit(const FHitResult& CursorHit) const;
 	EGizmoTransformAxis ParseAxisTag(const FString& AxisTag) const;
 	float ApplyCardinalSnap(float AngleDegrees) const;
+	bool ComputeRotationPlaneAngle(const FVector& WorldOrigin, const FVector& WorldDir, float& OutAngleDeg) const;
 
 	bool bIsDragging = false;
 	EGizmoTransformAxis CurrentDraggingAxis = EGizmoTransformAxis::None;
@@ -113,8 +114,15 @@ private:
 	float DragStartAngleDeg = 0.0f;
 	float LastRotationMouseAngleDeg = 0.0f;
 	float AccumulatedRotationDeltaDegrees = 0.0f;
-	FVector2D RotationScreenCenter = FVector2D::ZeroVector;
-	bool bHasRotationScreenCenter = false;
+
+	// 회전 드래그 동안 고정되는 3D 회전 평면 기준점/축/평면 내 2D 기저 벡터.
+	// 드래그 중 가구가 실제로 회전해도 이 기준은 BeginDrag 시점 값으로 고정해야
+	// 측정 기준 자체가 같이 돌아가며 입력이 왜곡되는 걸 막을 수 있다.
+	FVector RotationPivotWorld = FVector::ZeroVector;
+	FVector RotationAxisWorld = FVector::UpVector;
+	FVector RotationBasisU = FVector::ForwardVector;
+	FVector RotationBasisV = FVector::RightVector;
+	bool bHasValidRotationFrame = false;
 	FRotator DragStartFurnitureRot = FRotator::ZeroRotator;
 	float CurrentRotationDeltaDegrees = 0.0f;
 	FVector DragStartLocation = FVector::ZeroVector;

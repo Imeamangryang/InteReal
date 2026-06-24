@@ -138,11 +138,23 @@ void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 		if (AxisTag.IsEmpty()) continue;
 
 		const bool bIsRotationComponent = AxisTag.StartsWith(TEXT("Rotate")) || AxisTag == TEXT("RotationRing");
-		const bool bShouldShow =
-			DisplayMode == EInteRealGizmoDisplayMode::All ||
-			(DisplayMode == EInteRealGizmoDisplayMode::Rotation
-				? bIsRotationComponent
-				: !bIsRotationComponent);
+		bool bShouldShow = false;
+		switch (DisplayMode)
+		{
+		case EInteRealGizmoDisplayMode::All:
+			bShouldShow = true;
+			break;
+		case EInteRealGizmoDisplayMode::Move:
+			bShouldShow = !bIsRotationComponent;
+			break;
+		case EInteRealGizmoDisplayMode::Rotation:
+			bShouldShow = bIsRotationComponent;
+			break;
+		case EInteRealGizmoDisplayMode::None:
+		default:
+			bShouldShow = false;
+			break;
+		}
 
 		const bool bIsVisualMesh = Component->IsA<UMeshComponent>();
 		Component->SetVisibility(bIsVisualMesh && bShouldShow, true);
@@ -262,6 +274,31 @@ float AInteRealGizmoActor::ApplyCardinalSnap(float AngleDegrees) const
 		: FRotator::NormalizeAxis(AngleDegrees);
 }
 
+bool AInteRealGizmoActor::ComputeRotationPlaneAngle(const FVector& WorldOrigin, const FVector& WorldDir, float& OutAngleDeg) const
+{
+	// 마우스 레이가 회전 평면과 거의 평행하면(예: 탑다운 카메라로 Roll 링을 잡았을 때)
+	// 교차점이 불안정/무한대로 튀므로, 그 프레임은 갱신하지 않고 false를 반환한다.
+	const float Denom = FVector::DotProduct(WorldDir, RotationAxisWorld);
+	if (FMath::IsNearlyZero(Denom, 0.001f))
+	{
+		return false;
+	}
+
+	const FVector PointOnPlane = FMath::LinePlaneIntersection(WorldOrigin,
+	                                                           WorldOrigin + WorldDir * 100000.f,
+	                                                           FPlane(RotationPivotWorld, RotationAxisWorld));
+	const FVector Offset = PointOnPlane - RotationPivotWorld;
+	const float U = FVector::DotProduct(Offset, RotationBasisU);
+	const float V = FVector::DotProduct(Offset, RotationBasisV);
+	if (FMath::IsNearlyZero(U) && FMath::IsNearlyZero(V))
+	{
+		return false;
+	}
+
+	OutAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(V, U));
+	return true;
+}
+
 void AInteRealGizmoActor::UpdateHover(bool bIsHitting, const FHitResult& CursorHit)
 {
 	if (AxisMaterials.Num() == 0) return;
@@ -301,21 +338,37 @@ void AInteRealGizmoActor::BeginDrag(const FString& Axis,
 		CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 	{
 		DragStartFurnitureRot = Target->GetActorRotation();
-		bHasRotationScreenCenter = false;
-		if (const UWorld* World = GetWorld())
-		{
-			if (APlayerController* PC = World->GetFirstPlayerController())
-			{
-				bHasRotationScreenCenter = PC->ProjectWorldLocationToScreen(
-					Target->GetVisualBounds().GetCenter(), RotationScreenCenter);
-			}
-		}
+		RotationPivotWorld = Target->GetVisualBounds().GetCenter();
 
-		DragStartAngleDeg = bHasRotationScreenCenter
-			? FMath::RadiansToDegrees(FMath::Atan2(
-				MousePos.Y - RotationScreenCenter.Y,
-				MousePos.X - RotationScreenCenter.X))
-			: 0.0f;
+		// 회전 중인 가구의 로컬 X/Y/Z(Forward/Right/Up)를 드래그 시작 시점 기준으로 고정.
+		// Yaw=Z축 둘레, Pitch=Y축 둘레, Roll=X축 둘레 (언리얼 FRotator 컨벤션)
+		const FVector LocalX = DragStartFurnitureRot.RotateVector(FVector::ForwardVector);
+		const FVector LocalY = DragStartFurnitureRot.RotateVector(FVector::RightVector);
+		const FVector LocalZ = DragStartFurnitureRot.RotateVector(FVector::UpVector);
+
+		if (CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch)
+		{
+			RotationAxisWorld = LocalY;
+			RotationBasisU = LocalZ;
+		}
+		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
+		{
+			RotationAxisWorld = LocalX;
+			RotationBasisU = LocalY;
+		}
+		else
+		{
+			RotationAxisWorld = LocalZ;
+			RotationBasisU = LocalX;
+		}
+		// BasisU -> BasisV 순서가 언리얼의 좌수계 Yaw/Pitch/Roll 부호와 일치하도록 외적 순서를 맞춤
+		RotationBasisV = FVector::CrossProduct(RotationBasisU, RotationAxisWorld);
+
+		bHasValidRotationFrame = ComputeRotationPlaneAngle(WorldOrigin, WorldDir, DragStartAngleDeg);
+		if (!bHasValidRotationFrame)
+		{
+			DragStartAngleDeg = 0.0f;
+		}
 		LastRotationMouseAngleDeg = DragStartAngleDeg;
 		AccumulatedRotationDeltaDegrees = 0.0f;
 	}
@@ -363,23 +416,19 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 		CurrentDraggingAxis == EGizmoTransformAxis::RotatePitch ||
 		CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 	{
-		const float CurrentAngle = bHasRotationScreenCenter
-			? FMath::RadiansToDegrees(FMath::Atan2(
-				MousePos.Y - RotationScreenCenter.Y,
-				MousePos.X - RotationScreenCenter.X))
-			: (MousePos.X - DragStartMousePos.X) * 0.5f;
-
-		if (bHasRotationScreenCenter)
+		// 마우스 레이를 회전 평면(가구 중심을 지나고 RotationAxisWorld가 법선인 평면)과 교차시켜,
+		// 그 평면 안에서의 실제 각도를 구한다. 화면 2D 각도가 아니라 3D 평면상 각도라서
+		// 카메라가 탑다운이 아니거나 Pitch/Roll 링을 잡아도 마우스 방향과 회전 방향이 일치한다.
+		float CurrentAngle = LastRotationMouseAngleDeg;
+		const bool bGotAngle = ComputeRotationPlaneAngle(WorldOrigin, WorldDir, CurrentAngle);
+		if (bGotAngle)
 		{
 			const float FrameDelta = FRotator::NormalizeAxis(CurrentAngle - LastRotationMouseAngleDeg);
 			AccumulatedRotationDeltaDegrees += FrameDelta;
 			LastRotationMouseAngleDeg = CurrentAngle;
 		}
-		else
-		{
-			AccumulatedRotationDeltaDegrees =
-				(MousePos.X - DragStartMousePos.X) * 0.5f * RotationSensitivity;
-		}
+		// bGotAngle이 false면 카메라 시선이 회전 평면과 거의 평행한 프레임(예: 탑다운에서 Roll 링) —
+		// 각도를 안정적으로 구할 수 없으니 직전 누적값을 그대로 유지한다.
 
 		float DeltaAngle = AccumulatedRotationDeltaDegrees;
 		if (bSnapRotationToGrid)
@@ -402,9 +451,9 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 		}
 		else if (CurrentDraggingAxis == EGizmoTransformAxis::RotateRoll)
 		{
-			const float RawAngle = FRotator::NormalizeAxis(NewRot.Roll - DeltaAngle);
+			const float RawAngle = FRotator::NormalizeAxis(NewRot.Roll + DeltaAngle);
 			NewRot.Roll = bSnapRotationToGrid
-				? ApplyCardinalSnap(NewRot.Roll - DeltaAngle)
+				? ApplyCardinalSnap(NewRot.Roll + DeltaAngle)
 				: RawAngle;
 			SetAxisRotationVisuals(CurrentDraggingAxisTag, CurrentRotationDeltaDegrees, !FMath::IsNearlyEqual(RawAngle, NewRot.Roll, 0.01f));
 		}
@@ -424,8 +473,9 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 	// X / Y 이동 (그리드 스냅 + 충돌은 PlacementSubsystem이 처리)
 	if ((CurrentDraggingAxis == EGizmoTransformAxis::MoveX || CurrentDraggingAxis == EGizmoTransformAxis::MoveY) && PlacementSubsystem)
 	{
+		const bool bIsWall = Target->GetPlacedSurfaceType() == EPlacementSurfaceType::Wall;
 		FVector PlaneNormal = FVector::UpVector;
-		if (Target->GetPlacedSurfaceType() == EPlacementSurfaceType::Wall && !Target->WallNormalAtPlacement.IsNearlyZero())
+		if (bIsWall && !Target->WallNormalAtPlacement.IsNearlyZero())
 		{
 			PlaneNormal = Target->WallNormalAtPlacement;
 		}
@@ -434,7 +484,30 @@ void AInteRealGizmoActor::UpdateDrag(AFurniture* Target,
 		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin,
 		                                                           WorldOrigin + WorldDir * 100000.f,
 		                                                           DragPlane);
-		PlacementSubsystem->UpdateGizmoMoveLocation(CursorOnPlane - DragCursorOffset, Target, CurrentDraggingAxis);
+		const FVector TargetPoint = CursorOnPlane - DragCursorOffset;
+
+		// 벽 가구는 벽 평면을 따라 자체 스냅 로직(ComputeWallSnappedLocation)이 처리하므로 그대로 둠.
+		// 바닥/천장/표면 가구는 가구의 로컬 전방(X)/우측(Y) 축으로 드래그를 투영해서,
+		// 회전된 가구도 화살표가 가리키는 방향 그대로 움직이게 함 (언리얼/블렌더의 로컬 스페이스 기즈모와 동일한 방식).
+		if (bIsWall)
+		{
+			PlacementSubsystem->UpdateGizmoMoveLocation(TargetPoint, Target, CurrentDraggingAxis);
+			return;
+		}
+
+		FVector LocalAxis = CurrentDraggingAxis == EGizmoTransformAxis::MoveX
+			? Target->GetActorForwardVector()
+			: Target->GetActorRightVector();
+		LocalAxis.Z = 0.0f;
+		if (!LocalAxis.Normalize())
+		{
+			LocalAxis = CurrentDraggingAxis == EGizmoTransformAxis::MoveX ? FVector::ForwardVector : FVector::RightVector;
+		}
+
+		const float ProjectedDistance = FVector::DotProduct(TargetPoint - DragStartLocation, LocalAxis);
+		const FVector ProjectedPoint = DragStartLocation + LocalAxis * ProjectedDistance;
+
+		PlacementSubsystem->UpdateGizmoMoveLocation(ProjectedPoint, Target, EGizmoTransformAxis::None);
 		return;
 	}
 
@@ -569,7 +642,7 @@ void AInteRealGizmoActor::EndDrag()
 	}
 	ResetRotationVisuals();
 	bIsDragging = false;
-	bHasRotationScreenCenter = false;
+	bHasValidRotationFrame = false;
 	CurrentDraggingAxis = EGizmoTransformAxis::None;
 	CurrentDraggingAxisTag.Empty();
 	// UpdateHover must treat the axis under the released cursor as a fresh hover

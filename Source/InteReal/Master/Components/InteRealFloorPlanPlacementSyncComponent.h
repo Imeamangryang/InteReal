@@ -48,6 +48,7 @@ public:
     void SetFloorPlan2DPreviewFromFurniture(AFurniture* PreviewFurniture);
     void SyncPreview2DFromActivePreview();
     void SelectFloorPlan2DForFurniture(AFurniture* FurnitureActor);
+    void RequestRebuildFloorPlan2DFromPlacedFurniture();
 
     void RegisterConfirmedFurnitureToFloorPlan(const FFurnitureDataRow& FurnitureRow, const FVector& ConfirmedWorldLocation, float ConfirmedYaw, AFurniture* ConfirmedFurniture);
 
@@ -76,6 +77,9 @@ private:
 
     UFUNCTION()
     void HandleFloorPlan2DPlacedFurnituresCleared();
+    
+    UFUNCTION()
+    void HandleFloorPlan2DPlacedFurnitureSelectionCleared();
 
 private:
     AInteRealHUD* GetInteRealHUD() const;
@@ -93,4 +97,6 @@ private:
 
     EInteRealFloorPlanSyncSource CurrentSyncSource = EInteRealFloorPlanSyncSource::None;
     bool bIsMovingFurnitureFromFloorPlan2D = false;
+    
+    bool bPendingRebuildFloorPlan2D = false;
 };

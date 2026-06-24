@@ -86,6 +86,21 @@ void AInteRealHUD::InitializeHUDWidgets()
 		}
 	}
 
+	if (EditModeToolbarWidgetClass)
+	{
+		EditModeToolbarInstance = CreateWidget<UEditModeToolbarWidget>(GetOwningPlayerController(), EditModeToolbarWidgetClass);
+		if (EditModeToolbarInstance)
+		{
+			EditModeToolbarInstance->AddToViewport(ToolOverlayZOrder);
+			EditModeToolbarInstance->SetVisibility(ESlateVisibility::Hidden);
+
+			if (AInteRealPlayerController* PC = Cast<AInteRealPlayerController>(GetOwningPlayerController()))
+			{
+				EditModeToolbarInstance->InitializeForPlayer(PC);
+			}
+		}
+	}
+
 	if (EditModeLayoutWidgetClass)
 	{
 		EditModeLayoutWidgetInstance = CreateWidget<UEditModeLayoutWidget>(
@@ -156,6 +171,11 @@ void AInteRealHUD::UpdateModeUIVisibility(EInteRealControlMode CurrentMode)
 	if (EditModeLayoutWidgetInstance)
 	{
 		EditModeLayoutWidgetInstance->SetVisibility(EditVisibility);
+	}
+
+	if (EditModeToolbarInstance)
+	{
+		EditModeToolbarInstance->SetVisibility(EditVisibility);
 	}
 
 	if (EnvironmentPanelInstance)
@@ -300,6 +320,14 @@ void AInteRealHUD::UpdateRotationGuideForInput(float DeltaAngle)
 	if (RotationGuideInstance)
 	{
 		RotationGuideInstance->UpdateRotation(DeltaAngle);
+	}
+}
+
+void AInteRealHUD::ShowEditModeToolbar(bool bVisible)
+{
+	if (EditModeToolbarInstance)
+	{
+		EditModeToolbarInstance->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }
 

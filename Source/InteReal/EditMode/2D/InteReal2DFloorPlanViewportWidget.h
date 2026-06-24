@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureMovedSign
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureMoveEndedSignature, int32, FurnitureIndex, FInteReal2DPlacedFurniture, Furniture);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInteReal2DPlacedFurnitureDeletedSignature, int32, FurnitureIndex, FGuid, InstanceGuid);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteReal2DPlacedFurnituresClearedSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteReal2DPlacedFurnitureSelectionClearedSignature);
 
 UCLASS(BlueprintType, Blueprintable)
 class INTEREAL_API UInteReal2DFloorPlanViewportWidget : public UUserWidget
@@ -124,6 +125,10 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
     FInteReal2DPlacedFurnituresClearedSignature OnPlacedFurnituresCleared2D;
+    
+    UPROPERTY(BlueprintAssignable, Category="InteReal2D|Furniture")
+    FInteReal2DPlacedFurnitureSelectionClearedSignature OnPlacedFurnitureSelectionCleared2D;
+    
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|Input")
     FVector2D LastClickedLocalPosition = FVector2D::ZeroVector;

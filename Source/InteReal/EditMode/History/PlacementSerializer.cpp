@@ -12,6 +12,68 @@
 #include "Materials/MaterialInterface.h"
 #include "EngineUtils.h"
 
+namespace
+{
+bool PlacementSerializer_IsDoorLikeKind(EPlacementAssetKind Kind)
+{
+	return Kind == EPlacementAssetKind::Door ||
+	       Kind == EPlacementAssetKind::EntranceDoor ||
+	       Kind == EPlacementAssetKind::SlidingDoor;
+}
+
+bool PlacementSerializer_IsWindowLikeName(const FString& Label)
+{
+	return Label.Contains(TEXT("window")) ||
+	       Label.Contains(TEXT("\ucc3d\ubb38")) ||
+	       Label.Contains(TEXT("\ucc3d\ud638")) ||
+	       Label.Contains(TEXT("\ucc3d"));
+}
+
+bool PlacementSerializer_IsDoorLikeName(const FString& Label)
+{
+	return Label.Contains(TEXT("door")) ||
+	       Label.Contains(TEXT("\ubb38")) ||
+	       Label.Contains(TEXT("\ud604\uad00")) ||
+	       Label.Contains(TEXT("\ubbf8\ub2eb")) ||
+	       Label.Contains(TEXT("\uc2ac\ub77c\uc774\ub529"));
+}
+
+bool PlacementSerializer_IsOpeningFurnitureRow(const FFurnitureDataRow& Row)
+{
+	if (Row.AssetKind != EPlacementAssetKind::Generic)
+	{
+		return true;
+	}
+
+	const FString Label = Row.DisplayName.ToString().ToLower();
+	return PlacementSerializer_IsDoorLikeName(Label) || PlacementSerializer_IsWindowLikeName(Label);
+}
+
+bool PlacementSerializer_IsWindowFurnitureRow(const FFurnitureDataRow& Row)
+{
+	if (Row.AssetKind == EPlacementAssetKind::Window)
+	{
+		return true;
+	}
+	if (PlacementSerializer_IsDoorLikeKind(Row.AssetKind))
+	{
+		return false;
+	}
+	return PlacementSerializer_IsWindowLikeName(Row.DisplayName.ToString().ToLower());
+}
+
+void PlacementSerializer_RestoreOpeningFurnitureTags(AFurniture* Furniture, const FFurnitureDataRow& Row)
+{
+	if (!Furniture || !PlacementSerializer_IsOpeningFurnitureRow(Row))
+	{
+		return;
+	}
+
+	Furniture->Tags.AddUnique(FName(TEXT("OpeningAsset")));
+	Furniture->Tags.AddUnique(FName(PlacementSerializer_IsWindowFurnitureRow(Row) ? TEXT("WindowAsset") : TEXT("DoorAsset")));
+}
+}
+
 void UPlacementSerializer::Initialize(UInteriorPlacementSubsystem* InSubsystem)
 {
 	Subsystem = InSubsystem;
@@ -46,6 +108,7 @@ FString UPlacementSerializer::ExportPlacedFurnituresJson() const
 		TSharedPtr<FJsonObject> Obj = MakeShareable(new FJsonObject());
 		const FVector Location = Placed->GetActorLocation();
 		const FRotator Rotation = Placed->GetActorRotation();
+		const FVector Scale = Placed->GetActorScale3D();
 
 		Obj->SetNumberField(TEXT("furnitureId"), Placed->FurnitureID);
 		Obj->SetNumberField(TEXT("surfaceType"), static_cast<uint8>(Placed->GetPlacedSurfaceType()));
@@ -55,6 +118,9 @@ FString UPlacementSerializer::ExportPlacedFurnituresJson() const
 		Obj->SetNumberField(TEXT("rotationPitch"), Rotation.Pitch);
 		Obj->SetNumberField(TEXT("rotationYaw"), Rotation.Yaw);
 		Obj->SetNumberField(TEXT("rotationRoll"), Rotation.Roll);
+		Obj->SetNumberField(TEXT("scaleX"), Scale.X);
+		Obj->SetNumberField(TEXT("scaleY"), Scale.Y);
+		Obj->SetNumberField(TEXT("scaleZ"), Scale.Z);
 		Obj->SetNumberField(TEXT("gridX"), Placed->PlacedGridAnchor.X);
 		Obj->SetNumberField(TEXT("gridY"), Placed->PlacedGridAnchor.Y);
 		Obj->SetNumberField(TEXT("gridW"), Placed->PlacedDimensions.X);
@@ -133,6 +199,10 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 		const float Pitch = Obj->HasField(TEXT("rotationPitch")) ? (float)Obj->GetNumberField(TEXT("rotationPitch")) : 0.0f;
 		const float Yaw = Obj->HasField(TEXT("rotationYaw")) ? (float)Obj->GetNumberField(TEXT("rotationYaw")) : 0.0f;
 		const float Roll = Obj->HasField(TEXT("rotationRoll")) ? (float)Obj->GetNumberField(TEXT("rotationRoll")) : 0.0f;
+		const FVector Scale(
+			Obj->HasField(TEXT("scaleX")) ? (float)Obj->GetNumberField(TEXT("scaleX")) : 1.0f,
+			Obj->HasField(TEXT("scaleY")) ? (float)Obj->GetNumberField(TEXT("scaleY")) : 1.0f,
+			Obj->HasField(TEXT("scaleZ")) ? (float)Obj->GetNumberField(TEXT("scaleZ")) : 1.0f);
 		const EPlacementSurfaceType SurfaceType = Obj->HasField(TEXT("surfaceType"))
 			                                          ? static_cast<EPlacementSurfaceType>((uint8)Obj->GetIntegerField(TEXT("surfaceType")))
 			                                          : EPlacementSurfaceType::Floor;
@@ -179,6 +249,7 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 		}
 
 		NewFurniture->ApplyFurnitureRow(*Row);
+		NewFurniture->SetActorScale3D(Scale);
 		NewFurniture->PlacedGridAnchor = FVector2D(GridX, GridY);
 		NewFurniture->PlacedDimensions = Obj->HasField(TEXT("gridW")) && Obj->HasField(TEXT("gridH"))
 			                                 ? FVector2D((float)Obj->GetNumberField(TEXT("gridW")), (float)Obj->GetNumberField(TEXT("gridH")))
@@ -188,8 +259,9 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 			Obj->HasField(TEXT("wallNormalX")) ? (float)Obj->GetNumberField(TEXT("wallNormalX")) : 0.0f,
 			Obj->HasField(TEXT("wallNormalY")) ? (float)Obj->GetNumberField(TEXT("wallNormalY")) : 0.0f,
 			Obj->HasField(TEXT("wallNormalZ")) ? (float)Obj->GetNumberField(TEXT("wallNormalZ")) : 0.0f);
-		NewFurniture->Tags.Add(TEXT("InteriorFurniture"));
-		NewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), NewFurniture->FurnitureID)));
+		NewFurniture->Tags.AddUnique(FName(TEXT("InteriorFurniture")));
+		NewFurniture->Tags.AddUnique(FName(FString::Printf(TEXT("ID_%d"), NewFurniture->FurnitureID)));
+		PlacementSerializer_RestoreOpeningFurnitureTags(NewFurniture, *Row);
 		NewFurniture->SetPlacementState(EPlacementState::Placed);
 
 		if (SurfaceType == EPlacementSurfaceType::Floor && Grid)

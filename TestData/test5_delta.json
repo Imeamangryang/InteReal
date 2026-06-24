@@ -1,0 +1,285 @@
+﻿{
+	"furnitureItems": [],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallCore_Merge_wall_1_edge_wall_8_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_28_edge_wall_2_edge_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_11_edge_wall_3_edge_5",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_13_edge_wall_4_edge_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_10_edge_wall_6_edge_4",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_7_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_9_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_12_edge_wall_16_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_14_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_22_edge_wall_27_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_26_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_29_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed2_wall_25_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallExterior_wall_25_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed2_wall_12_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallSurface_bed2_wall_6_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallSurface_bed2_wall_21_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallExterior_wall_21_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed3_wall_19_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallExterior_wall_19_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed3_wall_7_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallSurface_bed3_wall_5_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallSurface_bed3_wall_12_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteWall.M_ConcreteWall"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_11_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Tile/M_Marble.M_Marble"
+		},
+		{
+			"surfaceId": "WallExterior_wall_11_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_23_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Tile/M_Marble.M_Marble"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_10_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Tile/M_Marble.M_Marble"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_7_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Tile/M_Marble.M_Marble"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_Merge_wall_3_edge_wall_17_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_3_edge_wall_17_edge_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_9_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor"
+		},
+		{
+			"surfaceId": "WallExterior_wall_9_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_Merge_wall_26_edge_twin_wall_18_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_23_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_5_edge_wall_10_edge_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_27_edge_wall_22_edge_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_4_edge_twin_wall_20_edge_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_4_edge_twin_wall_20_edge_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_15_edge_twin_wall_16_edge_twin_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath2_wall_6_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath2_wall_16_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath2_wall_29_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath2_wall_1_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_1_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_29_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_15_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_13_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_13_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_8_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_8_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath1_wall_18_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor"
+		},
+		{
+			"surfaceId": "WallSurface_bath1_wall_28_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_28_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath1_wall_14_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath1_wall_27_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_14_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_2_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_2_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_24_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallExterior_wall_24_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_22_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bed2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bed3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_living",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bed1",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_kitchen",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bath2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_entrance",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bath1",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_dress",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		}
+	]
+}

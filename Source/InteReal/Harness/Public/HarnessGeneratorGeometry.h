@@ -10,7 +10,7 @@ namespace InteReal::HarnessGenerator
     inline constexpr float HarnessCoreZSealCm = 2.0f;
     inline constexpr float HarnessSurfaceGapCm = 0.2f;
     inline constexpr float HarnessSurfaceVerticalGapCm = 0.25f;
-    inline constexpr float HarnessCeilingShadowOverhangCm = 25.0f;
+    inline constexpr float HarnessCeilingShadowOverhangCm = 150.0f;
     inline constexpr float HarnessMergeEndpointToleranceCm = 3.0f;
     inline constexpr float HarnessMergeCollinearTolerance = 0.01f;
     inline constexpr bool bHarnessSurfaceBuildDebug = false;

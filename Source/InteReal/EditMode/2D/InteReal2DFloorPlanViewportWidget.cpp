@@ -802,6 +802,9 @@ void UInteReal2DFloorPlanViewportWidget::ClearSelectedFurniture()
     bIsDraggingSelectedFurniture2D = false;
     DraggingFurnitureIndex2D = INDEX_NONE;
     FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+
+    OnPlacedFurnitureSelectionCleared2D.Broadcast();
+
     Invalidate(EInvalidateWidgetReason::Paint);
 }
 

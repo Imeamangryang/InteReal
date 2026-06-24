@@ -8,6 +8,8 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Overlay.h"
 #include "Public/HarnessCaptureMinimapWidget.h"
+#include "InteReal/Harness/Public/HarnessPipelineManager.h"
+#include "InteReal/Harness/Public/HarnessGeneratorComponent.h"
 
 AViewModePlayerController::AViewModePlayerController()
 {
@@ -180,8 +182,17 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 		{
 			CachedViewModeManager->FocusOnBuilding(); // 최신 센터 계산
 			FVector Center = CachedViewModeManager->GetCameraTargetLocation();
-			Center.Z = 160.0f; // 눈높이
-			P->SetActorLocation(Center);
+			if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+			{
+				if (UHarnessGeneratorComponent* GenComp = PipelineManager->GetGeneratorComp())
+				{
+					Center = GenComp->GetSafeSpawnLocation();
+				}
+			}
+			
+			// GetSafeSpawnLocation에서 반환하는 안전한 Z값을 유지하여 건물의 높이와 무관하게 동작하게 수정
+			// 충돌체 끼임 방지를 위해 Teleport 옵션 추가
+			P->SetActorLocation(Center, false, nullptr, ETeleportType::TeleportPhysics);
 
 			// 캔버스 회전 시 캐릭터/컨트롤러 방위각 동기화
 			if (CachedViewModeManager->IsCanvasRotated())

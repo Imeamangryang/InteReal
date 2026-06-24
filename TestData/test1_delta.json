@@ -1,195 +1,300 @@
 ﻿{
-	"furnitureItems": [
-		{
-			"furnitureId": "14",
-			"transform":
-			{
-				"rotation":
-				{
-					"x": 0,
-					"y": 0,
-					"z": 0,
-					"w": 1
-				},
-				"translation":
-				{
-					"x": -725.79998779296875,
-					"y": 213.04998779296875,
-					"z": 1.4551915228366852e-11
-				},
-				"scale3D":
-				{
-					"x": 1,
-					"y": 1,
-					"z": 1
-				}
-			}
-		},
-		{
-			"furnitureId": "16",
-			"transform":
-			{
-				"rotation":
-				{
-					"x": 0,
-					"y": 0,
-					"z": 0,
-					"w": 1
-				},
-				"translation":
-				{
-					"x": -626.69080944679274,
-					"y": 452.20000767779857,
-					"z": 180
-				},
-				"scale3D":
-				{
-					"x": 1,
-					"y": 1,
-					"z": 1
-				}
-			}
-		}
-	],
+	"furnitureItems": [],
 	"surfaceMaterials": [
 		{
-			"surfaceId": "FloorFace_room_1781491507387",
+			"surfaceId": "FloorFace_entrance",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "FloorFace_room_1781491485141",
+			"surfaceId": "FloorFace_bath2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "FloorFace_room_1781491471033",
+			"surfaceId": "FloorFace_bed2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "FloorFace_room_1781491440942",
+			"surfaceId": "FloorFace_dress",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "FloorFace_room_1781491410617",
+			"surfaceId": "FloorFace_bath1",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "FloorFace_room_1781491346617",
+			"surfaceId": "FloorFace_bed1",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491507387_he_out_split_ws_wc_16_b_0_0_0",
+			"surfaceId": "FloorFace_kitchen",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491507387_he_in_ws_wc_1_0_0_twin",
+			"surfaceId": "FloorFace_living",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491507387_he_in_ws_wc_13_0_0_twin",
+			"surfaceId": "WallSurface_balcony_Merge_wall_34_edge_twin_wall_5_edge_twin_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491507387_Merge_he_in_weld_1781490799621_0_2_he_in_ws_wc_6_0_0_4",
+			"surfaceId": "WallSurface_balcony_wall_33_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491485141_Merge_he_in_split_weld_1781490879481_b_0_0_2_twin_he_in_split_weld_1781490879481_b_0_0_0_twin_3",
+			"surfaceId": "WallSurface_balcony_wall_32_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491485141_he_out_ws_wc_10_0_0",
+			"surfaceId": "WallSurface_balcony_wall_31_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491485141_he_in_ws_wc_15_0_0",
+			"surfaceId": "WallSurface_bed3_wall_2_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491485141_he_in_ws_wc_9_0_0_twin",
+			"surfaceId": "WallSurface_bed3_wall_31_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491485141_he_in_ws_wc_14_0_0",
+			"surfaceId": "WallSurface_bed3_wall_30_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491471033_Merge_he_in_ws_wc_7_0_2_twin_he_in_ws_wc_7_0_0_twin_3",
+			"surfaceId": "WallSurface_bed3_wall_29_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491471033_he_in_ws_wc_14_0_0_twin",
+			"surfaceId": "WallSurface_entrance_wall_23_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491471033_he_in_ws_wc_9_0_0",
+			"surfaceId": "WallSurface_entrance_wall_28_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491471033_he_out_ws_wc_17_0_0",
+			"surfaceId": "WallSurface_entrance_wall_27_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_Merge_he_out_weld_1781490832967_0_2_he_out_weld_1781490832967_0_4_3",
+			"surfaceId": "WallSurface_entrance_Merge_wall_26_edge_wall_6_edge_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_Merge_he_in_ws_wc_6_0_0_twin_he_in_weld_1781490799621_0_0_twin_6",
+			"surfaceId": "WallSurface_bath2_Merge_wall_19_edge_twin_wall_25_edge_twin_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_he_in_split_weld_1781490879481_b_0_0_0_twin",
+			"surfaceId": "WallSurface_bath2_wall_24_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_Merge_he_in_ws_wc_7_0_0_he_in_ws_wc_7_0_2_3",
+			"surfaceId": "WallSurface_bath2_wall_23_edge",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_he_out_ws_wc_17_0_0_twin",
+			"surfaceId": "WallSurface_bath2_Merge_wall_22_edge_wall_6_edge_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491440942_he_out_ws_wc_10_0_0",
+			"surfaceId": "WallSurface_bed2_wall_21_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491410617_he_out_split_ws_wc_0_a_0_0_0_twin",
+			"surfaceId": "WallSurface_bed2_wall_20_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491410617_he_out_split_ws_wc_16_b_0_0_0_twin",
+			"surfaceId": "WallSurface_bed2_Merge_wall_19_edge_wall_25_edge_3",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491410617_he_in_weld_1781490799621_0_2",
+			"surfaceId": "WallSurface_bed2_Merge_wall_13_edge_wall_17_edge_3",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491410617_he_in_ws_wc_19_0_0",
+			"surfaceId": "WallSurface_dress_wall_12_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491410617_he_in_ws_wc_18_0_0",
+			"surfaceId": "WallSurface_dress_Merge_wall_17_edge_twin_wall_18_edge_twin_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491346617_Merge_he_out_weld_1781490832967_0_0_he_out_weld_1781490832967_0_2_3",
+			"surfaceId": "WallSurface_dress_Merge_wall_16_edge_wall_7_edge_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491346617_he_out_split_ws_wc_0_a_0_0_0_twin",
+			"surfaceId": "WallSurface_dress_Merge_wall_15_edge_wall_9_edge_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491346617_he_in_ws_wc_18_0_0_twin",
+			"surfaceId": "WallSurface_bath1_wall_14_edge_twin",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491346617_he_in_ws_wc_19_0_0_twin",
+			"surfaceId": "WallSurface_bath1_Merge_wall_13_edge_twin_wall_18_edge_twin_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		},
 		{
-			"surfaceId": "WallSurface_room_1781491346617_Merge_he_in_weld_1781490799621_0_0_he_in_weld_1781490799621_0_2_3",
+			"surfaceId": "WallSurface_bath1_wall_12_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_balcony",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "FloorFace_bed3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_1_edge_wall_8_edge_3_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_1_edge_wall_8_edge_3_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_27_edge_wall_5_edge_4_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_27_edge_wall_5_edge_4_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_11_edge_wall_9_edge_5_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_11_edge_wall_9_edge_5_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_16_edge_wall_7_edge_5_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_16_edge_wall_7_edge_5_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_22_edge_wall_6_edge_3_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_22_edge_wall_6_edge_3_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_10_edge_wall_21_edge_3_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_10_edge_wall_21_edge_3_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_12_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_12_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_13_edge_wall_18_edge_3_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_13_edge_wall_18_edge_3_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_20_edge_wall_28_edge_3_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_20_edge_wall_28_edge_3_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_23_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_23_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_30_edge_wall_32_edge_2_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_30_edge_wall_32_edge_2_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_33_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallCore_wall_33_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_1_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_2_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_3_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_living_wall_4_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_3_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_34_edge_wall_5_edge_2",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_26_edge_twin_wall_22_edge_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_19_edge_twin_wall_16_edge_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_8_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_4_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_Merge_wall_15_edge_twin_wall_11_edge_twin_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_10_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
+		},
+		{
+			"surfaceId": "WallSurface_bath1_Merge_wall_11_edge_wall_9_edge_2",
 			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase"
 		}
 	]
