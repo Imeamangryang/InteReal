@@ -1,0 +1,1369 @@
+﻿{
+	"furnitureItems": [],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallCore_Merge_wall_h_1_edge_wall_h_5_edge_5_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_1_edge_wall_h_5_edge_5_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_6_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_6_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_10_edge_wall_h_9_edge_8_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_10_edge_wall_h_9_edge_8_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_15_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_15_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_16_edge_wall_h_17_edge_2_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_16_edge_wall_h_17_edge_2_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_18_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_18_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_19_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_h_19_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_20_edge_wall_h_25_edge_6_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_h_20_edge_wall_h_25_edge_6_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_26_edge_wall_v_32_edge_7_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_26_edge_wall_v_32_edge_7_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_33_edge_wall_v_37_edge_5_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_33_edge_wall_v_37_edge_5_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_38_edge_wall_v_42_edge_5_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_38_edge_wall_v_42_edge_5_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_43_edge_wall_v_45_edge_3_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_43_edge_wall_v_45_edge_3_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_46_edge_wall_v_50_edge_5_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_46_edge_wall_v_50_edge_5_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_v_51_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_v_51_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_53_edge_wall_v_58_edge_6_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_53_edge_wall_v_58_edge_6_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_59_edge_wall_v_61_edge_3_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_v_59_edge_wall_v_61_edge_3_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_v_62_edge_L",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_v_62_edge_R",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_living_Merge_wall_h_1_edge_wall_h_2_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_h_1_edge_wall_h_2_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_living_Merge_wall_h_8_edge_twin_wall_h_7_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_living_Merge_wall_v_27_edge_twin_wall_v_26_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_v_27_edge_twin_wall_v_26_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_h_3_edge_wall_h_5_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_h_3_edge_wall_h_5_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_v_51_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_v_51_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_Merge_wall_h_11_edge_twin_wall_h_9_edge_twin_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_h_6_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_6_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_v_53_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_v_53_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_entrance_wall_h_12_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_l_wall_h_7_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_l_Merge_wall_v_33_edge_wall_v_37_edge_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_l_wall_h_20_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_20_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_l_Merge_wall_v_32_edge_twin_wall_v_28_edge_twin_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_v_32_edge_twin_wall_v_28_edge_twin_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_h_8_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed1_Merge_wall_v_38_edge_wall_v_42_edge_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed1_wall_h_21_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_21_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed1_Merge_wall_v_37_edge_twin_wall_v_33_edge_twin_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_Merge_wall_h_9_edge_wall_h_10_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_Merge_wall_v_46_edge_wall_v_47_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_Merge_wall_h_17_edge_twin_wall_h_16_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_Merge_wall_v_39_edge_twin_wall_v_38_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_h_16_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_dress_Merge_wall_v_43_edge_wall_v_45_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_dress_wall_h_22_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_22_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_dress_Merge_wall_v_42_edge_twin_wall_v_40_edge_twin_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_shaft_wall_h_17_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_shaft_Merge_wall_v_48_edge_wall_v_49_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_shaft_wall_h_19_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_shaft_Merge_wall_v_44_edge_twin_wall_v_43_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_storage_small_wall_h_19_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_storage_small_wall_v_50_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_storage_small_wall_h_23_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_23_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_storage_small_wall_v_45_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed2_Merge_wall_h_11_edge_wall_h_12_edge_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed2_Merge_wall_v_54_edge_wall_v_58_edge_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed2_Merge_wall_h_25_edge_twin_wall_h_24_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_h_25_edge_twin_wall_h_24_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bed2_Merge_wall_v_50_edge_twin_wall_v_46_edge_twin_5",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_r_wall_h_13_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_13_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_r_Merge_wall_v_59_edge_wall_v_61_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_r_wall_h_18_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_18_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_balcony_r_Merge_wall_v_56_edge_twin_wall_v_54_edge_twin_3",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_ac_room_wall_h_14_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_14_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_ac_room_wall_v_62_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_v_62_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_ac_room_wall_h_15_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_h_15_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_ac_room_wall_v_59_edge_twin",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_living",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_kitchen",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_entrance",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_balcony_l",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_bed1",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_bath",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_dress",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_shaft",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_storage_small",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_bed2",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_balcony_r",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_ac_room",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_ConcreteFloor.M_ConcreteFloor",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "Opening_door_1",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.41717727190745801,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_door_2",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.41717727190745801,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_door_3",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.41717727190745801,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_door_4",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.41717727190745801,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_door_5",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.41717727190745801,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_door_6",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.37082424169551825,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_entrance_door_7",
+			"materialPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Car_paint_matt_rough.Car_paint_matt_rough",
+			"meshPath": "/Game/Assets/Door/metal-door-collection/source/door_collection/door_collection/mesh/Cube_014.Cube_014",
+			"relativeScale":
+			{
+				"x": 0.30095058680140191,
+				"y": 0.46353030211939783,
+				"z": 0.44018679895060564
+			}
+		},
+		{
+			"surfaceId": "Opening_window_8",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 1.6777020342660538,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		},
+		{
+			"surfaceId": "Opening_window_9",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 0.44738720913761432,
+				"y": 0.6540427450870272,
+				"z": 0.44738731094189516
+			}
+		},
+		{
+			"surfaceId": "Opening_window_10",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 1.1184680228440358,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		},
+		{
+			"surfaceId": "Opening_sliding_door_11",
+			"materialPath": "/Game/Assets/Windows/SlidingWindow/fbx/Materials/Window_with_sliding_door_220x10x210.Window_with_sliding_door_220x10x210",
+			"meshPath": "/Game/Assets/Windows/SlidingWindow/fbx/StaticMeshes/fbx.fbx",
+			"relativeScale":
+			{
+				"x": 0.90909090909090906,
+				"y": 0.42513595796385178,
+				"z": 0.5
+			}
+		},
+		{
+			"surfaceId": "Opening_sliding_door_12",
+			"materialPath": "/Game/Assets/Windows/SlidingWindow/fbx/Materials/Window_with_sliding_door_220x10x210.Window_with_sliding_door_220x10x210",
+			"meshPath": "/Game/Assets/Windows/SlidingWindow/fbx/StaticMeshes/fbx.fbx",
+			"relativeScale":
+			{
+				"x": 0.56818181818181823,
+				"y": 0.42513595796385178,
+				"z": 0.5
+			}
+		},
+		{
+			"surfaceId": "Opening_window_13",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 0.44738720913761432,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		},
+		{
+			"surfaceId": "Opening_window_14",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 0.5592340114220179,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		},
+		{
+			"surfaceId": "Opening_window_15",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 0.74564534856269049,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		},
+		{
+			"surfaceId": "Opening_window_16",
+			"materialPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/Materials/Window_Painted.Window_Painted",
+			"meshPath": "/Game/Assets/Windows/Window_4Grid/free_dirty_low_poly_window/StaticMeshes/free_dirty_low_poly_window.free_dirty_low_poly_window",
+			"relativeScale":
+			{
+				"x": 0.74564534856269049,
+				"y": 0.6540427450870272,
+				"z": 0.55923413867736893
+			}
+		}
+	]
+}

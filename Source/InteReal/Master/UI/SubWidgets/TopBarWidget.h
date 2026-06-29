@@ -60,6 +60,14 @@ protected:
 
 	UFUNCTION()
 	void HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkResponse& Response);
+	
+	// 캡처 기능
+	UFUNCTION()
+	void RestoreCaptureButtonState();
+
+	void ShowCaptureNotification(const FString& Message, bool bSuccess) const;
+
+	FString MakeCaptureFilePath() const;
 
 private:
 	UPROPERTY()
@@ -76,4 +84,6 @@ private:
 
 	class UInteRealPlanViewModel* GetPlanViewModel();
 	bool bLastSaveRequestedNewVersion = false;
+	
+	bool bIsCaptureRequested = false;
 };

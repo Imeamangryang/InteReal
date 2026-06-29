@@ -104,6 +104,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
 	void ClearFurnitureSelectionForFloorPlanSync();
 
+	UFUNCTION(BlueprintCallable, Category = "InteReal|FloorPlanSync")
+	void SyncFurnitureSizeChangeToFloorPlan2D(AFurniture* Furniture);
+	
+	// ===== 선택 가구 속성 패널 (위치/회전/삭제/복사) =====
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Inspector")
+	void SetSelectedFurnitureLocationCm(FVector NewLocationCm);
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Inspector")
+	void SetSelectedFurnitureRotationYaw(float AbsoluteYawDeg);
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Inspector")
+	void DeleteSelectedFurniture();
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Inspector")
+	void DuplicateSelectedFurniture();
+
 	void SnapshotPlacedFurnitureActorsForFloorPlanSync(TSet<TObjectKey<AFurniture>>& OutPlacedFurnitureKeys) const;
 	AFurniture* ResolveConfirmedFurnitureActorForFloorPlanSync(AFurniture* PreviousPreviewFurniture, const TSet<TObjectKey<AFurniture>>& PreviouslyPlacedFurnitureKeys) const;
 	AFurniture* ConfirmActivePreviewFurnitureForFloorPlanSync(bool bContinuePlacement);
@@ -135,7 +151,13 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "EditMode|Gizmo")
 	bool IsGizmoShowingRotate() const;
-	
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|Grid")
+	void SetGridVisible(bool bShow);
+
+	UFUNCTION(BlueprintPure, Category = "EditMode|Grid")
+	bool IsGridVisible() const { return bGridVisible; }
+
 protected:
 	void UpdateCursorHit();
 	void ToggleGrid();
@@ -296,7 +318,7 @@ private:
 	// ===== Edit Mode State =====
 	bool bIsHitting = false;
 	FHitResult LastCursorHit;
-	bool bGridVisible = false;
+	bool bGridVisible = true;
 	bool bContinuousModifierHeld = false;
 
 	bool bIsMovingFurniture = false;

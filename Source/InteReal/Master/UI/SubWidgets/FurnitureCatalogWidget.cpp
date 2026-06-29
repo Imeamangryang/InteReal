@@ -8,6 +8,9 @@
 #include "Engine/DataTable.h"
 #include "Styling/SlateBrush.h"
 #include "Styling/SlateTypes.h"
+#include "InteReal/Network/InteRealNetworkSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Engine/StaticMesh.h"
 
 void UFurnitureCatalogWidget::NativeConstruct()
 {
@@ -115,36 +118,20 @@ void UFurnitureCatalogWidget::RebuildFurnitureList()
 
 	WrapBox_Furniture->ClearChildren();
 
-	if (!FurnitureDataTable || !FurnitureItemWidgetClass)
+	if (ShouldUseApiAssets())
 	{
+		if (bHasFetchedApiAssets)
+		{
+			RebuildFurnitureListFromApiAssets(CachedApiAssetList);
+		}
+		else
+		{
+			RequestApiAssets();
+		}
 		return;
 	}
 
-	const TArray<FName> RowNames = FurnitureDataTable->GetRowNames();
-
-	for (const FName& RowName : RowNames)
-	{
-		const FFurnitureDataRow* FurnitureRow = FurnitureDataTable->FindRow<FFurnitureDataRow>(RowName, TEXT("FurnitureCatalog"));
-		if (!FurnitureRow)
-		{
-			continue;
-		}
-
-		UFurnitureItemWidget* ItemWidget = CreateWidget<UFurnitureItemWidget>(GetOwningPlayer(), FurnitureItemWidgetClass);
-		if (!ItemWidget)
-		{
-			continue;
-		}
-
-		ItemWidget->SetupFurnitureItem(RowName, *FurnitureRow);
-
-		if (UWrapBoxSlot* WrapBoxSlot = WrapBox_Furniture->AddChildToWrapBox(ItemWidget))
-		{
-			WrapBoxSlot->SetPadding(FMargin(4.0f));
-		}
-	}
-
-	ApplyFurnitureFilters();
+	RebuildFurnitureListFromDataTable();
 }
 
 void UFurnitureCatalogWidget::HandleSearchTextChanged(const FText& InText)
@@ -355,4 +342,183 @@ void UFurnitureCatalogWidget::RefreshCategoryButtonStyles()
 	ApplyCategoryButtonStyle(Button_Mirror, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Mirror);
 	ApplyCategoryButtonStyle(Button_Plant, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Plant);
 	ApplyCategoryButtonStyle(Button_Shelf, bUseCategoryFilter && CurrentCategoryFilter == EFurnitureAssetCategory::Shelf);
+}
+
+bool UFurnitureCatalogWidget::ShouldUseApiAssets() const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	const UInteRealNetworkSubsystem* Network = GameInstance ? GameInstance->GetSubsystem<UInteRealNetworkSubsystem>() : nullptr;
+	return Network && !Network->bUseMockData;
+}
+
+void UFurnitureCatalogWidget::RequestApiAssets()
+{
+	if (bIsFetchingApiAssets)
+	{
+		return;
+	}
+
+	UGameInstance* GameInstance = GetGameInstance();
+	UInteRealNetworkSubsystem* Network = GameInstance ? GameInstance->GetSubsystem<UInteRealNetworkSubsystem>() : nullptr;
+	if (!Network)
+	{
+		return;
+	}
+
+	bIsFetchingApiAssets = true;
+
+	FOnAssetsReceived Delegate;
+	Delegate.BindDynamic(this, &UFurnitureCatalogWidget::HandleApiAssetsReceived);
+	Network->FetchAllAssets(0, ApiAssetFetchLimit, Delegate);
+}
+
+void UFurnitureCatalogWidget::HandleApiAssetsReceived(bool bSuccess, const FUnrealAssetListResponse& Response)
+{
+	bIsFetchingApiAssets = false;
+
+	if (!bSuccess)
+	{
+		bHasFetchedApiAssets = false;
+		UE_LOG(LogTemp, Warning, TEXT("[FurnitureCatalog] FetchAllAssets failed. Falling back to DataTable."));
+
+		if (WrapBox_Furniture)
+		{
+			WrapBox_Furniture->ClearChildren();
+			RebuildFurnitureListFromDataTable();
+		}
+		return;
+	}
+
+	CachedApiAssetList = Response;
+	bHasFetchedApiAssets = true;
+
+	UE_LOG(LogTemp, Log, TEXT("[FurnitureCatalog] FetchAllAssets success. Total=%d Items=%d"), Response.total, Response.items.Num());
+
+	RebuildFurnitureList();
+}
+
+void UFurnitureCatalogWidget::RebuildFurnitureListFromDataTable()
+{
+	if (!FurnitureDataTable || !FurnitureItemWidgetClass)
+	{
+		return;
+	}
+
+	const TArray<FName> RowNames = FurnitureDataTable->GetRowNames();
+
+	for (const FName& RowName : RowNames)
+	{
+		const FFurnitureDataRow* FurnitureRow = FurnitureDataTable->FindRow<FFurnitureDataRow>(RowName, TEXT("FurnitureCatalog"));
+		if (!FurnitureRow)
+		{
+			continue;
+		}
+
+		UFurnitureItemWidget* ItemWidget = CreateWidget<UFurnitureItemWidget>(GetOwningPlayer(), FurnitureItemWidgetClass);
+		if (!ItemWidget)
+		{
+			continue;
+		}
+
+		ItemWidget->SetupFurnitureItem(RowName, *FurnitureRow);
+
+		if (UWrapBoxSlot* WrapBoxSlot = WrapBox_Furniture->AddChildToWrapBox(ItemWidget))
+		{
+			WrapBoxSlot->SetPadding(FMargin(4.0f));
+		}
+	}
+
+	ApplyFurnitureFilters();
+}
+
+void UFurnitureCatalogWidget::RebuildFurnitureListFromApiAssets(const FUnrealAssetListResponse& Response)
+{
+	if (!FurnitureItemWidgetClass)
+	{
+		return;
+	}
+
+	for (const FInteRealAssetData& Asset : Response.items)
+	{
+		if (!IsFurnitureAsset(Asset))
+		{
+			continue;
+		}
+
+		const FName RowName(*FString::Printf(TEXT("API_Furniture_%d"), Asset.id));
+		const FFurnitureDataRow FurnitureRow = ConvertAssetToFurnitureRow(Asset);
+
+		UFurnitureItemWidget* ItemWidget = CreateWidget<UFurnitureItemWidget>(GetOwningPlayer(), FurnitureItemWidgetClass);
+		if (!ItemWidget)
+		{
+			continue;
+		}
+
+		ItemWidget->SetupFurnitureItem(RowName, FurnitureRow);
+
+		if (UWrapBoxSlot* WrapBoxSlot = WrapBox_Furniture->AddChildToWrapBox(ItemWidget))
+		{
+			WrapBoxSlot->SetPadding(FMargin(4.0f));
+		}
+	}
+
+	ApplyFurnitureFilters();
+}
+
+bool UFurnitureCatalogWidget::IsFurnitureAsset(const FInteRealAssetData& Asset) const
+{
+	const FString Text = FString::Printf(TEXT("%s %s"), *Asset.name, *Asset.unreal_path).ToLower();
+
+	if (Text.Contains(TEXT("material")) || Text.Contains(TEXT("/materials/")) || Text.Contains(TEXT("mi_")) || Text.Contains(TEXT("/mi_")))
+	{
+		return false;
+	}
+
+	if (!Asset.unreal_path.IsEmpty())
+	{
+		if (LoadObject<UStaticMesh>(nullptr, *Asset.unreal_path))
+		{
+			return true;
+		}
+
+		if (LoadObject<UMaterialInterface>(nullptr, *Asset.unreal_path))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+EFurnitureAssetCategory UFurnitureCatalogWidget::ResolveFurnitureCategoryFromAsset(const FInteRealAssetData& Asset) const
+{
+	const FString Text = FString::Printf(TEXT("%s %s"), *Asset.name, *Asset.unreal_path).ToLower();
+
+	if (Text.Contains(TEXT("bed"))) return EFurnitureAssetCategory::Bed;
+	if (Text.Contains(TEXT("chair")) || Text.Contains(TEXT("sofa") ) || Text.Contains(TEXT("seat"))) return EFurnitureAssetCategory::Seating;
+	if (Text.Contains(TEXT("table")) || Text.Contains(TEXT("desk"))) return EFurnitureAssetCategory::TableDesk;
+	if (Text.Contains(TEXT("storage")) || Text.Contains(TEXT("cabinet")) || Text.Contains(TEXT("closet"))) return EFurnitureAssetCategory::Storage;
+	if (Text.Contains(TEXT("light")) || Text.Contains(TEXT("lamp"))) return EFurnitureAssetCategory::Lighting;
+	if (Text.Contains(TEXT("tv")) || Text.Contains(TEXT("monitor")) || Text.Contains(TEXT("electronics"))) return EFurnitureAssetCategory::Electronics;
+	if (Text.Contains(TEXT("kitchen"))) return EFurnitureAssetCategory::Kitchen;
+	if (Text.Contains(TEXT("bath"))) return EFurnitureAssetCategory::Bathroom;
+	if (Text.Contains(TEXT("decor"))) return EFurnitureAssetCategory::Decor;
+	if (Text.Contains(TEXT("mirror"))) return EFurnitureAssetCategory::Mirror;
+	if (Text.Contains(TEXT("plant"))) return EFurnitureAssetCategory::Plant;
+	if (Text.Contains(TEXT("shelf"))) return EFurnitureAssetCategory::Shelf;
+
+	return EFurnitureAssetCategory::None;
+}
+
+FFurnitureDataRow UFurnitureCatalogWidget::ConvertAssetToFurnitureRow(const FInteRealAssetData& Asset) const
+{
+	FFurnitureDataRow Row;
+	Row.ID = Asset.id;
+	Row.DisplayName = FText::FromString(Asset.name.IsEmpty() ? FString::Printf(TEXT("Asset %d"), Asset.id) : Asset.name);
+	Row.Width = 100.0f;
+	Row.Depth = 100.0f;
+	Row.Dimensions = FIntPoint(FMath::RoundToInt(Row.Width), FMath::RoundToInt(Row.Depth));
+	Row.Category = ResolveFurnitureCategoryFromAsset(Asset);
+	Row.FurnitureMesh = Asset.unreal_path.IsEmpty() ? nullptr : LoadObject<UStaticMesh>(nullptr, *Asset.unreal_path);
+	return Row;
 }

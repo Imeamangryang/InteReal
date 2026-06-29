@@ -3,6 +3,7 @@
 #include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Gizmo/InteRealGizmoActor.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
@@ -23,6 +24,8 @@
 #include "Components/DynamicMeshComponent.h"
 #include "Components/InteRealFloorPlanPlacementSyncComponent.h"
 #include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/Engine.h"
@@ -32,6 +35,95 @@
 #include "Widgets/SViewport.h"
 
 static FVector GetGizmoAnchorLocation(const AFurniture* Furniture);
+
+static bool IsOpeningAssetRowForReplacement(const FFurnitureDataRow& Row)
+{
+	if (Row.AssetKind != EPlacementAssetKind::Generic)
+	{
+		return true;
+	}
+
+	const FString Label = Row.DisplayName.ToString().ToLower();
+	return Label.Contains(TEXT("door")) ||
+		Label.Contains(TEXT("window")) ||
+		Label.Contains(TEXT("문")) ||
+		Label.Contains(TEXT("창")) ||
+		Label.Contains(TEXT("현관")) ||
+		Label.Contains(TEXT("미닫")) ||
+		Label.Contains(TEXT("슬라이딩"));
+}
+
+static bool OpeningComponentAcceptsRow(const UPrimitiveComponent* Component, const FFurnitureDataRow& Row)
+{
+	if (!Component || !Component->ComponentHasTag(TEXT("EditableOpening")) || !IsOpeningAssetRowForReplacement(Row))
+	{
+		return false;
+	}
+
+	const FString Label = Row.DisplayName.ToString().ToLower();
+	const bool bRowLooksWindow =
+		Row.AssetKind == EPlacementAssetKind::Window ||
+		Label.Contains(TEXT("window")) ||
+		Label.Contains(TEXT("창"));
+	const bool bComponentIsWindow = Component->ComponentHasTag(TEXT("WindowAsset"));
+	const bool bComponentIsDoor = Component->ComponentHasTag(TEXT("DoorAsset"));
+
+	return bRowLooksWindow ? bComponentIsWindow : bComponentIsDoor;
+}
+
+static bool TryGetComponentTagFloat(const UActorComponent* Component, const TCHAR* Prefix, float& OutValue)
+{
+	if (!Component || !Prefix)
+	{
+		return false;
+	}
+
+	const FString PrefixString(Prefix);
+	for (const FName& TagName : Component->ComponentTags)
+	{
+		const FString Tag = TagName.ToString();
+		if (Tag.StartsWith(PrefixString))
+		{
+			OutValue = FCString::Atof(*Tag.Mid(PrefixString.Len()));
+			return true;
+		}
+	}
+	return false;
+}
+
+static void ApplyOpeningMeshPreservingSlot(UStaticMeshComponent* OpeningComp, UStaticMesh* NewMesh)
+{
+	if (!OpeningComp || !NewMesh)
+	{
+		return;
+	}
+
+	float SlotWidth = 0.0f;
+	float SlotHeight = 0.0f;
+	float SlotDepth = 20.0f;
+	TryGetComponentTagFloat(OpeningComp, TEXT("HarnessOpeningWidthCm="), SlotWidth);
+	TryGetComponentTagFloat(OpeningComp, TEXT("HarnessOpeningHeightCm="), SlotHeight);
+	TryGetComponentTagFloat(OpeningComp, TEXT("HarnessOpeningDepthCm="), SlotDepth);
+
+	OpeningComp->SetStaticMesh(NewMesh);
+
+	const FVector MeshSize = NewMesh->GetBounds().GetBox().GetSize();
+	FVector NewScale = FVector::OneVector;
+	if (SlotWidth > KINDA_SMALL_NUMBER && MeshSize.X > KINDA_SMALL_NUMBER)
+	{
+		NewScale.X = SlotWidth / MeshSize.X;
+	}
+	if (SlotDepth > KINDA_SMALL_NUMBER && MeshSize.Y > KINDA_SMALL_NUMBER)
+	{
+		NewScale.Y = FMath::Min(1.0f, SlotDepth * 0.85f / MeshSize.Y);
+	}
+	if (SlotHeight > KINDA_SMALL_NUMBER && MeshSize.Z > KINDA_SMALL_NUMBER)
+	{
+		NewScale.Z = SlotHeight / MeshSize.Z;
+	}
+	OpeningComp->SetRelativeScale3D(NewScale);
+	OpeningComp->MarkRenderStateDirty();
+}
 
 static bool IsMouseOverInteractiveUI()
 {
@@ -48,6 +140,88 @@ static bool IsMouseOverInteractiveUI()
 	return WidgetPath.IsValid() &&
 		GameViewportWidget.IsValid() &&
 		WidgetPath.GetLastWidget() != GameViewportWidget.ToSharedRef();
+}
+
+
+static bool IsFirstPersonPawnLocationBlocked(UWorld* World, const APawn* Pawn, const FVector& Location)
+{
+	if (!World)
+	{
+		return false;
+	}
+
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(FirstPersonSafeLocation), false);
+	if (Pawn)
+	{
+		QueryParams.AddIgnoredActor(Pawn);
+	}
+
+	const float PawnRadius = 34.0f;
+	const float PawnHalfHeight = 88.0f;
+	return World->OverlapBlockingTestByChannel(Location, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeCapsule(PawnRadius, PawnHalfHeight), QueryParams);
+}
+
+static FVector ResolveFirstPersonSafeLocation(UWorld* World, const APawn* Pawn, const FVector& DesiredLocation, const FRotator& FacingRotation, float MaxSearchRadius = 125.0f)
+{
+	if (!IsFirstPersonPawnLocationBlocked(World, Pawn, DesiredLocation))
+	{
+		return DesiredLocation;
+	}
+
+	// 천장이 낮은 내부 공간에서는 XY를 먼저 밀면 건물 밖 후보가 선택될 수 있으므로,
+	// 같은 내부 좌표에서 Z를 먼저 낮춰 캡슐 상단이 천장과 겹치지 않는 높이를 찾는다.
+	for (float LowerOffset = 10.0f; LowerOffset <= 80.0f; LowerOffset += 10.0f)
+	{
+		FVector LoweredLocation = DesiredLocation;
+		LoweredLocation.Z = DesiredLocation.Z - LowerOffset;
+		if (!IsFirstPersonPawnLocationBlocked(World, Pawn, LoweredLocation))
+		{
+			return LoweredLocation;
+		}
+	}
+
+	const FVector Forward = FRotationMatrix(FRotator(0.0f, FacingRotation.Yaw, 0.0f)).GetUnitAxis(EAxis::X);
+	const FVector Right = FRotationMatrix(FRotator(0.0f, FacingRotation.Yaw, 0.0f)).GetUnitAxis(EAxis::Y);
+	TArray<FVector, TInlineAllocator<16>> SearchDirections;
+	SearchDirections.Add(Forward);
+	SearchDirections.Add(-Forward);
+	SearchDirections.Add(Right);
+	SearchDirections.Add(-Right);
+	SearchDirections.Add((Forward + Right).GetSafeNormal());
+	SearchDirections.Add((Forward - Right).GetSafeNormal());
+	SearchDirections.Add((-Forward + Right).GetSafeNormal());
+	SearchDirections.Add((-Forward - Right).GetSafeNormal());
+
+	FVector BestLocation = DesiredLocation;
+	float BestScore = TNumericLimits<float>::Max();
+	for (float Radius = 25.0f; Radius <= MaxSearchRadius; Radius += 25.0f)
+	{
+		for (const FVector& Direction : SearchDirections)
+		{
+			for (float LowerOffset = 0.0f; LowerOffset <= 80.0f; LowerOffset += 20.0f)
+			{
+				FVector Candidate = DesiredLocation + Direction * Radius;
+				Candidate.Z = DesiredLocation.Z - LowerOffset;
+				if (!IsFirstPersonPawnLocationBlocked(World, Pawn, Candidate))
+				{
+					const float DistSq = FVector::DistSquared2D(DesiredLocation, Candidate);
+					const float Score = DistSq + LowerOffset * LowerOffset * 0.25f;
+					if (Score < BestScore)
+					{
+						BestScore = Score;
+						BestLocation = Candidate;
+					}
+				}
+			}
+		}
+
+		if (BestScore < TNumericLimits<float>::Max())
+		{
+			return BestLocation;
+		}
+	}
+
+	return DesiredLocation;
 }
 
 AInteRealPlayerController::AInteRealPlayerController()
@@ -146,8 +320,9 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 		if (APawn* P = GetPawn())
 		{
 			const FVector NewLoc = FMath::VInterpTo(P->GetActorLocation(), FirstPersonFocusTarget, DeltaTime, 8.0f);
-			P->SetActorLocation(NewLoc);
-			if (FVector::DistSquared2D(NewLoc, FirstPersonFocusTarget) < 4.0f)
+			FHitResult SweepHit;
+			P->SetActorLocation(NewLoc, true, &SweepHit);
+			if (SweepHit.bBlockingHit || FVector::DistSquared2D(P->GetActorLocation(), FirstPersonFocusTarget) < 4.0f)
 			{
 				bIsFocusingFirstPerson = false;
 			}
@@ -432,8 +607,15 @@ void AInteRealPlayerController::SetControlMode(EInteRealControlMode NewMode)
 		return;
 	}
 
+	const EInteRealControlMode PreviousControlMode = CurrentControlMode;
+
 	CurrentControlMode = NewMode;
 	ApplyCurrentControlMode();
+
+	if (PreviousControlMode == EInteRealControlMode::Edit && NewMode == EInteRealControlMode::View)
+	{
+		SetViewMode(EHarnessViewMode::FirstPerson);
+	}
 }
 
 void AInteRealPlayerController::HandleModeChanged(bool bIsEditMode)
@@ -558,12 +740,19 @@ void AInteRealPlayerController::ApplyCurrentControlMode()
 		DeselectFurniture();
 		DeselectSurface();
 		if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+		{
 			if (PS->HasActivePreview()) PS->CancelPreview();
+			PS->SetGridVisible(false);
+		}
 
 		if (FloorPlanPlacementSyncComponent)
 		{
 			FloorPlanPlacementSyncComponent->CancelFloorPlan2DPlacement();
 		}
+	}
+	else if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+	{
+		PS->SetGridVisible(bGridVisible);
 	}
 
 	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
@@ -944,6 +1133,16 @@ void AInteRealPlayerController::ToggleGrid()
 	PS->SetGridVisible(bGridVisible);
 }
 
+void AInteRealPlayerController::SetGridVisible(bool bShow)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS) return;
+	
+	bGridVisible = bShow;
+	PS->SetGridVisible(bGridVisible);
+}
+
 void AInteRealPlayerController::ToggleFreePlacementMode()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
@@ -1037,7 +1236,14 @@ void AInteRealPlayerController::OnPlaceKey()
 			const FFurnitureDataRow* FurnitureRow = PS->FindFurnitureRowByID(FurnitureID);
 			const bool bContinuePlacement = bContinuousModifierHeld;
 
-			ConfirmActivePreviewFurnitureForFloorPlanSync(bContinuePlacement);
+			AFurniture* ConfirmedFurniture = ConfirmActivePreviewFurnitureForFloorPlanSync(bContinuePlacement);
+
+			// 연속 배치 중이 아니라면, 막 배치한 조명을 바로 선택 상태로 만들어
+			// 기즈모와 함께 속성 패널이 즉시 뜨도록 한다 (일반 가구는 기존 동작 유지).
+			if (!bContinuePlacement && Cast<ALightFixture>(ConfirmedFurniture))
+			{
+				SelectFurniture(ConfirmedFurniture);
+			}
 
 			if (FloorPlanPlacementSyncComponent)
 			{
@@ -1154,6 +1360,7 @@ void AInteRealPlayerController::OnPlaceKey()
 	{
 		const bool bEditableSurface =
 			HitMeshComp->ComponentHasTag(TEXT("EditableWall")) ||
+			HitMeshComp->ComponentHasTag(TEXT("EditableOpening")) ||
 			HitMeshComp->ComponentHasTag(TEXT("EditableFloor")) ||
 			HitMeshComp->ComponentHasTag(TEXT("Floor"));
 
@@ -1329,6 +1536,148 @@ void AInteRealPlayerController::RotateEditFurniture(float AngleDeg)
 	}
 }
 
+void AInteRealPlayerController::SetSelectedFurnitureLocationCm(FVector NewLocationCm)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SelectedFurniture) return;
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS) return;
+
+	if (SelectedFurniture->GetPlacedSurfaceType() == EPlacementSurfaceType::Floor)
+	{
+		PS->BeginGizmoMove(SelectedFurniture);
+		PS->UpdateGizmoMoveFree(NewLocationCm, SelectedFurniture);
+
+		if (PS->InvalidReason == EPlacementInvalidReason::None)
+		{
+			PS->FinalizeGizmoMove(SelectedFurniture);
+		}
+		else
+		{
+			PS->AbortGizmoMove(SelectedFurniture);
+		}
+	}
+	else
+	{
+		PS->RecordUndoSnapshot();
+		SelectedFurniture->SetActorLocation(NewLocationCm);
+	}
+
+	if (SpawnedGizmo)
+	{
+		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+	}
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->SyncFloorPlan2DFromFurniture(SelectedFurniture);
+	}
+}
+
+void AInteRealPlayerController::SetSelectedFurnitureRotationYaw(float AbsoluteYawDeg)
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SelectedFurniture) return;
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+
+	FRotator Rot = SelectedFurniture->GetActorRotation();
+	Rot.Yaw = FRotator::NormalizeAxis(AbsoluteYawDeg);
+
+	if (PS && SelectedFurniture->GetPlacedSurfaceType() == EPlacementSurfaceType::Floor)
+	{
+		const FFurnitureDataRow* Row = PS->FindFurnitureRowByID(SelectedFurniture->FurnitureID);
+		if (!Row)
+		{
+			return;
+		}
+
+		PS->BeginGizmoMove(SelectedFurniture);
+		const float Radians = FMath::DegreesToRadians(Rot.Yaw);
+		const float AbsCos = FMath::Abs(FMath::Cos(Radians));
+		const float AbsSin = FMath::Abs(FMath::Sin(Radians));
+		SelectedFurniture->PlacedDimensions = FVector2D(
+			FMath::Max(1, FMath::CeilToInt(Row->Dimensions.X * AbsCos + Row->Dimensions.Y * AbsSin)),
+			FMath::Max(1, FMath::CeilToInt(Row->Dimensions.X * AbsSin + Row->Dimensions.Y * AbsCos)));
+		SelectedFurniture->SetRotationPreservingPlacement(Rot);
+		PS->UpdateGizmoMoveLocation(
+			SelectedFurniture->GetMeshBounds().GetCenter(), SelectedFurniture, EGizmoTransformAxis::None);
+
+		if (PS->InvalidReason == EPlacementInvalidReason::None)
+		{
+			PS->FinalizeGizmoMove(SelectedFurniture);
+		}
+		else
+		{
+			PS->AbortGizmoMove(SelectedFurniture);
+		}
+	}
+	else
+	{
+		if (PS) PS->RecordUndoSnapshot();
+		SelectedFurniture->SetRotationPreservingPlacement(Rot);
+	}
+
+	if (SpawnedGizmo)
+	{
+		SpawnedGizmo->SetActorRotation(FRotator::ZeroRotator);
+		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+	}
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->SyncFloorPlan2DFromFurniture(SelectedFurniture);
+	}
+}
+
+void AInteRealPlayerController::DeleteSelectedFurniture()
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SelectedFurniture) return;
+
+	AFurniture* ToRemove = SelectedFurniture;
+
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->SetDeletingFrom3D(true);
+		FloorPlanPlacementSyncComponent->RemoveFloorPlan2DForFurniture(ToRemove);
+		FloorPlanPlacementSyncComponent->SetDeletingFrom3D(false);
+	}
+
+	DeleteFurnitureActor(ToRemove);
+}
+
+void AInteRealPlayerController::DuplicateSelectedFurniture()
+{
+	if (CurrentControlMode != EInteRealControlMode::Edit) return;
+	if (!SelectedFurniture) return;
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS) return;
+
+	const FFurnitureDataRow* Row = PS->FindFurnitureRowByID(SelectedFurniture->FurnitureID);
+	if (!Row) return;
+
+	const FRotator Rotation = SelectedFurniture->GetActorRotation();
+	const FVector SpawnLoc = SelectedFurniture->GetActorLocation() + FVector(50.0f, 50.0f, 0.0f);
+
+	if (PS->HasActivePreview())
+	{
+		PS->CancelPreview();
+	}
+	DeselectFurniture();
+	DeselectSurface();
+
+	PS->CreatePreviewFurnitureFromRow(SpawnLoc, Rotation, *Row);
+
+	FHitResult Hit;
+	Hit.Location = SpawnLoc;
+	Hit.ImpactPoint = SpawnLoc;
+	Hit.ImpactNormal = FVector::UpVector;
+	PS->UpdatePreviewLocation(Hit);
+
+	if (AFurniture* NewFurniture = ConfirmActivePreviewFurnitureForFloorPlanSync(false))
+	{
+		SelectFurniture(NewFurniture);
+	}
+}
+
 void AInteRealPlayerController::OnRotateKey()
 {
 	const bool bReverse = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
@@ -1436,6 +1785,18 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 		if (FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
 		{
 			FloorPlanPlacementSyncComponent->SelectFloorPlan2DForFurniture(SelectedFurniture);
+		}
+
+		if (AInteRealHUD* HUD = GetInteRealHUD())
+		{
+			if (ALightFixture* LightFixture = Cast<ALightFixture>(SelectedFurniture))
+			{
+				HUD->ShowLightAttributesPanel(LightFixture);
+			}
+			else
+			{
+				HUD->ShowFurnitureSizePanel(SelectedFurniture);
+			}
 		}
 	}
 }
@@ -1572,6 +1933,21 @@ void AInteRealPlayerController::StartFurniturePlacement(const FFurnitureDataRow&
 	if (!PS) return;
 
 	SetControlMode(EInteRealControlMode::Edit);
+
+	if (OpeningComponentAcceptsRow(SelectedSurfaceComponent.Get(), FurnitureRow))
+	{
+		if (UStaticMeshComponent* OpeningComp = Cast<UStaticMeshComponent>(SelectedSurfaceComponent.Get()))
+		{
+			if (FurnitureRow.FurnitureMesh)
+			{
+				PS->RecordUndoSnapshot();
+				ApplyOpeningMeshPreservingSlot(OpeningComp, FurnitureRow.FurnitureMesh);
+				SelectSurface(OpeningComp);
+				return;
+			}
+		}
+	}
+
 	DeselectFurniture();
 
 	if (PS->HasActivePreview()) PS->CancelPreview();
@@ -1649,20 +2025,15 @@ void AInteRealPlayerController::SetViewMode(EHarnessViewMode NewMode)
 		CachedViewModeManager->FocusOnBuilding();
 		FVector Center = CachedViewModeManager->GetCameraTargetLocation();
 		Center.Z = 160.0f;
-		P->SetActorLocation(Center);
+		
+		const FRotator FirstPersonRotation = CachedViewModeManager->IsCanvasRotated()
+			? FRotator(0.f, -90.f, 0.f)
+			: FRotator(0.f, 0.f, 0.f);
+		const FVector SafeCenter = ResolveFirstPersonSafeLocation(GetWorld(), P, Center, FirstPersonRotation, 125.0f);
 
-		if (CachedViewModeManager->IsCanvasRotated())
-		{
-			FRotator Rot(0.f, -90.f, 0.f);
-			P->SetActorRotation(Rot);
-			SetControlRotation(Rot);
-		}
-		else
-		{
-			FRotator Rot(0.f, 0.f, 0.f);
-			P->SetActorRotation(Rot);
-			SetControlRotation(Rot);
-		}
+		P->SetActorLocation(SafeCenter);
+		P->SetActorRotation(FirstPersonRotation);
+		SetControlRotation(FirstPersonRotation);
 
 		Possess(P);
 		SetViewTarget(P);
@@ -1779,6 +2150,7 @@ void AInteRealPlayerController::OnFocusSelectionKey()
 
 			FVector Target = FurnitureCenter + (-Dir) * (HalfExtent + ViewDistance);
 			Target.Z = 160.0f;
+			Target = ResolveFirstPersonSafeLocation(GetWorld(), P, Target, GetControlRotation(), 175.0f);
 
 			FirstPersonFocusTarget = Target;
 			bIsFocusingFirstPerson = true;
@@ -2136,6 +2508,24 @@ void AInteRealPlayerController::ClearFurnitureSelectionForFloorPlanSync()
 	ClearFurnitureSelectionInternal(false);
 }
 
+void AInteRealPlayerController::SyncFurnitureSizeChangeToFloorPlan2D(AFurniture* Furniture)
+{
+	if (!IsValid(Furniture))
+	{
+		return;
+	}
+
+	if (FloorPlanPlacementSyncComponent)
+	{
+		FloorPlanPlacementSyncComponent->SyncFloorPlan2DFromFurniture(Furniture);
+	}
+
+	if (SpawnedGizmo && SelectedFurniture.Get() == Furniture)
+	{
+		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(Furniture));
+	}
+}
+
 void AInteRealPlayerController::DeleteFurnitureActor(AFurniture* FurnitureActor)
 {
 	if (!IsValid(FurnitureActor))
@@ -2176,6 +2566,12 @@ void AInteRealPlayerController::ClearFurnitureSelectionInternal(bool bSyncFloorP
 	{
 		SelectedFurniture->SetSelected(false);
 		SelectedFurniture = nullptr;
+	}
+
+	if (AInteRealHUD* HUD = GetInteRealHUD())
+	{
+		HUD->ShowFurnitureSizePanel(nullptr);
+		HUD->ShowLightAttributesPanel(nullptr);
 	}
 
 	bIsMovingFurniture = false;

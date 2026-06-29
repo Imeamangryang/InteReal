@@ -6,8 +6,8 @@
 #include "HarnessData.generated.h"
 
 // ============================================================================
-//  v3.1 Topology Data Structures
-//  서버 JSON 계약 v3.1 기반 - walls / spaces / openings 독립 객체 토폴로지
+//  v3.2 Topology Data Structures
+//  서버 JSON 계약 v3.2 기반 - walls / spaces / openings 독립 객체 토폴로지
 // ============================================================================
 
 // 도면 정보
@@ -74,8 +74,8 @@ struct FTopologyOpening
 {
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString id;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString type;              // "Door", "Window" (정규화된 레거시 타입)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString kind;              // 원본 kind: door, entrance_door, sliding_door, window, opening
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString type;              // "Door", "Window", "Opening", "Unknown" (정규화 타입)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString kind;              // 원본 kind: door, entrance_door, sliding_door, fixed_window, opening 등
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString target_edge_id;    // host wall의 primary edge ID
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString host_wall_id;      // host wall ID
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString offset_from = TEXT("start");
@@ -83,7 +83,19 @@ struct FTopologyOpening
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float width_cm = 90.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float height_cm = 210.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float z_offset_cm = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bHasSpan = false;     // v3.2 span.start/end 사용 여부
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector2D span_start_cm = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector2D span_end_cm = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float drawn_width_cm = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float measured_width_cm = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FString> connects;  // 연결하는 공간 ID 목록
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString connection_type = TEXT("Unspecified"); // Interior, Exterior, Boundary, Unknown, Unspecified
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bConnectsExterior = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bConnectsInterior = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool bConnectsSingleSpace = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 connected_space_count = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 external_connect_count = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 unknown_connect_count = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FTopologySwing swing;      // 여닫이 정보
 };
 
@@ -102,6 +114,45 @@ struct FTopologyFace
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString floor_material;             // 기본 바닥 머티리얼 힌트
 };
 
+
+// v3.2 wall_groups: logical wall grouping / future server extension.
+// Current sample payloads can leave this empty; keep the structure so import remains forward-compatible.
+USTRUCT(BlueprintType)
+struct FTopologyWallGroup
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString id;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString name;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString kind;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FString> wall_ids;
+};
+
+// v3.2 finish_groups: shared finish/material grouping / future server extension.
+USTRUCT(BlueprintType)
+struct FTopologyFinishGroup
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString id;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString name;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString kind;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString material_id;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FString> wall_ids;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FString> space_ids;
+};
+
+// v3.2 asset_requirements: estimate/asset placement hints / future server extension.
+USTRUCT(BlueprintType)
+struct FTopologyAssetRequirement
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString id;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString kind;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString target_id;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString target_type;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString status;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString selected_asset_id;
+};
+
 // ============================================================================
 //  도면 전체 데이터 (루트 컨테이너)
 // ============================================================================
@@ -111,19 +162,28 @@ struct FHarnessFloorData
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString schema_version;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FTopologyPlanInfo plan;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float common_wall_height_cm = 240.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyLevel> levels;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyVertex> vertices;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyHalfEdge> half_edges;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyOpening> openings;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyFace> faces;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyWallGroup> wall_groups;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyFinishGroup> finish_groups;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FTopologyAssetRequirement> asset_requirements;
 
 	/**
-	 * v3.1 고정 좌표 변환: JSON(top_left, x=right, y=down, mm→cm) → Unreal(Z-up)
+	 * v3.2 고정 좌표 변환: JSON(top_left, x=right, y=down, mm→cm) → Unreal(Z-up)
 	 * JSON X(right) → Unreal Y, JSON Y(down) → Unreal -X
 	 */
 	FVector2D ToHarnessPoint(const FTopologyVertex& Vertex) const
 	{
 		return FVector2D(-Vertex.y, Vertex.x);
+	}
+
+	FVector2D ToHarnessPoint(const FVector2D& PointCm) const
+	{
+		return FVector2D(-PointCm.Y, PointCm.X);
 	}
 };
 

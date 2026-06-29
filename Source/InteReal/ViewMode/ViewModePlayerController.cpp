@@ -17,9 +17,36 @@ AViewModePlayerController::AViewModePlayerController()
 	DefaultMouseCursor = EMouseCursor::Default;
 }
 
+namespace
+{
+	void SetHarnessCeilingVisibility(UWorld* World, bool bVisible)
+	{
+		if (!World)
+		{
+			return;
+		}
+
+		UHarnessGeneratorComponent* GenComp = nullptr;
+		if (UHarnessPipelineManager* PipelineManager = World->GetSubsystem<UHarnessPipelineManager>())
+		{
+			GenComp = PipelineManager->GetGeneratorComp();
+		}
+
+		if (GenComp)
+		{
+			GenComp->SetCeilingVisibility(bVisible);
+		}
+	}
+}
+
 void AViewModePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		PipelineManager->OnPipelineLoadFinished.AddDynamic(this, &AViewModePlayerController::HandlePipelineLoadFinished);
+	}
 
 	// Add Input Mapping Context if available
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
@@ -52,6 +79,11 @@ void AViewModePlayerController::BeginPlay()
 
 	// 처음에는 ISO 뷰이므로 매니저를 쳐다봄
 	SetViewMode(EHarnessViewMode::Isometric);
+}
+
+void AViewModePlayerController::HandlePipelineLoadFinished()
+{
+	bShouldResetFirstPersonPosition = true;
 }
 
 void AViewModePlayerController::SetupInputComponent()
@@ -172,13 +204,15 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 		CachedViewModeManager->SetViewMode(NewMode);
 	}
 
+	SetHarnessCeilingVisibility(GetWorld(), NewMode == EHarnessViewMode::FirstPerson);
+
 	APawn* P = GetPawn();
 	if (!P) return;
 
 	if (NewMode == EHarnessViewMode::FirstPerson)
 	{
 		// 1인칭: DefaultPawn에 빙의하고 건물 중앙으로 텔레포트
-		if (CachedViewModeManager)
+		if (CachedViewModeManager && bShouldResetFirstPersonPosition)
 		{
 			CachedViewModeManager->FocusOnBuilding(); // 최신 센터 계산
 			FVector Center = CachedViewModeManager->GetCameraTargetLocation();
@@ -207,6 +241,8 @@ void AViewModePlayerController::SetViewMode(EHarnessViewMode NewMode)
 				P->SetActorRotation(Rot);
 				SetControlRotation(Rot);
 			}
+			
+			bShouldResetFirstPersonPosition = false;
 		}
 		
 		Possess(P);

@@ -3,6 +3,7 @@
 #include "EngineUtils.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
+#include "LightFixture.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
 {
@@ -68,6 +69,11 @@ AFurniture::AFurniture()
 	CollisionBoxComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionBoxComponent->SetHiddenInGame(true);
+	
+	LightComponent = CreateDefaultSubobject<UPointLightComponent>(TEXT("LightComponent"));
+	LightComponent->SetupAttachment(MeshComponent);
+	LightComponent->SetVisibility(false);
+	LightComponent->IntensityUnits = ELightUnits::Candelas;
 }
 
 void AFurniture::SetPlacementState(EPlacementState NewState)
@@ -145,6 +151,9 @@ void AFurniture::SetSelected(bool bSelected)
 
 void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 {
+	FurnitureDataRow = InFurnitureRow;
+	bHasFurnitureDataRow = true;
+	
 	FurnitureID = InFurnitureRow.ID;
 	AllowedPlacementTypes = InFurnitureRow.AllowedPlacementTypes;
 
@@ -153,6 +162,11 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 		MeshComponent->SetStaticMesh(InFurnitureRow.FurnitureMesh);
 
 		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
+		
+		const FVector NativeSize = MeshBounds.GetBox().GetSize();
+		const FVector TargetSizeCm(InFurnitureRow.Width, InFurnitureRow.Depth, InFurnitureRow.Height);
+		MeshComponent->SetRelativeScale3D(ComputeSizeScale(NativeSize, TargetSizeCm));
+
 		FBox PlacementBounds = MeshBounds.GetBox();
 		bool bUsesSimpleCollision = false;
 		if (const UBodySetup* BodySetup = InFurnitureRow.FurnitureMesh->GetBodySetup())
@@ -194,6 +208,66 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 	}
 
 	SetPlacementState(EPlacementState::Preview);
+}
+
+FVector AFurniture::ComputeSizeScale(const FVector& NativeSize, const FVector& TargetSizeCm)
+{
+	FVector Scale(1.0f, 1.0f, 1.0f);
+	if (TargetSizeCm.X > KINDA_SMALL_NUMBER && NativeSize.X > KINDA_SMALL_NUMBER)
+	{
+		Scale.X = TargetSizeCm.X / NativeSize.X;
+	}
+	if (TargetSizeCm.Y > KINDA_SMALL_NUMBER && NativeSize.Y > KINDA_SMALL_NUMBER)
+	{
+		Scale.Y = TargetSizeCm.Y / NativeSize.Y;
+	}
+	if (TargetSizeCm.Z > KINDA_SMALL_NUMBER && NativeSize.Z > KINDA_SMALL_NUMBER)
+	{
+		Scale.Z = TargetSizeCm.Z / NativeSize.Z;
+	}
+	return Scale;
+}
+
+FVector AFurniture::GetCurrentSizeCm() const
+{
+	const UStaticMesh* Mesh = MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	if (!Mesh)
+	{
+		return FVector::ZeroVector;
+	}
+
+	const FVector NativeSize = Mesh->GetBounds().GetBox().GetSize();
+	const FVector Scale = MeshComponent->GetRelativeScale3D();
+	return FVector(NativeSize.X * Scale.X, NativeSize.Y * Scale.Y, NativeSize.Z * Scale.Z);
+}
+
+void AFurniture::SetTargetSizeCm(FVector InSizeCm)
+{
+	const UStaticMesh* Mesh = MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	if (!Mesh)
+	{
+		return;
+	}
+
+	const FVector NativeSize = Mesh->GetBounds().GetBox().GetSize();
+
+	// 바닥(또는 닿아있는 면)에 고정된 위치를 유지하기 위해 스케일 적용 전 바운즈를 기록해둔다.
+	const FBox PrevBounds = GetPlacementGeometryBounds();
+	const FVector PrevCenter = PrevBounds.GetCenter();
+	const float PrevMinZ = PrevBounds.Min.Z;
+
+	MeshComponent->SetRelativeScale3D(ComputeSizeScale(NativeSize, InSizeCm));
+
+	AlignPlacementBottomCenterTo(FVector(PrevCenter.X, PrevCenter.Y, PrevMinZ), PrevMinZ);
+}
+
+TSubclassOf<AFurniture> AFurniture::ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass)
+{
+	if (Row.Category == EFurnitureAssetCategory::Lighting)
+	{
+		return ALightFixture::StaticClass();
+	}
+	return DefaultClass;
 }
 
 void AFurniture::GetOccupiedGridCells(const AGridSpaceManager* Grid, FVector2D Anchor,
@@ -322,3 +396,4 @@ void AFurniture::SetRotationPreservingPlacement(const FRotator& NewRotation)
 
 	AddActorWorldOffset(Offset);
 }
+

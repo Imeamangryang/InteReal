@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -7,6 +7,7 @@
 #include "BaseInput.generated.h"
 
 class UInteRealThemeData;
+class UTextBlock;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBaseInputTextChanged, const FText&, Text);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBaseInputTextCommitted, const FText&, Text, ETextCommit::Type, CommitMethod);
@@ -25,8 +26,32 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "UI")
 	TObjectPtr<UEditableText> Input_Main;
 
+	// PrefixText를 보여줄 고정 라벨 — Input_Main과 별개라 사용자가 지우거나 수정할 수 없음 (없으면 PrefixText는 무시됨)
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI")
+	TObjectPtr<UTextBlock> Text_Prefix;
+
+	// SuffixText를 보여줄 고정 라벨 — Input_Main 뒤에 붙는 단위 등 (없으면 SuffixText는 무시됨)
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional), Category = "UI")
+	TObjectPtr<UTextBlock> Text_Suffix;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	FText HintText;
+
+	// 입력칸 맨 앞에 고정으로 박아둘 글자(예: "#"). 비어있으면 표시 안 함
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FText PrefixText;
+
+	// 입력칸 맨 뒤에 고정으로 박아둘 단위 글자(예: "cd", "cm"). 비어있으면 표시 안 함
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FText SuffixText;
+
+	// 배경 라운딩 정도. 기본값은 기존과 동일한 10
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	float CornerRadius = 10.0f;
+
+	// false로 두면 배경/테두리를 그리지 않음 — 여러 개를 하나의 공유 Border 안에 테두리 없이 묶어 넣을 때 사용
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	bool bShowBackground = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	TObjectPtr<UInteRealThemeData> ThemeData;

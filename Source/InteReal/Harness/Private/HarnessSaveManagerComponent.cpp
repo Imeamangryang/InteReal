@@ -3,6 +3,8 @@
 #include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessGeneratorComponent.h"
 #include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "JsonObjectConverter.h"
@@ -89,7 +91,8 @@ namespace
 			TEXT("WallExterior_"),
 			TEXT("FloorFace_"),
 			TEXT("WallEdge_"),
-			TEXT("WallCore_")
+			TEXT("WallCore_"),
+			TEXT("Opening_")
 		};
 
 		for (const TCHAR* Prefix : PreferredPrefixes)
@@ -173,11 +176,25 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 					if (!SurfaceID.IsEmpty())
 					{
 						UMaterialInterface* Mat = MeshComp->GetMaterial(0);
+						FSurfaceMaterialDelta MatDelta;
+						MatDelta.SurfaceID = SurfaceID;
 						if (Mat)
 						{
-							FSurfaceMaterialDelta MatDelta;
-							MatDelta.SurfaceID = SurfaceID;
 							MatDelta.MaterialPath = Mat->GetPathName();
+						}
+						if (const UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(MeshComp))
+						{
+							if (StaticMeshComp->ComponentHasTag(TEXT("EditableOpening")))
+							{
+								if (UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh())
+								{
+									MatDelta.MeshPath = StaticMesh->GetPathName();
+									MatDelta.RelativeScale = StaticMeshComp->GetRelativeScale3D();
+								}
+							}
+						}
+						if (!MatDelta.MaterialPath.IsEmpty() || !MatDelta.MeshPath.IsEmpty())
+						{
 							DeltaList.SurfaceMaterials.Add(MatDelta);
 							SurfaceCount++;
 						}
@@ -225,8 +242,9 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 
 					FActorSpawnParameters SpawnParams;
 					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(*Row, Visualizer->FurnitureClass);
 					AFurniture* SpawnedActor = GetWorld()->SpawnActor<AFurniture>(
-						Visualizer->FurnitureClass, Delta.Transform, SpawnParams);
+						SpawnClass, Delta.Transform, SpawnParams);
 					if (!SpawnedActor)
 					{
 						continue;
@@ -330,10 +348,25 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 						{
 							if (MeshComp->ComponentHasTag(FName(*MatDelta.SurfaceID)))
 							{
-								UMaterialInterface* LoadedMat = Cast<UMaterialInterface>(StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MatDelta.MaterialPath));
-								if (LoadedMat)
+								if (!MatDelta.MaterialPath.IsEmpty())
 								{
-									MeshComp->SetMaterial(0, LoadedMat);
+									UMaterialInterface* LoadedMat = Cast<UMaterialInterface>(StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MatDelta.MaterialPath));
+									if (LoadedMat)
+									{
+										MeshComp->SetMaterial(0, LoadedMat);
+									}
+								}
+								if (!MatDelta.MeshPath.IsEmpty())
+								{
+									if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(MeshComp))
+									{
+										UStaticMesh* LoadedMesh = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *MatDelta.MeshPath));
+										if (LoadedMesh)
+										{
+											StaticMeshComp->SetStaticMesh(LoadedMesh);
+											StaticMeshComp->SetRelativeScale3D(MatDelta.RelativeScale);
+										}
+									}
 								}
 								break;
 							}

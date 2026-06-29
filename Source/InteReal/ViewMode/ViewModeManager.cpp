@@ -1,4 +1,6 @@
 ﻿#include "ViewModeManager.h"
+
+#include "BackgroundManager.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -59,13 +61,33 @@ void AViewModeManager::Tick(float DeltaTime)
 void AViewModeManager::SetViewMode(EHarnessViewMode NewMode)
 {
 	CurrentMode = NewMode;
-
+    
 	if (CurrentMode != EHarnessViewMode::FirstPerson)
 	{
 		FocusOnBuilding();
 	}
 
 	UpdateTargetParameters();
+    
+	// 안전장치: 매번 호출될 때마다 캐싱 시도
+	if (!CachedBGManager)
+	{
+		CachedBGManager = Cast<ABackgroundManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ABackgroundManager::StaticClass()));
+	}
+    
+	if (CachedBGManager)
+	{
+		// 1인칭일 때만 true(보임), 아닐 때 false(숨김)
+		CachedBGManager->SetBackgroundVisibility(CurrentMode == EHarnessViewMode::FirstPerson);
+	}
+
+	if (UHarnessPipelineManager* PipelineManager = GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		if (UHarnessGeneratorComponent* GenComp = PipelineManager->GetGeneratorComp())
+		{
+			GenComp->SetCeilingVisibility(CurrentMode == EHarnessViewMode::FirstPerson);
+		}
+	}
 }
 
 void AViewModeManager::FocusOnBuilding()
@@ -233,34 +255,24 @@ void AViewModeManager::SetFloorPlanPanelOffset(bool bPanelOpen)
 	switch (CurrentMode)
 	{
 	case EHarnessViewMode::TopDown:
+		TargetLocation = Center + TopDownPanelClosedOffset;
+
+		if (bPanelOpen)
 		{
-			const FVector BaseOffset = FVector(0.f, 0.f, 500.f);
-			const FVector PanelOpenOffsetDelta = FVector(-1500.f, 700.f, 1500.f);
-
-			TargetLocation = Center + BaseOffset;
-
-			if (bPanelOpen)
-			{
-				TargetLocation += PanelOpenOffsetDelta;
-			}
-
-			break;
+			TargetLocation += TopDownPanelOpenOffsetDelta;
 		}
+
+		break;
 
 	case EHarnessViewMode::Isometric:
+		TargetLocation = Center + IsometricPanelClosedOffset;
+
+		if (bPanelOpen)
 		{
-			const FVector BaseOffset = FVector(-1200.f, 1400.f, 1500.f);
-			const FVector PanelOpenOffsetDelta = FVector(-1500.f, -1500.f, 0.f);
-
-			TargetLocation = Center + BaseOffset;
-
-			if (bPanelOpen)
-			{
-				TargetLocation += PanelOpenOffsetDelta;
-			}
-
-			break;
+			TargetLocation += IsometricPanelOpenOffsetDelta;
 		}
+
+		break;
 
 	case EHarnessViewMode::FirstPerson:
 		break;

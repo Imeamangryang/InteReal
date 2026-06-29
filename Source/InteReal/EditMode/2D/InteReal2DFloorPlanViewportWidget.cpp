@@ -7,6 +7,10 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/CanvasPanelSlot.h"
 #include "InteReal2DFloorPlanViewTransform.h"
+#include "Components/Border.h"
+#include "Components/Button.h"
+#include "Components/Image.h"
+#include "Components/CanvasPanelSlot.h"
 
 void UInteReal2DFloorPlanViewportWidget::SetDocument(const FInteReal2DFloorPlanDocument& InDocument)
 {
@@ -32,7 +36,8 @@ void UInteReal2DFloorPlanViewportWidget::SetDrawArea(const FVector2D& InDrawOffs
 
 FVector2D UInteReal2DFloorPlanViewportWidget::TransformDocumentPointToLocal(const FVector2D& DocPoint, const FVector2D& LocalSize) const
 {
-    return BuildViewTransform(LocalSize).DocumentToLocal(DocPoint);
+    const FVector2D UnzoomedLocalPoint = BuildViewTransform(LocalSize).DocumentToLocal(DocPoint);
+    return ApplyViewZoomToLocalPoint(UnzoomedLocalPoint, LocalSize);
 }
 
 FLinearColor UInteReal2DFloorPlanViewportWidget::ResolveOpeningColor(const FString& OpeningType) const
@@ -61,67 +66,26 @@ void UInteReal2DFloorPlanViewportWidget::NativeConstruct()
     if (InputCatcherBorder)
     {
         InputCatcherBorder->SetVisibility(ESlateVisibility::Visible);
-        InputCatcherBorder->OnMouseButtonDownEvent.BindDynamic(
-            this,
-            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown
-        );
-        InputCatcherBorder->OnMouseButtonUpEvent.BindDynamic(
-            this,
-            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp
-        );
-        InputCatcherBorder->OnMouseMoveEvent.BindDynamic(
-            this,
-            &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove
-        );
+        InputCatcherBorder->OnMouseButtonDownEvent.BindDynamic(this, &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown);
+        InputCatcherBorder->OnMouseButtonUpEvent.BindDynamic(this, &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp);
+        InputCatcherBorder->OnMouseMoveEvent.BindDynamic(this, &UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove);
 
         ApplyInputCatcherLayout(GetCachedGeometry().GetLocalSize());
     }
 }
 
-int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
-    const FPaintArgs& Args,
-    const FGeometry& AllottedGeometry,
-    const FSlateRect& MyCullingRect,
-    FSlateWindowElementList& OutDrawElements,
-    int32 LayerId,
-    const FWidgetStyle& InWidgetStyle,
-    bool bParentEnabled
-) const
+int32 UInteReal2DFloorPlanViewportWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
     if (bDrawBackground)
     {
         const FVector2D BackgroundOffset = GetDrawAreaOffset();
         const FVector2D BackgroundSize = GetDrawAreaSize(AllottedGeometry.GetLocalSize());
-
-        const FSlateRoundedBoxBrush BackgroundBrush(
-            BackgroundColor,
-            BackgroundCornerRadius
-        );
-
-        FSlateDrawElement::MakeBox(
-            OutDrawElements,
-            LayerId,
-            AllottedGeometry.ToPaintGeometry(
-                BackgroundSize,
-                FSlateLayoutTransform(BackgroundOffset)
-            ),
-            &BackgroundBrush,
-            ESlateDrawEffect::None,
-            InWidgetStyle.GetColorAndOpacityTint()
-        );
-
+        const FSlateRoundedBoxBrush BackgroundBrush(BackgroundColor, BackgroundCornerRadius);
+        FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(BackgroundSize, FSlateLayoutTransform(BackgroundOffset)), &BackgroundBrush, ESlateDrawEffect::None, InWidgetStyle.GetColorAndOpacityTint());
         ++LayerId;
     }
-    
-    LayerId = Super::NativePaint(
-        Args,
-        AllottedGeometry,
-        MyCullingRect,
-        OutDrawElements,
-        LayerId,
-        InWidgetStyle,
-        bParentEnabled
-    );
+
+    LayerId = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 
     if (!Document.bIsValid)
     {
@@ -129,34 +93,55 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
     }
 
     const FVector2D LocalSize = AllottedGeometry.GetLocalSize();
+    const FVector2D ClipOffset = GetDrawAreaOffset();
+    const FVector2D ClipSize = GetDrawAreaSize(LocalSize);
+    const FSlateRect ClipRect = AllottedGeometry.GetLayoutBoundingRect().InsetBy(FMargin(ClipOffset.X, ClipOffset.Y, LocalSize.X - ClipOffset.X - ClipSize.X, LocalSize.Y - ClipOffset.Y - ClipSize.Y));
 
-    for (const FInteReal2DFloorPlanPolygon& Room : Document.Rooms)
+    OutDrawElements.PushClip(FSlateClippingZone(ClipRect));
+
+    if (bDrawRooms)
     {
-        if (Room.Points.Num() < 2)
+        for (const FInteReal2DFloorPlanPolygon& Room : Document.Rooms)
         {
-            continue;
+            if (Room.Points.Num() < 2)
+            {
+                continue;
+            }
+
+            TArray<FVector2D> DrawPoints;
+            DrawPoints.Reserve(Room.Points.Num() + 1);
+
+            for (const FVector2D& DocPoint : Room.Points)
+            {
+                DrawPoints.Add(TransformDocumentPointToLocal(DocPoint, LocalSize));
+            }
+
+            DrawPoints.Add(TransformDocumentPointToLocal(Room.Points[0], LocalSize));
+            FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), DrawPoints, ESlateDrawEffect::None, RoomLineColor, true, RoomLineThickness);
         }
 
-        TArray<FVector2D> DrawPoints;
-        DrawPoints.Reserve(Room.Points.Num() + 1);
+        ++LayerId;
+    }
 
-        for (const FVector2D& DocPoint : Room.Points)
+    if (bDrawWallCenterLines)
+    {
+        for (const FInteReal2DFloorPlanWallSegment& Wall : Document.Walls)
         {
-            DrawPoints.Add(TransformDocumentPointToLocal(DocPoint, LocalSize));
+            TArray<FVector2D> WallPoints;
+            WallPoints.Add(TransformDocumentPointToLocal(Wall.Start, LocalSize));
+            WallPoints.Add(TransformDocumentPointToLocal(Wall.End, LocalSize));
+            FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), WallPoints, ESlateDrawEffect::None, RoomLineColor, true, WallLineThickness);
         }
 
-        DrawPoints.Add(TransformDocumentPointToLocal(Room.Points[0], LocalSize));
+        ++LayerId;
+    }
 
-        FSlateDrawElement::MakeLines(
-            OutDrawElements,
-            LayerId,
-            AllottedGeometry.ToPaintGeometry(),
-            DrawPoints,
-            ESlateDrawEffect::None,
-            RoomLineColor,
-            true,
-            RoomLineThickness
-        );
+    for (const FInteReal2DFloorPlanOpening& Opening : Document.Openings)
+    {
+        TArray<FVector2D> SegmentPoints;
+        SegmentPoints.Add(TransformDocumentPointToLocal(Opening.Start, LocalSize));
+        SegmentPoints.Add(TransformDocumentPointToLocal(Opening.End, LocalSize));
+        FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), SegmentPoints, ESlateDrawEffect::None, BackgroundColor, true, OpeningEraseThickness);
     }
 
     ++LayerId;
@@ -166,17 +151,7 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
         TArray<FVector2D> SegmentPoints;
         SegmentPoints.Add(TransformDocumentPointToLocal(Opening.Start, LocalSize));
         SegmentPoints.Add(TransformDocumentPointToLocal(Opening.End, LocalSize));
-
-        FSlateDrawElement::MakeLines(
-            OutDrawElements,
-            LayerId,
-            AllottedGeometry.ToPaintGeometry(),
-            SegmentPoints,
-            ESlateDrawEffect::None,
-            ResolveOpeningColor(Opening.Type),
-            true,
-            OpeningLineThickness
-        );
+        FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), SegmentPoints, ESlateDrawEffect::None, ResolveOpeningColor(Opening.Type), true, OpeningLineThickness);
     }
 
     ++LayerId;
@@ -185,15 +160,10 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
     {
         const FInteReal2DPlacedFurniture& Furniture = PlacedFurnitures2D[FurnitureIndex];
         const bool bIsSelected = FurnitureIndex == SelectedFurnitureIndex;
-
-        DrawFurnitureRect(
-            OutDrawElements,
-            AllottedGeometry,
-            LayerId,
-            Furniture,
-            bIsSelected ? SelectedFurnitureFillColor : FurnitureFillColor,
-            bIsSelected ? SelectedFurnitureOutlineColor : FurnitureOutlineColor
-        );
+        const bool bIsHovered = FurnitureIndex == HoveredFurnitureIndex;
+        const FLinearColor FillColor = bIsSelected ? SelectedFurnitureFillColor : bIsHovered ? HoveredFurnitureFillColor : FurnitureFillColor;
+        const FLinearColor OutlineColor = bIsSelected ? SelectedFurnitureOutlineColor : bIsHovered ? HoveredFurnitureOutlineColor : FurnitureOutlineColor;
+        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
     }
 
     LayerId += 2;
@@ -210,7 +180,18 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(
         DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, PreviewFurniture, bIsFurniturePreviewPlacementValid ? FurniturePreviewFillColor : InvalidFurniturePreviewFillColor, bIsFurniturePreviewPlacementValid ? FurniturePreviewOutlineColor : InvalidFurniturePreviewOutlineColor);
 
         LayerId += 2;
+
+        if (bDrawObjectSnapGuide && bHasObjectSnapGuide)
+        {
+            TArray<FVector2D> SnapGuidePoints;
+            SnapGuidePoints.Add(TransformDocumentPointToLocal(ObjectSnapGuideSourceDocument, LocalSize));
+            SnapGuidePoints.Add(TransformDocumentPointToLocal(ObjectSnapGuideTargetDocument, LocalSize));
+            FSlateDrawElement::MakeLines(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), SnapGuidePoints, ESlateDrawEffect::None, ObjectSnapGuideColor, true, ObjectSnapGuideThickness);
+            ++LayerId;
+        }
     }
+
+    OutDrawElements.PopClip();
 
     return LayerId + 1;
 }
@@ -287,12 +268,58 @@ FReply UInteReal2DFloorPlanViewportWidget::NativeOnMouseButtonUp(
     return FReply::Handled();
 }
 
+void UInteReal2DFloorPlanViewportWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseLeave(InMouseEvent);
+
+    bIsPanningView2D = false;
+    LastPanMouseLocalPosition = FVector2D::ZeroVector;
+
+    if (HoveredFurnitureIndex != INDEX_NONE)
+    {
+        HoveredFurnitureIndex = INDEX_NONE;
+        Invalidate(EInvalidateWidgetReason::Paint);
+    }
+}
+
+FReply UInteReal2DFloorPlanViewportWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    if (!Document.bIsValid)
+    {
+        return Super::NativeOnMouseWheel(InGeometry, InMouseEvent);
+    }
+
+    const float WheelDelta = InMouseEvent.GetWheelDelta();
+    if (FMath::IsNearlyZero(WheelDelta))
+    {
+        return Super::NativeOnMouseWheel(InGeometry, InMouseEvent);
+    }
+
+    const FVector2D LocalMousePosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    const float ZoomMultiplier = WheelDelta > 0.0f ? MouseWheelZoomStep : 1.0f / MouseWheelZoomStep;
+    const float NewViewZoom = FMath::Clamp(ViewZoom * ZoomMultiplier, MinViewZoom, MaxViewZoom);
+
+    SetViewZoomAtLocalPosition(NewViewZoom, LocalMousePosition, InGeometry.GetLocalSize());
+
+    return FReply::Handled();
+}
+
 FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDown(
     FGeometry MyGeometry,
     const FPointerEvent& MouseEvent
 )
 {
     FEventReply Reply;
+    
+    if (MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
+    {
+        const FGeometry CachedGeometry = GetCachedGeometry();
+        bIsPanningView2D = true;
+        LastPanMouseLocalPosition = CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+
+        FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
+        return UWidgetBlueprintLibrary::CaptureMouse(HandledReply, InputCatcherBorder);
+    }
 
     if (MouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
     {
@@ -315,40 +342,44 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonDow
 
     if (bIsPlacingFurniture2D && Document.bIsValid)
     {
-        PreviewFurnitureCenterDocument = TransformLocalPointToDocument(
-            LastClickedLocalPosition,
-            CachedGeometry.GetLocalSize()
-        );
+        FVector2D RequestedDocumentPosition = TransformLocalPointToDocument(LastClickedLocalPosition, CachedGeometry.GetLocalSize());
+        FVector2D SnappedDocumentPosition = RequestedDocumentPosition;
+        FVector2D SnapSourceDocument = FVector2D::ZeroVector;
+        FVector2D SnapTargetDocument = FVector2D::ZeroVector;
+
+        bHasObjectSnapGuide = ResolveObjectSnappedPreviewCenter(RequestedDocumentPosition, SnappedDocumentPosition, SnapSourceDocument, SnapTargetDocument);
+        ObjectSnapGuideSourceDocument = SnapSourceDocument;
+        ObjectSnapGuideTargetDocument = SnapTargetDocument;
+
+        PreviewFurnitureCenterDocument = SnappedDocumentPosition;
         bHasFurniturePreviewPosition = true;
 
         OnFurniturePlacementRequested2D.Broadcast(PreviewFurnitureCenterDocument);
     }
     else if (Document.bIsValid)
     {
+        if (!bSelectToolActive2D)
+        {
+            return UWidgetBlueprintLibrary::Handled();
+        }
+
         int32 HitFurnitureIndex = INDEX_NONE;
-        if (TryGetPlacedFurnitureIndexAtLocalPosition(
-            LastClickedLocalPosition,
-            CachedGeometry.GetLocalSize(),
-            HitFurnitureIndex
-        ))
+        if (TryGetPlacedFurnitureIndexAtLocalPosition(LastClickedLocalPosition, CachedGeometry.GetLocalSize(), HitFurnitureIndex))
         {
             SelectPlacedFurnitureByIndex(HitFurnitureIndex);
 
-            const FVector2D ClickDocumentPosition = TransformLocalPointToDocument(
-                LastClickedLocalPosition,
-                CachedGeometry.GetLocalSize()
-            );
+            const FVector2D ClickDocumentPosition = TransformLocalPointToDocument(LastClickedLocalPosition, CachedGeometry.GetLocalSize());
 
             bIsDraggingSelectedFurniture2D = true;
             DraggingFurnitureIndex2D = HitFurnitureIndex;
-            FurnitureDragDocumentOffset =
-                PlacedFurnitures2D[HitFurnitureIndex].CenterDocumentPosition - ClickDocumentPosition;
+            FurnitureDragDocumentOffset = PlacedFurnitures2D[HitFurnitureIndex].CenterDocumentPosition - ClickDocumentPosition;
 
             FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
             return UWidgetBlueprintLibrary::CaptureMouse(HandledReply, InputCatcherBorder);
         }
 
         ClearSelectedFurniture();
+        HoveredFurnitureIndex = INDEX_NONE;
         bIsDraggingSelectedFurniture2D = false;
         DraggingFurnitureIndex2D = INDEX_NONE;
         FurnitureDragDocumentOffset = FVector2D::ZeroVector;
@@ -363,6 +394,15 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp(
 )
 {
     FEventReply Reply;
+    
+    if (MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
+    {
+        bIsPanningView2D = false;
+        LastPanMouseLocalPosition = FVector2D::ZeroVector;
+
+        FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
+        return UWidgetBlueprintLibrary::ReleaseMouseCapture(HandledReply);
+    }
 
     if (MouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
     {
@@ -381,6 +421,9 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseButtonUp(
     bIsDraggingSelectedFurniture2D = false;
     DraggingFurnitureIndex2D = INDEX_NONE;
     FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+    bHasObjectSnapGuide = false;
+    ObjectSnapGuideSourceDocument = FVector2D::ZeroVector;
+    ObjectSnapGuideTargetDocument = FVector2D::ZeroVector;
 
     FEventReply HandledReply = UWidgetBlueprintLibrary::Handled();
     return UWidgetBlueprintLibrary::ReleaseMouseCapture(HandledReply);
@@ -394,9 +437,17 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
     FEventReply Reply;
 
     const FGeometry CachedGeometry = GetCachedGeometry();
-    const FVector2D LocalMousePosition =
-        CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+    const FVector2D LocalMousePosition = CachedGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 
+    if (bIsPanningView2D)
+    {
+        const FVector2D PanDelta = LocalMousePosition - LastPanMouseLocalPosition;
+        ViewPanLocal += PanDelta;
+        LastPanMouseLocalPosition = LocalMousePosition;
+        Invalidate(EInvalidateWidgetReason::Paint);
+        return UWidgetBlueprintLibrary::Handled();
+    }
+    
     if (bIsDraggingSelectedFurniture2D && PlacedFurnitures2D.IsValidIndex(DraggingFurnitureIndex2D))
     {
         if (!Document.bIsValid)
@@ -409,27 +460,45 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
             return Reply;
         }
 
-        const FVector2D MouseDocumentPosition = TransformLocalPointToDocument(
-            LocalMousePosition,
-            CachedGeometry.GetLocalSize()
-        );
+        const FVector2D MouseDocumentPosition = TransformLocalPointToDocument(LocalMousePosition, CachedGeometry.GetLocalSize());
 
-        FInteReal2DPlacedFurniture& DraggingFurniture =
-            PlacedFurnitures2D[DraggingFurnitureIndex2D];
+        FInteReal2DPlacedFurniture& DraggingFurniture = PlacedFurnitures2D[DraggingFurnitureIndex2D];
 
-        DraggingFurniture.CenterDocumentPosition =
-            MouseDocumentPosition + FurnitureDragDocumentOffset;
+        const FVector2D RequestedDocumentPosition = MouseDocumentPosition + FurnitureDragDocumentOffset;
+        FVector2D SnappedDocumentPosition = RequestedDocumentPosition;
+        FVector2D SnapSourceDocument = FVector2D::ZeroVector;
+        FVector2D SnapTargetDocument = FVector2D::ZeroVector;
+
+        bHasObjectSnapGuide = ResolveObjectSnappedFurnitureCenter(DraggingFurnitureIndex2D, DraggingFurniture.Size, DraggingFurniture.RotationDegrees, RequestedDocumentPosition, SnappedDocumentPosition, SnapSourceDocument, SnapTargetDocument);
+        ObjectSnapGuideSourceDocument = SnapSourceDocument;
+        ObjectSnapGuideTargetDocument = SnapTargetDocument;
+
+        DraggingFurniture.CenterDocumentPosition = SnappedDocumentPosition;
 
         SelectedFurnitureIndex = DraggingFurnitureIndex2D;
 
-        OnPlacedFurnitureMoved2D.Broadcast(
-            DraggingFurnitureIndex2D,
-            DraggingFurniture
-        );
+        OnPlacedFurnitureMoved2D.Broadcast(DraggingFurnitureIndex2D, DraggingFurniture);
 
         Invalidate(EInvalidateWidgetReason::Paint);
 
         return UWidgetBlueprintLibrary::Handled();
+    }
+
+    if (!bIsPlacingFurniture2D && Document.bIsValid)
+    {
+        int32 NewHoveredFurnitureIndex = INDEX_NONE;
+        if (IsLocalPointInsideDrawArea(LocalMousePosition, CachedGeometry.GetLocalSize()))
+        {
+            TryGetPlacedFurnitureIndexAtLocalPosition(LocalMousePosition, CachedGeometry.GetLocalSize(), NewHoveredFurnitureIndex);
+        }
+
+        if (HoveredFurnitureIndex != NewHoveredFurnitureIndex)
+        {
+            HoveredFurnitureIndex = NewHoveredFurnitureIndex;
+            Invalidate(EInvalidateWidgetReason::Paint);
+        }
+
+        return Reply;
     }
 
     if (!bIsPlacingFurniture2D || !Document.bIsValid)
@@ -440,14 +509,21 @@ FEventReply UInteReal2DFloorPlanViewportWidget::HandleInputCatcherMouseMove(
     if (!IsLocalPointInsideDrawArea(LocalMousePosition, CachedGeometry.GetLocalSize()))
     {
         bHasFurniturePreviewPosition = false;
+        bHasObjectSnapGuide = false;
         Invalidate(EInvalidateWidgetReason::Paint);
         return Reply;
     }
 
-    PreviewFurnitureCenterDocument = TransformLocalPointToDocument(
-        LocalMousePosition,
-        CachedGeometry.GetLocalSize()
-    );
+    FVector2D RequestedDocumentPosition = TransformLocalPointToDocument(LocalMousePosition, CachedGeometry.GetLocalSize());
+    FVector2D SnappedDocumentPosition = RequestedDocumentPosition;
+    FVector2D SnapSourceDocument = FVector2D::ZeroVector;
+    FVector2D SnapTargetDocument = FVector2D::ZeroVector;
+
+    bHasObjectSnapGuide = ResolveObjectSnappedPreviewCenter(RequestedDocumentPosition, SnappedDocumentPosition, SnapSourceDocument, SnapTargetDocument);
+    ObjectSnapGuideSourceDocument = SnapSourceDocument;
+    ObjectSnapGuideTargetDocument = SnapTargetDocument;
+
+    PreviewFurnitureCenterDocument = SnappedDocumentPosition;
     bHasFurniturePreviewPosition = true;
 
     OnFurniturePreviewMoved2D.Broadcast(PreviewFurnitureCenterDocument);
@@ -475,16 +551,14 @@ void UInteReal2DFloorPlanViewportWidget::ApplyInputCatcherLayout(const FVector2D
         CanvasSlot->SetAlignment(FVector2D::ZeroVector);
         CanvasSlot->SetPosition(AreaOffset);
         CanvasSlot->SetSize(AreaSize);
+        CanvasSlot->SetZOrder(0);
     }
     else
     {
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("InputCatcherBorder is not inside a CanvasPanel. Position/Size cannot be applied with DrawOffset/DrawSizeOverride.")
-        );
+        UE_LOG(LogTemp, Warning, TEXT("InputCatcherBorder is not inside a CanvasPanel. Position/Size cannot be applied with DrawOffset/DrawSizeOverride."));
     }
 }
+
 
 void UInteReal2DFloorPlanViewportWidget::StartFurniturePlacement(const FFurnitureDataRow& FurnitureRow)
 {
@@ -497,8 +571,10 @@ void UInteReal2DFloorPlanViewportWidget::StartFurniturePlacement(const FFurnitur
     bIsPlacingFurniture2D = true;
     bHasFurniturePreviewPosition = false;
     bIsFurniturePreviewPlacementValid = true;
+    bHasObjectSnapGuide = false;
     PreviewFurnitureRotationDegrees = 0.0f;
-
+    
+    bSelectToolActive2D = false;
     Invalidate(EInvalidateWidgetReason::Paint);
 }
 
@@ -507,10 +583,14 @@ void UInteReal2DFloorPlanViewportWidget::CancelFurniturePlacement()
     bIsPlacingFurniture2D = false;
     bHasFurniturePreviewPosition = false;
     bIsFurniturePreviewPlacementValid = true;
+    bHasObjectSnapGuide = false;
+    ObjectSnapGuideSourceDocument = FVector2D::ZeroVector;
+    ObjectSnapGuideTargetDocument = FVector2D::ZeroVector;
     PendingFurnitureRow = FFurnitureDataRow();
     PendingFurnitureSize = FVector2D::ZeroVector;
     PreviewFurnitureRotationDegrees = 0.0f;
-
+    
+    bSelectToolActive2D = true;
     Invalidate(EInvalidateWidgetReason::Paint);
 }
 
@@ -518,6 +598,7 @@ void UInteReal2DFloorPlanViewportWidget::ClearPlacedFurnitures()
 {
     PlacedFurnitures2D.Reset();
     SelectedFurnitureIndex = INDEX_NONE;
+    HoveredFurnitureIndex = INDEX_NONE;
     bIsDraggingSelectedFurniture2D = false;
     DraggingFurnitureIndex2D = INDEX_NONE;
     FurnitureDragDocumentOffset = FVector2D::ZeroVector;
@@ -599,6 +680,15 @@ bool UInteReal2DFloorPlanViewportWidget::RemovePlacedFurnitureByIndex(int32 Furn
     {
         --SelectedFurnitureIndex;
     }
+    
+    if (HoveredFurnitureIndex == FurnitureIndex)
+    {
+        HoveredFurnitureIndex = INDEX_NONE;
+    }
+    else if (HoveredFurnitureIndex > FurnitureIndex)
+    {
+        --HoveredFurnitureIndex;
+    }
 
     if (DraggingFurnitureIndex2D == FurnitureIndex)
     {
@@ -629,7 +719,44 @@ bool UInteReal2DFloorPlanViewportWidget::RemoveSelectedFurniture()
 
 FVector2D UInteReal2DFloorPlanViewportWidget::TransformLocalPointToDocument(const FVector2D& LocalPoint, const FVector2D& LocalSize) const
 {
-    return BuildViewTransform(LocalSize).LocalToDocument(LocalPoint);
+    const FVector2D UnzoomedLocalPoint = RemoveViewZoomFromLocalPoint(LocalPoint, LocalSize);
+    return BuildViewTransform(LocalSize).LocalToDocument(UnzoomedLocalPoint);
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::GetViewZoomPivotLocal(const FVector2D& LocalSize) const
+{
+    return GetDrawAreaOffset() + GetDrawAreaSize(LocalSize) * 0.5f;
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::ApplyViewZoomToLocalPoint(const FVector2D& UnzoomedLocalPoint, const FVector2D& LocalSize) const
+{
+    const FVector2D PivotLocal = GetViewZoomPivotLocal(LocalSize);
+    return PivotLocal + (UnzoomedLocalPoint - PivotLocal) * ViewZoom + ViewPanLocal;
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::RemoveViewZoomFromLocalPoint(const FVector2D& ZoomedLocalPoint, const FVector2D& LocalSize) const
+{
+    const FVector2D PivotLocal = GetViewZoomPivotLocal(LocalSize);
+    return PivotLocal + (ZoomedLocalPoint - PivotLocal - ViewPanLocal) / FMath::Max(ViewZoom, KINDA_SMALL_NUMBER);
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetViewZoomAtLocalPosition(float NewViewZoom, const FVector2D& ZoomAnchorLocal, const FVector2D& LocalSize)
+{
+    NewViewZoom = FMath::Clamp(NewViewZoom, MinViewZoom, MaxViewZoom);
+
+    if (FMath::IsNearlyEqual(ViewZoom, NewViewZoom))
+    {
+        return;
+    }
+
+    const FVector2D PivotLocal = GetViewZoomPivotLocal(LocalSize);
+    const FVector2D AnchorBeforeZoom = PivotLocal + (ZoomAnchorLocal - PivotLocal - ViewPanLocal) / FMath::Max(ViewZoom, KINDA_SMALL_NUMBER);
+
+    ViewZoom = NewViewZoom;
+
+    ViewPanLocal = ZoomAnchorLocal - PivotLocal - (AnchorBeforeZoom - PivotLocal) * ViewZoom;
+
+    Invalidate(EInvalidateWidgetReason::Paint);
 }
 
 void UInteReal2DFloorPlanViewportWidget::DrawFurnitureRect(
@@ -835,6 +962,25 @@ bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurnitureByGuid(
     );
 }
 
+bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurnitureSize(int32 FurnitureIndex, const FVector2D& NewSize)
+{
+    if (!PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+    {
+        return false;
+    }
+
+    FInteReal2DPlacedFurniture& Furniture = PlacedFurnitures2D[FurnitureIndex];
+    Furniture.Size = FVector2D(FMath::Max(NewSize.X, 1.0f), FMath::Max(NewSize.Y, 1.0f));
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+    return true;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurnitureSizeByGuid(const FGuid& InstanceGuid, const FVector2D& NewSize)
+{
+    return UpdatePlacedFurnitureSize(FindPlacedFurnitureIndexByGuid(InstanceGuid), NewSize);
+}
+
 bool UInteReal2DFloorPlanViewportWidget::UpdateSelectedFurniture(
     const FVector2D& CenterDocumentPosition,
     float RotationDegrees
@@ -904,4 +1050,341 @@ void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewPlacementValid(bool 
 {
     bIsFurniturePreviewPlacementValid = bPlacementValid;
     Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::GetFurnitureSnapOffsets(const FVector2D& FurnitureSize, float RotationDegrees, TArray<FVector2D>& OutOffsets) const
+{
+    OutOffsets.Reset();
+
+    const FVector2D HalfSize = FurnitureSize * 0.5f;
+    const float RotationRadians = FMath::DegreesToRadians(RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    auto AddRotatedOffset = [&](const FVector2D& LocalOffset)
+    {
+        OutOffsets.Add(FVector2D(LocalOffset.X * CosAngle - LocalOffset.Y * SinAngle, LocalOffset.X * SinAngle + LocalOffset.Y * CosAngle));
+    };
+
+    AddRotatedOffset(FVector2D::ZeroVector);
+    AddRotatedOffset(FVector2D(-HalfSize.X, -HalfSize.Y));
+    AddRotatedOffset(FVector2D(HalfSize.X, -HalfSize.Y));
+    AddRotatedOffset(FVector2D(HalfSize.X, HalfSize.Y));
+    AddRotatedOffset(FVector2D(-HalfSize.X, HalfSize.Y));
+    AddRotatedOffset(FVector2D(0.0f, -HalfSize.Y));
+    AddRotatedOffset(FVector2D(HalfSize.X, 0.0f));
+    AddRotatedOffset(FVector2D(0.0f, HalfSize.Y));
+    AddRotatedOffset(FVector2D(-HalfSize.X, 0.0f));
+}
+
+void UInteReal2DFloorPlanViewportWidget::GetFurnitureEdgeSnapOffsets(const FVector2D& FurnitureSize, float RotationDegrees, TArray<FVector2D>& OutOffsets) const
+{
+    OutOffsets.Reset();
+
+    const FVector2D HalfSize = FurnitureSize * 0.5f;
+    const float RotationRadians = FMath::DegreesToRadians(RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    auto AddRotatedOffset = [&](const FVector2D& LocalOffset)
+    {
+        OutOffsets.Add(FVector2D(LocalOffset.X * CosAngle - LocalOffset.Y * SinAngle, LocalOffset.X * SinAngle + LocalOffset.Y * CosAngle));
+    };
+
+    AddRotatedOffset(FVector2D(0.0f, -HalfSize.Y));
+    AddRotatedOffset(FVector2D(HalfSize.X, 0.0f));
+    AddRotatedOffset(FVector2D(0.0f, HalfSize.Y));
+    AddRotatedOffset(FVector2D(-HalfSize.X, 0.0f));
+}
+
+void UInteReal2DFloorPlanViewportWidget::GetFurnitureSnapPoints(const FInteReal2DPlacedFurniture& Furniture, TArray<FVector2D>& OutPoints) const
+{
+    TArray<FVector2D> Offsets;
+    GetFurnitureSnapOffsets(Furniture.Size, Furniture.RotationDegrees, Offsets);
+
+    for (const FVector2D& Offset : Offsets)
+    {
+        OutPoints.Add(Furniture.CenterDocumentPosition + Offset);
+    }
+}
+
+void UInteReal2DFloorPlanViewportWidget::GetFurnitureSnapSegments(const FInteReal2DPlacedFurniture& Furniture, TArray<TPair<FVector2D, FVector2D>>& OutSegments) const
+{
+    const FVector2D HalfSize = Furniture.Size * 0.5f;
+    const float RotationRadians = FMath::DegreesToRadians(Furniture.RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    auto RotatePoint = [&](const FVector2D& LocalPoint)
+    {
+        return Furniture.CenterDocumentPosition + FVector2D(LocalPoint.X * CosAngle - LocalPoint.Y * SinAngle, LocalPoint.X * SinAngle + LocalPoint.Y * CosAngle);
+    };
+
+    const FVector2D P0 = RotatePoint(FVector2D(-HalfSize.X, -HalfSize.Y));
+    const FVector2D P1 = RotatePoint(FVector2D(HalfSize.X, -HalfSize.Y));
+    const FVector2D P2 = RotatePoint(FVector2D(HalfSize.X, HalfSize.Y));
+    const FVector2D P3 = RotatePoint(FVector2D(-HalfSize.X, HalfSize.Y));
+
+    OutSegments.Add(TPair<FVector2D, FVector2D>(P0, P1));
+    OutSegments.Add(TPair<FVector2D, FVector2D>(P1, P2));
+    OutSegments.Add(TPair<FVector2D, FVector2D>(P2, P3));
+    OutSegments.Add(TPair<FVector2D, FVector2D>(P3, P0));
+}
+
+FVector2D UInteReal2DFloorPlanViewportWidget::GetClosestPointOnSegment(const FVector2D& Point, const FVector2D& SegmentStart, const FVector2D& SegmentEnd) const
+{
+    const FVector2D Segment = SegmentEnd - SegmentStart;
+    const float SegmentLengthSquared = Segment.SizeSquared();
+
+    if (SegmentLengthSquared <= UE_SMALL_NUMBER)
+    {
+        return SegmentStart;
+    }
+
+    const float Alpha = FMath::Clamp(FVector2D::DotProduct(Point - SegmentStart, Segment) / SegmentLengthSquared, 0.0f, 1.0f);
+    return SegmentStart + Segment * Alpha;
+}
+
+bool UInteReal2DFloorPlanViewportWidget::ResolveObjectSnappedPreviewCenter(const FVector2D& RequestedCenterDocument, FVector2D& OutSnappedCenterDocument, FVector2D& OutSnapSourceDocument, FVector2D& OutSnapTargetDocument) const
+{
+    return ResolveObjectSnappedFurnitureCenter(INDEX_NONE, PendingFurnitureSize, PreviewFurnitureRotationDegrees, RequestedCenterDocument, OutSnappedCenterDocument, OutSnapSourceDocument, OutSnapTargetDocument);
+};
+
+bool UInteReal2DFloorPlanViewportWidget::ResolveObjectSnappedFurnitureCenter(int32 IgnoreFurnitureIndex, const FVector2D& FurnitureSize, float RotationDegrees, const FVector2D& RequestedCenterDocument, FVector2D& OutSnappedCenterDocument, FVector2D& OutSnapSourceDocument, FVector2D& OutSnapTargetDocument) const
+{
+    OutSnappedCenterDocument = RequestedCenterDocument;
+    OutSnapSourceDocument = RequestedCenterDocument;
+    OutSnapTargetDocument = RequestedCenterDocument;
+
+    if (!bEnableObjectSnap2D || ObjectSnapDistanceDocument <= 0.0f || FurnitureSize.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const float SnapGap = FMath::Max(ObjectSnapGapDocument, 0.0f);
+
+    TArray<FVector2D> PreviewOffsets;
+    GetFurnitureSnapOffsets(FurnitureSize, RotationDegrees, PreviewOffsets);
+
+    const float SnapDistanceSquared = ObjectSnapDistanceDocument * ObjectSnapDistanceDocument;
+    float BestDistanceSquared = SnapDistanceSquared;
+    bool bFoundSnap = false;
+
+    auto TrySnapSourceToTarget = [&](const FVector2D& SourcePoint, const FVector2D& TargetPoint, const FVector2D& PreferredAwayDirection)
+    {
+        const float DistanceSquared = FVector2D::DistSquared(SourcePoint, TargetPoint);
+        if (DistanceSquared < BestDistanceSquared)
+        {
+            FVector2D AwayDirection = PreferredAwayDirection.GetSafeNormal();
+            if (AwayDirection.IsNearlyZero())
+            {
+                AwayDirection = (RequestedCenterDocument - TargetPoint).GetSafeNormal();
+            }
+
+            if (AwayDirection.IsNearlyZero())
+            {
+                AwayDirection = (SourcePoint - TargetPoint).GetSafeNormal();
+            }
+
+            const FVector2D GapOffset = AwayDirection * SnapGap;
+
+            BestDistanceSquared = DistanceSquared;
+            OutSnapSourceDocument = SourcePoint;
+            OutSnapTargetDocument = TargetPoint;
+            OutSnappedCenterDocument = RequestedCenterDocument + (TargetPoint - SourcePoint) + GapOffset;
+            bFoundSnap = true;
+        }
+    };
+
+    auto TrySnapToPointTarget = [&](const FVector2D& TargetPoint)
+    {
+        for (const FVector2D& PreviewOffset : PreviewOffsets)
+        {
+            const FVector2D SourcePoint = RequestedCenterDocument + PreviewOffset;
+            TrySnapSourceToTarget(SourcePoint, TargetPoint, RequestedCenterDocument - TargetPoint);
+        }
+    };
+
+    auto TrySnapToSegmentTarget = [&](const FVector2D& SegmentStart, const FVector2D& SegmentEnd)
+    {
+        const FVector2D Segment = SegmentEnd - SegmentStart;
+        if (Segment.SizeSquared() <= UE_SMALL_NUMBER)
+        {
+            return;
+        }
+
+        TArray<FVector2D> EdgePreviewOffsets;
+        GetFurnitureEdgeSnapOffsets(FurnitureSize, RotationDegrees, EdgePreviewOffsets);
+
+        const FVector2D SegmentNormalA(-Segment.Y, Segment.X);
+        const FVector2D SegmentNormalB(Segment.Y, -Segment.X);
+
+        for (const FVector2D& PreviewOffset : EdgePreviewOffsets)
+        {
+            const FVector2D SourcePoint = RequestedCenterDocument + PreviewOffset;
+            const FVector2D ClosestPoint = GetClosestPointOnSegment(SourcePoint, SegmentStart, SegmentEnd);
+            const FVector2D CenterToLine = RequestedCenterDocument - ClosestPoint;
+            const FVector2D PreferredNormal = FVector2D::DotProduct(CenterToLine, SegmentNormalA) >= 0.0f ? SegmentNormalA : SegmentNormalB;
+            TrySnapSourceToTarget(SourcePoint, ClosestPoint, PreferredNormal);
+        }
+    };
+    
+    auto ShouldSnapToWall = [&](const FInteReal2DFloorPlanWallSegment& Wall) -> bool
+    {
+        if (!bSnapToWallSegments2D)
+        {
+            return false;
+        }
+
+        const bool bIsOuterWall = Wall.Type.Equals(TEXT("WallOuter"), ESearchCase::IgnoreCase);
+        const bool bIsInnerWall = Wall.Type.Equals(TEXT("WallInner"), ESearchCase::IgnoreCase);
+
+        if (bIsOuterWall && !bSnapToOuterWalls2D)
+        {
+            return false;
+        }
+
+        if (bIsInnerWall && !bSnapToInnerWalls2D)
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+    auto TrySnapToWallSegmentTarget = [&](const FInteReal2DFloorPlanWallSegment& Wall)
+    {
+        if (!ShouldSnapToWall(Wall))
+        {
+            return;
+        }
+
+        const FVector2D Segment = Wall.End - Wall.Start;
+        if (Segment.SizeSquared() <= UE_SMALL_NUMBER)
+        {
+            return;
+        }
+
+        TArray<FVector2D> EdgePreviewOffsets;
+        GetFurnitureEdgeSnapOffsets(FurnitureSize, RotationDegrees, EdgePreviewOffsets);
+
+        const float WallGap = SnapGap + (bUseWallThicknessForSnapGap2D ? FMath::Max(Wall.ThicknessCm, 0.0f) * 0.5f : 0.0f);
+        const FVector2D SegmentNormalA(-Segment.Y, Segment.X);
+        const FVector2D SegmentNormalB(Segment.Y, -Segment.X);
+
+        for (const FVector2D& PreviewOffset : EdgePreviewOffsets)
+        {
+            const FVector2D SourcePoint = RequestedCenterDocument + PreviewOffset;
+            const FVector2D ClosestPoint = GetClosestPointOnSegment(SourcePoint, Wall.Start, Wall.End);
+            const FVector2D CenterToLine = RequestedCenterDocument - ClosestPoint;
+            FVector2D PreferredNormal = FVector2D::DotProduct(CenterToLine, SegmentNormalA) >= 0.0f ? SegmentNormalA : SegmentNormalB;
+            PreferredNormal = PreferredNormal.GetSafeNormal();
+
+            const float DistanceSquared = FVector2D::DistSquared(SourcePoint, ClosestPoint);
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                OutSnapSourceDocument = SourcePoint;
+                OutSnapTargetDocument = ClosestPoint;
+                OutSnappedCenterDocument = RequestedCenterDocument + (ClosestPoint - SourcePoint) + PreferredNormal * WallGap;
+                bFoundSnap = true;
+            }
+        }
+    };
+
+    for (int32 FurnitureIndex = 0; FurnitureIndex < PlacedFurnitures2D.Num(); ++FurnitureIndex)
+    {
+        if (FurnitureIndex == IgnoreFurnitureIndex)
+        {
+            continue;
+        }
+
+        const FInteReal2DPlacedFurniture& PlacedFurniture = PlacedFurnitures2D[FurnitureIndex];
+
+        TArray<FVector2D> FurnitureSnapPoints;
+        GetFurnitureSnapPoints(PlacedFurniture, FurnitureSnapPoints);
+
+        for (const FVector2D& FurnitureSnapPoint : FurnitureSnapPoints)
+        {
+            TrySnapToPointTarget(FurnitureSnapPoint);
+        }
+
+        TArray<TPair<FVector2D, FVector2D>> FurnitureSnapSegments;
+        GetFurnitureSnapSegments(PlacedFurniture, FurnitureSnapSegments);
+
+        for (const TPair<FVector2D, FVector2D>& SegmentPair : FurnitureSnapSegments)
+        {
+            TrySnapToSegmentTarget(SegmentPair.Key, SegmentPair.Value);
+        }
+    }
+
+    for (const FInteReal2DFloorPlanWallSegment& Wall : Document.Walls)
+    {
+        TrySnapToWallSegmentTarget(Wall);
+    }
+
+    if (bSnapToRoomPolygons2D)
+    {
+        for (const FInteReal2DFloorPlanPolygon& Room : Document.Rooms)
+        {
+            if (Room.Points.Num() < 2)
+            {
+                continue;
+            }
+
+            for (const FVector2D& RoomPoint : Room.Points)
+            {
+                TrySnapToPointTarget(RoomPoint);
+            }
+
+            for (int32 PointIndex = 0; PointIndex < Room.Points.Num(); ++PointIndex)
+            {
+                const FVector2D SegmentStart = Room.Points[PointIndex];
+                const FVector2D SegmentEnd = Room.Points[(PointIndex + 1) % Room.Points.Num()];
+                TrySnapToSegmentTarget(SegmentStart, SegmentEnd);
+            }
+        }
+    }
+
+    return bFoundSnap;
+}
+
+void UInteReal2DFloorPlanViewportWidget::HandleSelectToolButtonClicked()
+{
+    SetSelectToolActive2D(true);
+}
+
+void UInteReal2DFloorPlanViewportWidget::HandleObjectSnapButtonClicked()
+{
+    ToggleObjectSnap2D();
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetSelectToolActive2D(bool bActive)
+{
+    bSelectToolActive2D = bActive;
+
+    if (bSelectToolActive2D && bIsPlacingFurniture2D)
+    {
+        CancelFurniturePlacement();
+    }
+
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetObjectSnapEnabled2D(bool bEnabled)
+{
+    bEnableObjectSnap2D = bEnabled;
+
+    if (!bEnableObjectSnap2D)
+    {
+        bHasObjectSnapGuide = false;
+        ObjectSnapGuideSourceDocument = FVector2D::ZeroVector;
+        ObjectSnapGuideTargetDocument = FVector2D::ZeroVector;
+    }
+    Invalidate(EInvalidateWidgetReason::Paint);
+}
+
+void UInteReal2DFloorPlanViewportWidget::ToggleObjectSnap2D()
+{
+    SetObjectSnapEnabled2D(!bEnableObjectSnap2D);
 }

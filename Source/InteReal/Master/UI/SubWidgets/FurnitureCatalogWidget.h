@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
+#include "InteReal/Network/InteRealDataTypes.h"
 #include "FurnitureCatalogWidget.generated.h"
 
 class UButton;
@@ -84,6 +85,17 @@ private:
 	void ApplyCategoryButtonStyle(UButton* Button, bool bSelected) const;
 	FButtonStyle MakeCategoryButtonStyle(bool bSelected) const;
 	void ApplyCategoryButtonTextColor(UButton* Button, bool bSelected) const;
+	
+	UFUNCTION()
+	void HandleApiAssetsReceived(bool bSuccess, const FUnrealAssetListResponse& Response);
+
+	bool ShouldUseApiAssets() const;
+	void RequestApiAssets();
+	void RebuildFurnitureListFromDataTable();
+	void RebuildFurnitureListFromApiAssets(const FUnrealAssetListResponse& Response);
+	bool IsFurnitureAsset(const FInteRealAssetData& Asset) const;
+	EFurnitureAssetCategory ResolveFurnitureCategoryFromAsset(const FInteRealAssetData& Asset) const;
+	FFurnitureDataRow ConvertAssetToFurnitureRow(const FInteRealAssetData& Asset) const;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InteReal|FurnitureCatalog", meta = (AllowPrivateAccess = "true"))
@@ -140,4 +152,13 @@ private:
 	FString CurrentSearchText;
 	EFurnitureAssetCategory CurrentCategoryFilter = EFurnitureAssetCategory::None;
 	bool bUseCategoryFilter = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|FurnitureCatalog|API", meta = (AllowPrivateAccess = "true"))
+	int32 ApiAssetFetchLimit = 500;
+
+	UPROPERTY(Transient)
+	FUnrealAssetListResponse CachedApiAssetList;
+
+	bool bIsFetchingApiAssets = false;
+	bool bHasFetchedApiAssets = false;
 };

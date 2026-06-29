@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Materials/FMaterialDataRow.h"
+#include "InteReal/Network/InteRealDataTypes.h"
 #include "MaterialCatalogWidget.generated.h"
 
 class UDataTable;
@@ -32,6 +34,16 @@ private:
 	void HandleSearchTextChanged(const FText& InText);
 
 	bool DoesItemMatchFilter(const UMaterialItemWidget* ItemWidget) const;
+	
+	UFUNCTION()
+	void HandleApiAssetsReceived(bool bSuccess, const FUnrealAssetListResponse& Response);
+
+	bool ShouldUseApiAssets() const;
+	void RequestApiAssets();
+	void RebuildMaterialListFromDataTable();
+	void RebuildMaterialListFromApiAssets(const FUnrealAssetListResponse& Response);
+	bool IsMaterialAsset(const FInteRealAssetData& Asset) const;
+	FMaterialDataRow ConvertAssetToMaterialRow(const FInteRealAssetData& Asset) const;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InteReal|MaterialCatalog", meta = (AllowPrivateAccess = "true"))
@@ -47,4 +59,13 @@ private:
 	TObjectPtr<UWrapBox> WrapBox_Material = nullptr;
 
 	FString CurrentSearchText;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteReal|MaterialCatalog|API", meta = (AllowPrivateAccess = "true"))
+	int32 ApiAssetFetchLimit = 500;
+
+	UPROPERTY(Transient)
+	FUnrealAssetListResponse CachedApiAssetList;
+
+	bool bIsFetchingApiAssets = false;
+	bool bHasFetchedApiAssets = false;
 };

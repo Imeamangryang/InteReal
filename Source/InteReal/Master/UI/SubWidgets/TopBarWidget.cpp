@@ -9,6 +9,10 @@
 #include "UnrealClient.h"
 #include "InteReal/Master/UI/Components/IconTextButtonWidget.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
+#include "Engine/Engine.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "TimerManager.h"
 
 namespace
 {
@@ -160,10 +164,31 @@ void UTopBarWidget::OnVersionSelected(const FUnrealDeltaVersionItem& VersionItem
 
 void UTopBarWidget::HandleCaptureClicked(FName ButtonId, UIconTextButtonWidget* ButtonWidget)
 {
-	FString FileName = FString::Printf(TEXT("InteReal_Capture_%s.png"), *FDateTime::Now().ToString());
-	FScreenshotRequest::RequestScreenshot(FileName, false, false);
-	
-	UE_LOG(LogTemp, Log, TEXT("[TopBar] Screenshot requested: %s"), *FileName);
+	if (ButtonId != TEXT("Capture") && ButtonId != NAME_None) return;
+	if (bIsCaptureRequested) return;
+
+	bIsCaptureRequested = true;
+
+	if (IconTextButton_Capture)
+	{
+		IconTextButton_Capture->SetButtonEnabled(false);
+		IconTextButton_Capture->SetLabelText(FText::FromString(TEXT("캡처 중")));
+	}
+
+	const FString CaptureFilePath = MakeCaptureFilePath();
+	FScreenshotRequest::RequestScreenshot(CaptureFilePath, false, false);
+
+	UE_LOG(LogTemp, Log, TEXT("[TopBar] Screenshot requested: %s"), *CaptureFilePath);
+	ShowCaptureNotification(FString::Printf(TEXT("화면 캡처를 저장 요청했습니다.\n%s"), *CaptureFilePath), true);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimerForNextTick(this, &UTopBarWidget::RestoreCaptureButtonState);
+	}
+	else
+	{
+		RestoreCaptureButtonState();
+	}
 }
 
 void UTopBarWidget::HandleSaveClicked()
@@ -211,4 +236,46 @@ void UTopBarWidget::HandlePipelineSaveFinished(bool bSuccess, const FUnrealOkRes
 	}
 
 	bLastSaveRequestedNewVersion = false;
+}
+
+FString UTopBarWidget::MakeCaptureFilePath() const
+{
+	const FString CaptureDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("InteRealCaptures"));
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	if (!PlatformFile.DirectoryExists(*CaptureDir))
+	{
+		PlatformFile.CreateDirectoryTree(*CaptureDir);
+	}
+
+	const FString Timestamp = FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S"));
+	const FString FileName = FString::Printf(TEXT("InteReal_Capture_%s.png"), *Timestamp);
+
+	return CaptureDir / FileName;
+}
+
+void UTopBarWidget::RestoreCaptureButtonState()
+{
+	bIsCaptureRequested = false;
+
+	if (IconTextButton_Capture)
+	{
+		IconTextButton_Capture->SetButtonEnabled(true);
+		IconTextButton_Capture->SetLabelText(FText::FromString(TEXT("캡처")));
+	}
+}
+
+void UTopBarWidget::ShowCaptureNotification(const FString& Message, bool bSuccess) const
+{
+	FNotificationInfo Info(FText::FromString(Message));
+	Info.bFireAndForget = true;
+	Info.FadeInDuration = 0.1f;
+	Info.FadeOutDuration = 0.4f;
+	Info.ExpireDuration = 2.5f;
+
+	TSharedPtr<SNotificationItem> Notification = FSlateNotificationManager::Get().AddNotification(Info);
+	if (Notification.IsValid())
+	{
+		Notification->SetCompletionState(bSuccess ? SNotificationItem::CS_Success : SNotificationItem::CS_Fail);
+	}
 }

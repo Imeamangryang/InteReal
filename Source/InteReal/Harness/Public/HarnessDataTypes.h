@@ -40,6 +40,12 @@ struct FSurfaceMaterialDelta
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
     FString MaterialPath;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    FString MeshPath;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    FVector RelativeScale = FVector::OneVector;
 };
 
 USTRUCT(BlueprintType)

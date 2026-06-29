@@ -10,6 +10,7 @@
 #include "InteReal/Harness/Public/HarnessData.h"
 #include "UI/ViewModeWidgets/EnvironmentPanel.h"
 #include "UI/ViewModeWidgets/InteRealMinimap.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 
 namespace
 {
@@ -137,8 +138,66 @@ void AInteRealHUD::InitializeHUDWidgets()
 		EnvironmentPanelInstance = CreateWidget<UEnvironmentPanel>(GetOwningPlayerController(), EnvironmentPanelClass);
 		if (EnvironmentPanelInstance)
 		{
-			EnvironmentPanelInstance->AddToViewport(ViewLayerZOrder); 
+			EnvironmentPanelInstance->AddToViewport(ViewLayerZOrder);
 		}
+	}
+
+	if (FurnitureSizePanelWidgetClass)
+	{
+		FurnitureSizePanelInstance = CreateWidget<UFurnitureSizePanelWidget>(GetOwningPlayerController(), FurnitureSizePanelWidgetClass);
+		if (FurnitureSizePanelInstance)
+		{
+			FurnitureSizePanelInstance->AddToViewport(ToolOverlayZOrder);
+			FurnitureSizePanelInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (LightAttributesPanelWidgetClass)
+	{
+		LightAttributesPanelInstance = CreateWidget<ULightAttributesPanelWidget>(GetOwningPlayerController(), LightAttributesPanelWidgetClass);
+		if (LightAttributesPanelInstance)
+		{
+			LightAttributesPanelInstance->AddToViewport(ToolOverlayZOrder);
+			LightAttributesPanelInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void AInteRealHUD::ShowFurnitureSizePanel(AFurniture* Furniture)
+{
+	if (!FurnitureSizePanelInstance)
+	{
+		return;
+	}
+
+	if (Furniture)
+	{
+		FurnitureSizePanelInstance->SetVisibility(ESlateVisibility::Visible);
+		FurnitureSizePanelInstance->RefreshForFurniture(Furniture);
+	}
+	else
+	{
+		FurnitureSizePanelInstance->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void AInteRealHUD::ShowLightAttributesPanel(AFurniture* Furniture)
+{
+	if (!LightAttributesPanelInstance)
+	{
+		return;
+	}
+
+	// RefreshForFurniture는 ALightFixture가 아니면 조용히 아무것도 안 하므로,
+	// 여기서 미리 걸러내지 않으면 일반 가구를 선택했을 때 패널이 비어있는 채로 보이게 된다.
+	if (ALightFixture* LightFixture = Cast<ALightFixture>(Furniture))
+	{
+		LightAttributesPanelInstance->SetVisibility(ESlateVisibility::Visible);
+		LightAttributesPanelInstance->RefreshForFurniture(LightFixture);
+	}
+	else
+	{
+		LightAttributesPanelInstance->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 

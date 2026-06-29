@@ -44,7 +44,39 @@ enum class EFurnitureAssetCategory : uint8
 	Decor UMETA(DisplayName = "장식/소품"),
 	Mirror UMETA(DisplayName = "거울"),
 	Plant UMETA(DisplayName = "식물"),
+	Rug UMETA(DisplayName = "러그"),
 	Shelf UMETA(DisplayName = "선반/책장"),
+};
+
+UENUM(BlueprintType)
+enum class ELightFixtureType : uint8
+{
+	Point UMETA(DisplayName = "포인트 라이트"),
+	Spot UMETA(DisplayName = "스포트라이트"),
+	Rect UMETA(DisplayName = "렉트 라이트"),
+};
+
+USTRUCT(BlueprintType)
+struct FLightAttributes
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bEmitsLight = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	ELightFixtureType LightFixtureType = ELightFixtureType::Point;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "bEmitsLight"))
+	FLinearColor LightColor = FLinearColor::White;
+	
+	// candelas
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "bEmitsLight", ClampMin = "0.0", Units = "cd"))
+	float LightIntensity = 8.0f;
+
+	// cm
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "bEmitsLight", ClampMin = "0.0", Units = "cm"))
+	float AttenuationRadius = 1000.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -57,7 +89,11 @@ struct FFurnitureDataRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText DisplayName = FText::FromString(TEXT("Furniture"));
-	
+
+	// 외부 DB의 식별자 (예: SF-SEC-01)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FString SKU;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Search")
 	EFurnitureAssetCategory Category = EFurnitureAssetCategory::None;
 
@@ -95,4 +131,8 @@ struct FFurnitureDataRow : public FTableRowBase
 	// 벽에 부착 시 벽면에서 띄울 거리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float WallOffset = 0.0f;
+
+	// Category == Lighting일 때만 의미 있는 조명 전용 속성
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Furniture|Light")
+	FLightAttributes LightAttributes;
 };

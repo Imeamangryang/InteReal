@@ -42,37 +42,60 @@ namespace
         return FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*GetNetworkMockTestDataDir());
     }
 
-    bool TryParseMockPlanIdFromFileName(const FString& FileName, int32& OutPlanId)
+    static TMap<int32, FString> GMockPlanIdToFileNameMap;
+
+    FString GetMockFileNameForPlanId(int32 PlanId)
     {
-        const FString BaseName = FPaths::GetBaseFilename(FileName);
-        if (!BaseName.StartsWith(TEXT("test")) || BaseName.Contains(TEXT("_delta")))
+        if (const FString* FileName = GMockPlanIdToFileNameMap.Find(PlanId))
         {
-            return false;
+            return *FileName;
         }
+        return FString::Printf(TEXT("test%d.json"), PlanId);
+    }
 
-        const FString PlanIdString = BaseName.RightChop(4);
-        if (PlanIdString.IsEmpty() || !PlanIdString.IsNumeric())
+    FString GetMockDeltaFileName(int32 PlanId, int32 Version = -1)
+    {
+        const FString BaseName = FPaths::GetBaseFilename(GetMockFileNameForPlanId(PlanId));
+        if (Version > 0)
         {
-            return false;
+            return FString::Printf(TEXT("%s_delta_v%d.json"), *BaseName, Version);
         }
-
-        OutPlanId = FCString::Atoi(*PlanIdString);
-        return OutPlanId > 0;
+        return FString::Printf(TEXT("%s_delta.json"), *BaseName);
     }
 
     TArray<int32> GetMockPlanIds()
     {
         TArray<FString> FileNames;
-        IFileManager::Get().FindFiles(FileNames, *(GetNetworkMockTestDataDir() / TEXT("test*.json")), true, false);
+        IFileManager::Get().FindFiles(FileNames, *(GetNetworkMockTestDataDir() / TEXT("*.json")), true, false);
 
+        GMockPlanIdToFileNameMap.Empty();
         TSet<int32> UniquePlanIds;
         for (const FString& FileName : FileNames)
         {
-            int32 PlanId = 0;
-            if (TryParseMockPlanIdFromFileName(FileName, PlanId))
+            const FString BaseName = FPaths::GetBaseFilename(FileName);
+            if (BaseName.Contains(TEXT("_delta")))
             {
-                UniquePlanIds.Add(PlanId);
+                continue;
             }
+
+            int32 PlanId = 0;
+            if (BaseName.StartsWith(TEXT("test")))
+            {
+                const FString PlanIdString = BaseName.RightChop(4);
+                if (PlanIdString.IsNumeric())
+                {
+                    PlanId = FCString::Atoi(*PlanIdString);
+                }
+            }
+
+            if (PlanId <= 0)
+            {
+                PlanId = (int32)(GetTypeHash(BaseName) & 0x7FFFFFFF);
+                if (PlanId == 0) PlanId = 1;
+            }
+
+            UniquePlanIds.Add(PlanId);
+            GMockPlanIdToFileNameMap.Add(PlanId, FileName);
         }
 
         TArray<int32> PlanIds = UniquePlanIds.Array();
@@ -653,13 +676,15 @@ namespace
         {
             FUnrealPlanItem Plan;
             Plan.id = PlanId;
-            Plan.name = FString::Printf(TEXT("Mock Plan %d"), PlanId);
-            Plan.title = Plan.name;
-            Plan.file_name = FString::Printf(TEXT("test%d.json"), PlanId);
+            FString FileName = GetMockFileNameForPlanId(PlanId);
+            FString BaseName = FPaths::GetBaseFilename(FileName);
+            Plan.name = BaseName;
+            Plan.title = BaseName;
+            Plan.file_name = FileName;
             Plan.status = TEXT("saved");
             Plan.can_open_unreal = true;
             Plan.project_id = 1;
-            Plan.project_name = TEXT("Mock Project");
+            Plan.project_name = TEXT("상록아파트");
 
             if (!Params.q.IsEmpty() && !Plan.GetDisplayTitle().Contains(Params.q, ESearchCase::IgnoreCase))
             {
@@ -717,7 +742,7 @@ namespace
         FUnrealProjectListResponse Response;
         FUnrealProjectItem Project;
         Project.id = 1;
-        Project.name = TEXT("Mock Project");
+        Project.name = TEXT("상록아파트");
         Project.plan_count = GetMockPlanIds().Num();
         Response.items.Add(Project);
         Response.total = Response.items.Num();
@@ -731,7 +756,7 @@ namespace
         int32 Version = 1;
         while (true)
         {
-            const FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
+            const FString FilePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId, Version));
             if (!FPaths::FileExists(FilePath))
             {
                 break;
@@ -750,7 +775,7 @@ namespace
 
         if (Response.items.Num() == 0)
         {
-            const FString LatestPath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
+            const FString LatestPath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId));
             if (FPaths::FileExists(LatestPath))
             {
                 FUnrealDeltaVersionItem Latest;
@@ -1031,7 +1056,7 @@ void UInteRealNetworkSubsystem::FetchUeTopology(int32 PlanId, const FUeTopologyE
 
     if (bUseMockData)
     {
-        const FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d.json"), PlanId));
+        const FString FilePath = GetNetworkMockTestDataFilePath(GetMockFileNameForPlanId(PlanId));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -1154,7 +1179,7 @@ void UInteRealNetworkSubsystem::FetchLatestDelta(int32 PlanId, FOnDeltaReceived 
 {
     if (bUseMockData)
     {
-        FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
+        FString FilePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -1190,7 +1215,7 @@ void UInteRealNetworkSubsystem::FetchDeltaByVersion(int32 PlanId, int32 Version,
     if (bUseMockData)
     {
         // 로컬 버전 파일 로드 시도
-        FString FilePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, Version));
+        FString FilePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId, Version));
         FString JsonContent;
         if (FFileHelper::LoadFileToString(JsonContent, *FilePath))
         {
@@ -1244,7 +1269,7 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
         }
 
         // 1. 최신 상태 유지를 위해 기본 delta.json 덮어쓰기
-        FString BaseAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta.json"), PlanId));
+        FString BaseAbsolutePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId));
         bool bSavedBase = FFileHelper::SaveStringToFile(DeltaJson, *BaseAbsolutePath);
 
         int32 TargetMockVersion = RequestVersion;
@@ -1253,7 +1278,7 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
             TargetMockVersion = 1;
             while (true)
             {
-                const FString CandidatePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, TargetMockVersion));
+                const FString CandidatePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId, TargetMockVersion));
                 if (!FPaths::FileExists(CandidatePath))
                 {
                     break;
@@ -1263,7 +1288,7 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
         }
 
         FString VersionAbsolutePath;
-        VersionAbsolutePath = GetNetworkMockTestDataFilePath(FString::Printf(TEXT("test%d_delta_v%d.json"), PlanId, TargetMockVersion));
+        VersionAbsolutePath = GetNetworkMockTestDataFilePath(GetMockDeltaFileName(PlanId, TargetMockVersion));
         
         bool bSavedVersion = FFileHelper::SaveStringToFile(DeltaJson, *VersionAbsolutePath);
         bool bSaved = bSavedBase && bSavedVersion;

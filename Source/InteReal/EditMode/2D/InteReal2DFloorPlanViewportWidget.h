@@ -81,6 +81,12 @@ public:
         const FVector2D& CenterDocumentPosition,
         float RotationDegrees
     );
+    
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdatePlacedFurnitureSize(int32 FurnitureIndex, const FVector2D& NewSize);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdatePlacedFurnitureSizeByGuid(const FGuid& InstanceGuid, const FVector2D& NewSize);
 
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     bool UpdateSelectedFurniture(
@@ -104,6 +110,23 @@ public:
     UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
     void SetFurniturePreviewPlacementValid(bool bPlacementValid);
     
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Tool")
+    void SetSelectToolActive2D(bool bActive);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Tool")
+    void SetObjectSnapEnabled2D(bool bEnabled);
+
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Tool")
+    void ToggleObjectSnap2D();
+
+    UFUNCTION(BlueprintPure, Category="InteReal2D|Tool")
+    bool IsObjectSnapEnabled2D() const { return bEnableObjectSnap2D; }
+
+    UFUNCTION(BlueprintPure, Category="InteReal2D|Tool")
+    bool IsSelectToolActive2D() const { return bSelectToolActive2D; }
+    
+    UFUNCTION(BlueprintPure, Category="InteReal2D|Tool")
+    bool HasSelectedFurniture2D() const { return SelectedFurnitureIndex != INDEX_NONE; }
     
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Input")
     FInteReal2DDrawAreaClickedSignature OnDrawAreaClicked;
@@ -151,6 +174,21 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Layout", meta=(ClampMin="-360.0", ClampMax="360.0", UIMin="-180.0", UIMax="180.0"))
     float DrawRotationDegrees = 90.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|View", meta=(ClampMin="0.1", UIMin="0.1"))
+    float MinViewZoom = 0.4f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|View", meta=(ClampMin="0.1", UIMin="0.1"))
+    float MaxViewZoom = 4.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|View", meta=(ClampMin="0.01", UIMin="0.01"))
+    float MouseWheelZoomStep = 1.15f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|View")
+    float ViewZoom = 1.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|View")
+    FVector2D ViewPanLocal = FVector2D::ZeroVector;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style")
     bool bDrawBackground = true;
 
@@ -169,6 +207,18 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style")
     float OpeningLineThickness = 4.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style")
+    bool bDrawRooms = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style")
+    bool bDrawWallCenterLines = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style", meta=(ClampMin="0.0", UIMin="0.0"))
+    float WallLineThickness = 3.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style", meta=(ClampMin="0.0", UIMin="0.0"))
+    float OpeningEraseThickness = 8.0f;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Style")
     FLinearColor RoomLineColor = FLinearColor::Black;
 
@@ -194,6 +244,12 @@ public:
     FLinearColor SelectedFurnitureFillColor = FLinearColor(1.0f, 0.75f, 0.1f, 0.35f);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor HoveredFurnitureFillColor = FLinearColor(0.2f, 0.75f, 1.0f, 0.35f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
+    FLinearColor HoveredFurnitureOutlineColor = FLinearColor(0.0f, 0.75f, 1.0f, 1.0f);
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     FLinearColor SelectedFurnitureOutlineColor = FLinearColor(1.0f, 0.45f, 0.0f, 1.0f);
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
@@ -208,6 +264,39 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
     FLinearColor InvalidFurniturePreviewOutlineColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
     
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bEnableObjectSnap2D = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bSnapToWallSegments2D = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bSnapToInnerWalls2D = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bSnapToOuterWalls2D = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bSnapToRoomPolygons2D = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bUseWallThicknessForSnapGap2D = true;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap", meta=(ClampMin="0.0", UIMin="0.0"))
+    float ObjectSnapDistanceDocument = 100.0f;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap", meta=(ClampMin="0.0", UIMin="0.0"))
+    float ObjectSnapGapDocument = 15.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    bool bDrawObjectSnapGuide = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap")
+    FLinearColor ObjectSnapGuideColor = FLinearColor(0.0f, 0.3f, 0.0f, 1.0f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Snap", meta=(ClampMin="0.0", UIMin="0.0"))
+    float ObjectSnapGuideThickness = 1.5f;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture", meta=(ClampMin="0.0", UIMin="0.0"))
     float FurnitureOutlineThickness = 2.0f;
 
@@ -219,6 +308,23 @@ public:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="InteReal2D|Furniture")
     int32 SelectedFurnitureIndex = INDEX_NONE;
+    
+    int32 HoveredFurnitureIndex = INDEX_NONE;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Tool")
+    bool bSelectToolActive2D = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Tool")
+    FLinearColor ToolButtonActiveTint = FLinearColor(0.68f, 0.60f, 0.52f, 1.0f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Tool")
+    FLinearColor ToolButtonInactiveTint = FLinearColor::White;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Tool")
+    FLinearColor ToolIconActiveTint = FLinearColor::Black;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Tool")
+    FLinearColor ToolIconInactiveTint = FLinearColor(0.15f, 0.15f, 0.15f, 1.0f);
 
 protected:
     virtual void NativeConstruct() override;
@@ -243,6 +349,10 @@ protected:
         const FPointerEvent& InMouseEvent
     ) override;
     
+    virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+    
+    virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+    
 private:
     UFUNCTION()
     FEventReply HandleInputCatcherMouseButtonDown(
@@ -262,6 +372,12 @@ private:
         const FPointerEvent& MouseEvent
     );
     
+    UFUNCTION()
+    void HandleSelectToolButtonClicked();
+
+    UFUNCTION()
+    void HandleObjectSnapButtonClicked();
+    
     UPROPERTY(meta=(BindWidgetOptional))
     TObjectPtr<class UBorder> InputCatcherBorder;
     
@@ -270,7 +386,10 @@ private:
     
     FVector2D TransformDocumentPointToLocal(const FVector2D& DocPoint, const FVector2D& LocalSize) const;
     FVector2D TransformLocalPointToDocument(const FVector2D& LocalPoint, const FVector2D& LocalSize) const;
-    FVector2D GetDocumentSize() const;
+    FVector2D GetViewZoomPivotLocal(const FVector2D& LocalSize) const;
+    FVector2D ApplyViewZoomToLocalPoint(const FVector2D& UnzoomedLocalPoint, const FVector2D& LocalSize) const;
+    FVector2D RemoveViewZoomFromLocalPoint(const FVector2D& ZoomedLocalPoint, const FVector2D& LocalSize) const;
+    void SetViewZoomAtLocalPosition(float NewViewZoom, const FVector2D& ZoomAnchorLocal, const FVector2D& LocalSize);
     FLinearColor ResolveOpeningColor(const FString& OpeningType) const;
     FVector2D GetDrawAreaOffset() const;
     FVector2D GetDrawAreaSize(const FVector2D& LocalSize) const;
@@ -296,6 +415,14 @@ private:
         const FInteReal2DPlacedFurniture& Furniture
     ) const;
     
+    void GetFurnitureSnapOffsets(const FVector2D& FurnitureSize, float RotationDegrees, TArray<FVector2D>& OutOffsets) const;
+    void GetFurnitureEdgeSnapOffsets(const FVector2D& FurnitureSize, float RotationDegrees, TArray<FVector2D>& OutOffsets) const;
+    void GetFurnitureSnapPoints(const FInteReal2DPlacedFurniture& Furniture, TArray<FVector2D>& OutPoints) const;
+    void GetFurnitureSnapSegments(const FInteReal2DPlacedFurniture& Furniture, TArray<TPair<FVector2D, FVector2D>>& OutSegments) const;
+    FVector2D GetClosestPointOnSegment(const FVector2D& Point, const FVector2D& SegmentStart, const FVector2D& SegmentEnd) const;
+    bool ResolveObjectSnappedPreviewCenter(const FVector2D& RequestedCenterDocument, FVector2D& OutSnappedCenterDocument, FVector2D& OutSnapSourceDocument, FVector2D& OutSnapTargetDocument) const;
+    bool ResolveObjectSnappedFurnitureCenter(int32 IgnoreFurnitureIndex, const FVector2D& FurnitureSize, float RotationDegrees, const FVector2D& RequestedCenterDocument, FVector2D& OutSnappedCenterDocument, FVector2D& OutSnapSourceDocument, FVector2D& OutSnapTargetDocument) const;
+    
     UPROPERTY()
     FFurnitureDataRow PendingFurnitureRow;
 
@@ -304,6 +431,13 @@ private:
     float PreviewFurnitureRotationDegrees = 0.0f;
     bool bHasFurniturePreviewPosition = false;
     bool bIsFurniturePreviewPlacementValid = true;
+    
+    bool bHasObjectSnapGuide = false;
+    FVector2D ObjectSnapGuideSourceDocument = FVector2D::ZeroVector;
+    FVector2D ObjectSnapGuideTargetDocument = FVector2D::ZeroVector;
+    
+    bool bIsPanningView2D = false;
+    FVector2D LastPanMouseLocalPosition = FVector2D::ZeroVector;
     
     bool bIsDraggingSelectedFurniture2D = false;
     int32 DraggingFurnitureIndex2D = INDEX_NONE;

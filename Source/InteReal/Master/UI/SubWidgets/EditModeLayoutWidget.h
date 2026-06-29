@@ -4,7 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "EditModeLayoutWidget.generated.h"
 
+class UBorder;
 class UButton;
+class UImage;
 class USizeBox;
 class UInteReal2DFloorPlanViewportWidget;
 
@@ -72,6 +74,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlan")
 	bool bAutoFitFloorPlanDrawArea = true;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlanTool")
+	FLinearColor ToolButtonActiveTint = FLinearColor(0.68f, 0.60f, 0.52f, 1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlanTool")
+	FLinearColor ToolButtonInactiveTint = FLinearColor::White;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlanTool")
+	FLinearColor ToolIconActiveTint = FLinearColor::Black;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal|EditModeLayout|FloorPlanTool")
+	FLinearColor ToolIconInactiveTint = FLinearColor(0.18f, 0.18f, 0.18f, 1.0f);
+	
 	UPROPERTY(BlueprintAssignable, Category="InteReal|EditModeLayout")
 	FOnFloorPlanPanelOpenChangedSignature OnFloorPlanPanelOpenChanged;
 
@@ -82,11 +96,21 @@ protected:
 private:
 	UFUNCTION()
 	void HandleToggleButtonClicked();
+	
+	UFUNCTION()
+	void HandleSelectToolButtonClicked();
+
+	UFUNCTION()
+	void HandleObjectSnapButtonClicked();
 
 private:
 	void ApplyLayout();
 	void ApplyFloorPlanDrawArea();
+	void ApplyFloorPlanToolBarState();
+	void UpdateFloorPlanToolButtonState();
+	void ApplyToolButtonVisualState(UButton* Button, UImage* Image, bool bActive);
 	float GetTargetPanelWidth() const;
+	
 
 private:
 	UPROPERTY(meta=(BindWidget))
@@ -97,6 +121,21 @@ private:
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UInteReal2DFloorPlanViewportWidget> FloorPlan2DWidget = nullptr;
+
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UBorder> Border_FloorPlanToolBar = nullptr;
+
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Button_SelectTool2D = nullptr;
+
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UButton> Button_ObjectSnap2D = nullptr;
+	
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UImage> Image_SelectTool2D = nullptr;
+
+	UPROPERTY(meta=(BindWidgetOptional))
+	TObjectPtr<UImage> Image_ObjectSnap2D = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category="InteReal|EditModeLayout|Runtime")
 	float CurrentFloorPlanPanelWidth = 800.0f;

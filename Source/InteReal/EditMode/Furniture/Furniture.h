@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "FFurnitureDataRow.h"
+#include "Components/PointLightComponent.h"
 #include "Furniture.generated.h"
 
 class AGridSpaceManager;
@@ -33,6 +34,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UStaticMeshComponent* MeshComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LightFixture")
+	UPointLightComponent* LightComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UBoxComponent* CollisionBoxComponent;
@@ -134,8 +138,34 @@ public:
 	void SetPlacementState(EPlacementState NewState);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
-	void ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow);
+	virtual void ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	void SetSelected(bool bSelected);
+
+	// 배치 후 선택된 가구의 실측 크기(cm, X=Width/Y=Depth/Z=Height)를 다시 읽거나(UI 패널 초기값) 직접 바꿀 때(슬라이더 등) 사용
+	UFUNCTION(BlueprintPure, Category = "Furniture|Size")
+	FVector GetCurrentSizeCm() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Furniture|Size")
+	void SetTargetSizeCm(FVector InSizeCm);
+
+	// Row.Category에 따라 스폰할 AFurniture 서브클래스를 결정한다 (예: Lighting -> ALightFixture)
+	static TSubclassOf<AFurniture> ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass);
+
+	UFUNCTION(BlueprintPure, Category = "Furniture")
+	const FFurnitureDataRow& GetFurnitureDataRow() const { return FurnitureDataRow; }
+
+	UFUNCTION(BlueprintPure, Category = "Furniture")
+	bool HasFurnitureDataRow() const { return bHasFurnitureDataRow; }
+	
+private:
+	// 0(미설정) 축은 보정하지 않고 그대로 둔다 — NativeSize 기준 1.0
+	static FVector ComputeSizeScale(const FVector& NativeSize, const FVector& TargetSizeCm);
+	
+	UPROPERTY()
+	FFurnitureDataRow FurnitureDataRow;
+
+	UPROPERTY()
+	bool bHasFurnitureDataRow = false;
 };

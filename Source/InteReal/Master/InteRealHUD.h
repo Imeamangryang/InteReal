@@ -7,10 +7,13 @@
 #include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/UI/UserGuideWidget.h"
 #include "InteReal/EditMode/UI/EditModeToolbarWidget.h"
+#include "InteReal/EditMode/UI/FurnitureSizePanelWidget.h"
+#include "InteReal/EditMode/UI/Lights/LightAttributesPanelWidget.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteRealPlayerController.h"
 #include "InteRealHUD.generated.h"
 
+class AFurniture;
 class UEnvironmentPanel;
 class UUserWidget;
 class UHarnessMinimapCaptureComponent;
@@ -118,6 +121,26 @@ public:
 	TObjectPtr<UEditModeToolbarWidget> EditModeToolbarInstance = nullptr;
 
 	void ShowEditModeToolbar(bool bVisible);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
+	TSubclassOf<UFurnitureSizePanelWidget> FurnitureSizePanelWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UFurnitureSizePanelWidget> FurnitureSizePanelInstance = nullptr;
+
+	// Furniture가 nullptr이면 패널을 숨기고, 아니면 보여주면서 RefreshForFurniture를 호출한다
+	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
+	void ShowFurnitureSizePanel(AFurniture* Furniture);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
+	TSubclassOf<ULightAttributesPanelWidget> LightAttributesPanelWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<ULightAttributesPanelWidget> LightAttributesPanelInstance = nullptr;
+
+	// Furniture가 ALightFixture가 아니거나 nullptr이면 패널을 숨기고, 맞으면 보여주면서 RefreshForFurniture를 호출한다
+	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
+	void ShowLightAttributesPanel(AFurniture* Furniture);
 
 	// ===== View Mode UI =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|UI")

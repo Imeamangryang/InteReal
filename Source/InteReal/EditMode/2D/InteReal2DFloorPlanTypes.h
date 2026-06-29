@@ -31,6 +31,27 @@ struct FInteReal2DFloorPlanOpening
 };
 
 USTRUCT(BlueprintType)
+struct FInteReal2DFloorPlanWallSegment
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	FString WallId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	FVector2D Start = FVector2D::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	FVector2D End = FVector2D::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	float ThicknessCm = 20.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	FString Type;
+};
+
+USTRUCT(BlueprintType)
 struct FInteReal2DFloorPlanDocument
 {
 	GENERATED_BODY()
@@ -52,6 +73,9 @@ struct FInteReal2DFloorPlanDocument
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D")
 	bool bFlipYForScreenSpace = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|FloorPlan")
+	TArray<FInteReal2DFloorPlanWallSegment> Walls;
 };
 
 USTRUCT(BlueprintType)

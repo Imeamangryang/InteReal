@@ -132,6 +132,7 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 		Visualizer->RebuildGridMesh(FloorRoomPolygons.IsEmpty() ? TArray<TArray<FVector2D>>{FloorPolygon} : FloorRoomPolygons,
 		                            GridCellSize,
 		                            FloorZ);
+		SetGridVisible(true);
 	}
 
 	ApplyWallTraceCollision();
@@ -167,7 +168,6 @@ void UInteriorPlacementSubsystem::SetGridVisible(bool bVisible)
 void UInteriorPlacementSubsystem::SetFreePlacementMode(bool bEnable)
 {
 	bFreePlacementMode = bEnable;
-	SetGridVisible(!bFreePlacementMode);
 }
 
 // ===== 프리뷰 =====
@@ -208,7 +208,8 @@ void UInteriorPlacementSubsystem::CreatePreviewFurnitureFromRow(FVector RayPosit
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(Visualizer->FurnitureClass, RayPosition, Rotation, Params);
+	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(InFurnitureRow, Visualizer->FurnitureClass);
+	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(SpawnClass, RayPosition, Rotation, Params);
 	if (!PreviewFurniture)
 	{
 		return;
@@ -803,7 +804,8 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(Visualizer->FurnitureClass, World, Rotation, Params);
+	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(Row, Visualizer->FurnitureClass);
+	AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(SpawnClass, World, Rotation, Params);
 	if (!NewFurniture)
 	{
 		return;

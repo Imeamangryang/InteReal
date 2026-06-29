@@ -241,8 +241,9 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(*Row, Viz->FurnitureClass);
 		AFurniture* NewFurniture = Subsystem->GetWorld()->SpawnActor<AFurniture>(
-			Viz->FurnitureClass, SpawnLoc, FRotator(Pitch, Yaw, Roll), Params);
+			SpawnClass, SpawnLoc, FRotator(Pitch, Yaw, Roll), Params);
 		if (!NewFurniture)
 		{
 			continue;

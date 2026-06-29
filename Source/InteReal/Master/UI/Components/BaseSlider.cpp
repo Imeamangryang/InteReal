@@ -1,6 +1,7 @@
-#include "BaseSlider.h"
+﻿#include "BaseSlider.h"
 #include "Components/Slider.h"
 #include "Components/ProgressBar.h"
+#include "Components/SizeBox.h"
 #include "InteReal/Master/UI/DesignTemplate/InteRealThemeData.h"
 #include "Styling/SlateTypes.h"
 
@@ -9,6 +10,13 @@ void UBaseSlider::NativePreConstruct()
 	Super::NativePreConstruct();
 
 	if (!ThemeData) return;
+
+	// 0. Min/Max 범위 적용 — Progress_Track 비율 계산보다 먼저 해야 함
+	if (Slider_Main)
+	{
+		Slider_Main->SetMinValue(MinValue);
+		Slider_Main->SetMaxValue(MaxValue);
+	}
 
 	// 1. Progress Bar (뒷배경 트랙) 스타일 세팅
 	if (Progress_Track)
@@ -27,11 +35,13 @@ void UBaseSlider::NativePreConstruct()
 		ConfigureTrack(ProgStyle.FillImage, ThemeData->Accent_Gold);
 
 		Progress_Track->SetWidgetStyle(ProgStyle);
-		
-		if (Slider_Main)
-		{
-			Progress_Track->SetPercent(Slider_Main->GetValue());
-		}
+
+		UpdateProgressPercent();
+	}
+
+	if (SizeBox_Track)
+	{
+		SizeBox_Track->SetHeightOverride(TrackThickness);
 	}
 
 	// 2. Slider (핸들 및 투명 트랙) 스타일 세팅
@@ -59,8 +69,8 @@ void UBaseSlider::NativePreConstruct()
 			OutBrush.OutlineSettings.CornerRadii = FVector4(HalfSize, HalfSize, HalfSize, HalfSize);
 		};
 
-		ConfigureThumb(SliderStyle.NormalThumbImage, 20.0f);
-		ConfigureThumb(SliderStyle.HoveredThumbImage, 28.0f); // 마우스를 올렸을 때 조금 더 커지게(24 -> 28) 하면 터치감이 좋아집니다!
+		ConfigureThumb(SliderStyle.NormalThumbImage, ThumbSize);
+		ConfigureThumb(SliderStyle.HoveredThumbImage, HoveredThumbSize);
 		
 		Slider_Main->SetWidgetStyle(SliderStyle);
 	}
@@ -73,20 +83,41 @@ void UBaseSlider::NativeConstruct()
 	if (Slider_Main)
 	{
 		Slider_Main->OnValueChanged.AddUniqueDynamic(this, &UBaseSlider::HandleOnValueChanged);
-		
-		if (Progress_Track)
-		{
-			Progress_Track->SetPercent(Slider_Main->GetValue());
-		}
+		UpdateProgressPercent();
 	}
 }
 
 void UBaseSlider::HandleOnValueChanged(float NewValue)
 {
-	if (Progress_Track)
+	UpdateProgressPercent();
+	OnBaseValueChanged.Broadcast(NewValue);
+}
+
+void UBaseSlider::SetValue(float NewValue)
+{
+	if (Slider_Main)
 	{
-		Progress_Track->SetPercent(NewValue);
+		Slider_Main->SetValue(NewValue);
+	}
+	UpdateProgressPercent();
+}
+
+float UBaseSlider::GetValue() const
+{
+	return Slider_Main ? Slider_Main->GetValue() : 0.0f;
+}
+
+void UBaseSlider::UpdateProgressPercent()
+{
+	if (!Progress_Track || !Slider_Main)
+	{
+		return;
 	}
 
-	OnBaseValueChanged.Broadcast(NewValue);
+	// Slider_Main의 Min/Max가 0~1이 아닐 수도 있으므로(밝기 후보 등) 실제 범위 기준으로 비율을 계산
+	const float Min = Slider_Main->GetMinValue();
+	const float Max = Slider_Main->GetMaxValue();
+	const float Range = Max - Min;
+	const float Percent = Range > 0.0f ? (Slider_Main->GetValue() - Min) / Range : 0.0f;
+	Progress_Track->SetPercent(Percent);
 }

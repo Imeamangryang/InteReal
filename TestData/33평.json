@@ -1,0 +1,2400 @@
+﻿{
+  "schema_version": "3.2",
+  "unit": "mm",
+  "coordinate_system": {
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "rotation_degrees": 0
+  },
+  "walls": [
+    {
+      "id": "wall_h_1",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 1500,
+          "y": 0
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_2",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 0
+        },
+        {
+          "x": 6000,
+          "y": 0
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 4500.0
+      }
+    },
+    {
+      "id": "wall_h_3",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 0
+        },
+        {
+          "x": 7500,
+          "y": 0
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_4",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 0
+        },
+        {
+          "x": 8500,
+          "y": 0
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1000.0
+      }
+    },
+    {
+      "id": "wall_h_5",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 0
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_6",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 2500
+        },
+        {
+          "x": 11500,
+          "y": 2500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_7",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4500
+        },
+        {
+          "x": 1500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_8",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 4500
+        },
+        {
+          "x": 6000,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 4500.0
+      }
+    },
+    {
+      "id": "wall_h_9",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 4500
+        },
+        {
+          "x": 7500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_10",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 4500
+        },
+        {
+          "x": 8500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1000.0
+      }
+    },
+    {
+      "id": "wall_h_11",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 4500
+        },
+        {
+          "x": 10000,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_12",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 4500
+        },
+        {
+          "x": 11500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_13",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 4500
+        },
+        {
+          "x": 13000,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_14",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 13000,
+          "y": 4500
+        },
+        {
+          "x": 14500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_15",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 13000,
+          "y": 6500
+        },
+        {
+          "x": 14500,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_16",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 7000
+        },
+        {
+          "x": 7500,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_17",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 7000
+        },
+        {
+          "x": 8500,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1000.0
+      }
+    },
+    {
+      "id": "wall_h_18",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 7500
+        },
+        {
+          "x": 13000,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_19",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 8250
+        },
+        {
+          "x": 8500,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1000.0
+      }
+    },
+    {
+      "id": "wall_h_20",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 9500
+        },
+        {
+          "x": 1500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_21",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 9500
+        },
+        {
+          "x": 6000,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 4500.0
+      }
+    },
+    {
+      "id": "wall_h_22",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 9500
+        },
+        {
+          "x": 7500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_23",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 9500
+        },
+        {
+          "x": 8500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1000.0
+      }
+    },
+    {
+      "id": "wall_h_24",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 9500
+        },
+        {
+          "x": 10000,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_h_25",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 9500
+        },
+        {
+          "x": 11500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1500.0
+      }
+    },
+    {
+      "id": "wall_v_26",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 0
+        },
+        {
+          "x": 0,
+          "y": 2500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2500.0
+      }
+    },
+    {
+      "id": "wall_v_27",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 2500
+        },
+        {
+          "x": 0,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_28",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 4500
+        },
+        {
+          "x": 0,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_29",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 6500
+        },
+        {
+          "x": 0,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_30",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 7000
+        },
+        {
+          "x": 0,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_31",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 7500
+        },
+        {
+          "x": 0,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_32",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 0,
+          "y": 8250
+        },
+        {
+          "x": 0,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_33",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 4500
+        },
+        {
+          "x": 1500,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_34",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 6500
+        },
+        {
+          "x": 1500,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_35",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 7000
+        },
+        {
+          "x": 1500,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_36",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 7500
+        },
+        {
+          "x": 1500,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_37",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 1500,
+          "y": 8250
+        },
+        {
+          "x": 1500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_38",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 4500
+        },
+        {
+          "x": 6000,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_39",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 6500
+        },
+        {
+          "x": 6000,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_40",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 7000
+        },
+        {
+          "x": 6000,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_41",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 7500
+        },
+        {
+          "x": 6000,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_42",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 6000,
+          "y": 8250
+        },
+        {
+          "x": 6000,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_43",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 7000
+        },
+        {
+          "x": 7500,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_44",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 7500
+        },
+        {
+          "x": 7500,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_45",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 7500,
+          "y": 8250
+        },
+        {
+          "x": 7500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_46",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 4500
+        },
+        {
+          "x": 8500,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_47",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 6500
+        },
+        {
+          "x": 8500,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_48",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 7000
+        },
+        {
+          "x": 8500,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_49",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 7500
+        },
+        {
+          "x": 8500,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_50",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 8500,
+          "y": 8250
+        },
+        {
+          "x": 8500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_51",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 10000,
+          "y": 0
+        },
+        {
+          "x": 10000,
+          "y": 2500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2500.0
+      }
+    },
+    {
+      "id": "wall_v_53",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 2500
+        },
+        {
+          "x": 11500,
+          "y": 4500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_54",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 4500
+        },
+        {
+          "x": 11500,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_55",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 6500
+        },
+        {
+          "x": 11500,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_56",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 7000
+        },
+        {
+          "x": 11500,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_57",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 7500
+        },
+        {
+          "x": 11500,
+          "y": 8250
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 750.0
+      }
+    },
+    {
+      "id": "wall_v_58",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 11500,
+          "y": 8250
+        },
+        {
+          "x": 11500,
+          "y": 9500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 1250.0
+      }
+    },
+    {
+      "id": "wall_v_59",
+      "level_id": "level_1",
+      "kind": "inner",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 13000,
+          "y": 4500
+        },
+        {
+          "x": 13000,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    },
+    {
+      "id": "wall_v_60",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 13000,
+          "y": 6500
+        },
+        {
+          "x": 13000,
+          "y": 7000
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_61",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 13000,
+          "y": 7000
+        },
+        {
+          "x": 13000,
+          "y": 7500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 500.0
+      }
+    },
+    {
+      "id": "wall_v_62",
+      "level_id": "level_1",
+      "kind": "outer",
+      "thickness": 150,
+      "centerline": [
+        {
+          "x": 14500,
+          "y": 4500
+        },
+        {
+          "x": 14500,
+          "y": 6500
+        }
+      ],
+      "height": 2400.0,
+      "metadata": {
+        "exported_length_mm": 2000.0
+      }
+    }
+  ],
+  "spaces": [
+    {
+      "id": "living",
+      "kind": "living_room",
+      "name": "거실",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "x": 1500.0,
+          "y": 0.0
+        },
+        {
+          "x": 6000.0,
+          "y": 0.0
+        },
+        {
+          "x": 6000.0,
+          "y": 2500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 0.0,
+          "y": 4500.0
+        },
+        {
+          "x": 0.0,
+          "y": 2500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "kitchen",
+      "kind": "kitchen",
+      "name": "주방",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 6000.0,
+          "y": 0.0
+        },
+        {
+          "x": 7500.0,
+          "y": 0.0
+        },
+        {
+          "x": 8500.0,
+          "y": 0.0
+        },
+        {
+          "x": 10000.0,
+          "y": 0.0
+        },
+        {
+          "x": 10000.0,
+          "y": 2500.0
+        },
+        {
+          "x": 10000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 7500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 2500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "entrance",
+      "kind": "entrance",
+      "name": "현관",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 10000.0,
+          "y": 2500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 2500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 10000.0,
+          "y": 4500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "balcony_l",
+      "kind": "balcony",
+      "name": "발코니",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 0.0,
+          "y": 4500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 6500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 1500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 1500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 0.0,
+          "y": 9500.0
+        },
+        {
+          "x": 0.0,
+          "y": 8250.0
+        },
+        {
+          "x": 0.0,
+          "y": 7500.0
+        },
+        {
+          "x": 0.0,
+          "y": 7000.0
+        },
+        {
+          "x": 0.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "bed1",
+      "kind": "bedroom",
+      "name": "침실",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 1500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 6500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 7000.0
+        },
+        {
+          "x": 6000.0,
+          "y": 7500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 8250.0
+        },
+        {
+          "x": 6000.0,
+          "y": 9500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 1500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 1500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 1500.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "bath",
+      "kind": "bathroom",
+      "name": "욕실",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 6000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 7500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 6500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 7500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 6000.0,
+          "y": 7000.0
+        },
+        {
+          "x": 6000.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "dress",
+      "kind": "storage",
+      "name": "드레스룸",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 6000.0,
+          "y": 7000.0
+        },
+        {
+          "x": 7500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 7500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 7500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 7500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 9500.0
+        },
+        {
+          "x": 6000.0,
+          "y": 8250.0
+        },
+        {
+          "x": 6000.0,
+          "y": 7500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "shaft",
+      "kind": "unknown",
+      "name": "",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 7500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 8500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 8500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 7500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 7500.0,
+          "y": 7500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "storage_small",
+      "kind": "storage",
+      "name": "창고",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 7500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 8500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 8500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 7500.0,
+          "y": 9500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "bed2",
+      "kind": "bedroom",
+      "name": "침실",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 8500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 10000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 6500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 11500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 11500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 10000.0,
+          "y": 9500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 9500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 8250.0
+        },
+        {
+          "x": 8500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 8500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 8500.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "balcony_r",
+      "kind": "balcony",
+      "name": "발코니",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 11500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 13000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 13000.0,
+          "y": 6500.0
+        },
+        {
+          "x": 13000.0,
+          "y": 7000.0
+        },
+        {
+          "x": 13000.0,
+          "y": 7500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 7500.0
+        },
+        {
+          "x": 11500.0,
+          "y": 7000.0
+        },
+        {
+          "x": 11500.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    },
+    {
+      "id": "ac_room",
+      "kind": "storage",
+      "name": "실외기실",
+      "level_id": "level_1",
+      "boundary": [
+        {
+          "x": 13000.0,
+          "y": 4500.0
+        },
+        {
+          "x": 14500.0,
+          "y": 4500.0
+        },
+        {
+          "x": 14500.0,
+          "y": 6500.0
+        },
+        {
+          "x": 13000.0,
+          "y": 6500.0
+        }
+      ],
+      "metadata": {
+        "boundary_snap": []
+      }
+    }
+  ],
+  "openings": [
+    {
+      "id": "door_1",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_h_8",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 5050.0,
+          "y": 4500
+        },
+        "end": {
+          "x": 5950.0,
+          "y": 4500
+        },
+        "drawn_width_mm": 900.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 900.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_8",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_8",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "door_2",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_h_10",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 7550.0,
+          "y": 4500
+        },
+        "end": {
+          "x": 8450.0,
+          "y": 4500
+        },
+        "drawn_width_mm": 900.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 900.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_10",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_10",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "door_3",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_h_11",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 8550.0,
+          "y": 4500
+        },
+        "end": {
+          "x": 9450.0,
+          "y": 4500
+        },
+        "drawn_width_mm": 900.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 900.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_11",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_11",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "door_4",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_v_40",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 6000,
+          "y": 7000.0
+        },
+        "end": {
+          "x": 6000,
+          "y": 7900.0
+        },
+        "drawn_width_mm": 900.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 900.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_40",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_40",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "door_5",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_v_50",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 8500,
+          "y": 8350.0
+        },
+        "end": {
+          "x": 8500,
+          "y": 9250.0
+        },
+        "drawn_width_mm": 900.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 900.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_50",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_50",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "door_6",
+      "level_id": "level_1",
+      "kind": "door",
+      "host_wall_id": "wall_v_59",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 13000,
+          "y": 4600.0
+        },
+        "end": {
+          "x": 13000,
+          "y": 5400.0
+        },
+        "drawn_width_mm": 800.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 800.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_59",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_59",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "entrance_door_7",
+      "level_id": "level_1",
+      "kind": "entrance_door",
+      "host_wall_id": "wall_v_53",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 11500,
+          "y": 3000.0
+        },
+        "end": {
+          "x": 11500,
+          "y": 4000.0
+        },
+        "drawn_width_mm": 1000.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 1000.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_53",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_53",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_8",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_h_2",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 750.0,
+          "y": 0
+        },
+        "end": {
+          "x": 5250.0,
+          "y": 0
+        },
+        "drawn_width_mm": 4500.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 4500.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_2",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_2",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_9",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_h_4",
+      "height": 1200.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 7400.0,
+          "y": 0
+        },
+        "end": {
+          "x": 8600.0,
+          "y": 0
+        },
+        "drawn_width_mm": 1200.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 1200.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_4",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_4",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_10",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_v_29",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 0,
+          "y": 5500.0
+        },
+        "end": {
+          "x": 0,
+          "y": 8500.0
+        },
+        "drawn_width_mm": 3000.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 3000.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_29",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_29",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "sliding_door_11",
+      "level_id": "level_1",
+      "kind": "sliding_door",
+      "host_wall_id": "wall_v_34",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 1500,
+          "y": 5000.0
+        },
+        "end": {
+          "x": 1500,
+          "y": 9000.0
+        },
+        "drawn_width_mm": 4000.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 4000.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_34",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_34",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "sliding_door_12",
+      "level_id": "level_1",
+      "kind": "sliding_door",
+      "host_wall_id": "wall_v_54",
+      "height": 2100.0,
+      "bottom": 0.0,
+      "span": {
+        "start": {
+          "x": 11500,
+          "y": 4750.0
+        },
+        "end": {
+          "x": 11500,
+          "y": 7250.0
+        },
+        "drawn_width_mm": 2500.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 2500.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_54",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_54",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_13",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_h_18",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 11650.0,
+          "y": 7500
+        },
+        "end": {
+          "x": 12850.0,
+          "y": 7500
+        },
+        "drawn_width_mm": 1200.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 1200.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_18",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_18",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_14",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_v_62",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 14500,
+          "y": 4750.0
+        },
+        "end": {
+          "x": 14500,
+          "y": 6250.0
+        },
+        "drawn_width_mm": 1500.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 1500.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_62",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_v_62",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_15",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_h_21",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 2750.0,
+          "y": 9500
+        },
+        "end": {
+          "x": 4750.0,
+          "y": 9500
+        },
+        "drawn_width_mm": 2000.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 2000.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_21",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_21",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    },
+    {
+      "id": "window_16",
+      "level_id": "level_1",
+      "kind": "window",
+      "host_wall_id": "wall_h_24",
+      "height": 1500.0,
+      "bottom": 900.0,
+      "span": {
+        "start": {
+          "x": 9000.0,
+          "y": 9500
+        },
+        "end": {
+          "x": 11000.0,
+          "y": 9500
+        },
+        "drawn_width_mm": 2000.0
+      },
+      "measurement": {
+        "source": "drawn",
+        "status": "missing",
+        "opening_width_mm": 2000.0
+      },
+      "anchors": {
+        "start": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_24",
+          "endpoint": "start",
+          "distance_mm": 0
+        },
+        "end": {
+          "kind": "endpoint",
+          "wall_id": "wall_h_24",
+          "endpoint": "end",
+          "distance_mm": 0
+        }
+      },
+      "connects": []
+    }
+  ],
+  "wall_groups": [],
+  "finish_groups": [],
+  "asset_requirements": [],
+  "plan": {
+    "id": 1,
+    "version": 1,
+    "name": "Custom_test11"
+  },
+  "levels": [
+    {
+      "id": "level_1",
+      "name": "1층",
+      "elevation": 0.0,
+      "height": 2400.0
+    }
+  ]
+}

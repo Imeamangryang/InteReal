@@ -4,17 +4,18 @@
 
 namespace InteReal::HarnessGenerator
 {
-    inline constexpr float HarnessDefaultWallThicknessCm = 20.0f;
+	// 💡 [수정 사항] 모든 벽 두께의 기본값을 15cm (150mm)로 통일
+    inline constexpr float HarnessDefaultWallThicknessCm = 15.0f;
     inline constexpr float HarnessDefaultWallHeightCm = 300.0f;
     inline constexpr float HarnessFloorSlabThicknessCm = 20.0f;
     inline constexpr float HarnessCoreZSealCm = 2.0f;
     inline constexpr float HarnessSurfaceGapCm = 0.2f;
+    inline constexpr float HarnessWallZFightSeparationCm = 0.5f;
     inline constexpr float HarnessSurfaceVerticalGapCm = 0.25f;
-    inline constexpr float HarnessCeilingShadowOverhangCm = 150.0f;
     inline constexpr float HarnessMergeEndpointToleranceCm = 3.0f;
     inline constexpr float HarnessMergeCollinearTolerance = 0.01f;
     inline constexpr bool bHarnessSurfaceBuildDebug = false;
-
+    
     inline FString MakeHarnessSurfaceToken(const FString& Value)
     {
         FString Token = Value;

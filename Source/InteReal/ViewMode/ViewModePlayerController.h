@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -27,7 +27,13 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Harness|Minimap")
 	void ShowMinimap();
+
 protected:
+	UFUNCTION()
+	void HandlePipelineLoadFinished();
+
+	bool bShouldResetFirstPersonPosition = true;
+
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	

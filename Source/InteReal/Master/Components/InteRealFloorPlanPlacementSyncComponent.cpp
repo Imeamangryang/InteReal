@@ -391,9 +391,11 @@ void UInteRealFloorPlanPlacementSyncComponent::SyncFloorPlan2DFromFurniture(AFur
 
 	const FVector WorldLocation = FurnitureActor->GetMeshBounds().GetCenter();
 	const float WorldYaw = FurnitureActor->GetActorRotation().Yaw;
+	const FVector SizeCm = FurnitureActor->GetCurrentSizeCm();
 
 	SetSyncSource(EInteRealFloorPlanSyncSource::From3D);
 	FloorPlan2DWidget->UpdatePlacedFurnitureByGuid(InstanceGuid, FVector2D(WorldLocation.X, WorldLocation.Y), WorldYaw);
+	FloorPlan2DWidget->UpdatePlacedFurnitureSizeByGuid(InstanceGuid, FVector2D(SizeCm.X, SizeCm.Y));
 	ClearSyncSource(EInteRealFloorPlanSyncSource::From3D);
 }
 

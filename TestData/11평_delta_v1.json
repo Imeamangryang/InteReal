@@ -1,0 +1,1750 @@
+{
+	"furnitureItems": [
+		{
+			"furnitureId": "229",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0.00086654985567678657,
+					"y": -0.00086654985567678701,
+					"z": 0.70710625021374784,
+					"w": 0.70710625021374807
+				},
+				"translation":
+				{
+					"x": -465,
+					"y": 297.03952026367188,
+					"z": 150.95387268066406
+				},
+				"scale3D":
+				{
+					"x": 0.9999542236328125,
+					"y": 0.99999922513961792,
+					"z": 0.9999997615814209
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 62,
+				"y": 15
+			},
+			"dimensions":
+			{
+				"x": 7,
+				"y": 29
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "173",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -124.99999237060547,
+					"y": 60.000011444091797,
+					"z": 1.159466028213501
+				},
+				"scale3D":
+				{
+					"x": 0.99464750289916992,
+					"y": 0.98888939619064331,
+					"z": 0.98730206489562988
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 90,
+				"y": 1
+			},
+			"dimensions":
+			{
+				"x": 19,
+				"y": 10
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "226",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -112.96282196044922,
+					"y": 55.464015960693359,
+					"z": 79.53145599365233
+				},
+				"scale3D":
+				{
+					"x": 0.99481588602066029,
+					"y": 0.99676144123077404,
+					"z": 0.99449199438095082
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 1
+		},
+		{
+			"furnitureId": "227",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -55.243381500244141,
+					"y": 74.707221984863281,
+					"z": 77.553939819335938
+				},
+				"scale3D":
+				{
+					"x": 0.96962821483612061,
+					"y": 0.92476332187652588,
+					"z": 0.96308606863021839
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 1
+		},
+		{
+			"furnitureId": "7",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": -105.14607238769531,
+					"y": 141.8076171875,
+					"z": 0.84200578927993774
+				},
+				"scale3D":
+				{
+					"x": 0.9991905689239502,
+					"y": 0.99330741167068481,
+					"z": 0.99820584058761597
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 98,
+				"y": 11
+			},
+			"dimensions":
+			{
+				"x": 7,
+				"y": 7
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "11",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -294.555419921875,
+					"y": 300.0262451171875,
+					"z": 3.4891810417175293
+				},
+				"scale3D":
+				{
+					"x": 0.99966293573379517,
+					"y": 0.99819403886795044,
+					"z": 0.99240869283676147
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 69,
+				"y": 18
+			},
+			"dimensions":
+			{
+				"x": 24,
+				"y": 24
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "146",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -39.891288757324219,
+					"y": 444.69842529296875,
+					"z": 1.4717273712158203
+				},
+				"scale3D":
+				{
+					"x": 0.99980473518371582,
+					"y": 0.98160934448242188,
+					"z": 0.99586480855941772
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 104,
+				"y": 38
+			},
+			"dimensions":
+			{
+				"x": 6,
+				"y": 13
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "1",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": -379.999755859375,
+					"y": 484.07315063476562,
+					"z": 0.089043401181697845
+				},
+				"scale3D":
+				{
+					"x": 0.98848241567611694,
+					"y": 0.99075508117675781,
+					"z": 0.99379527568817139
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 71,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 6,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "214",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": -0.70710678118654735,
+					"w": 0.70710678118654746
+				},
+				"translation":
+				{
+					"x": -395,
+					"y": 495,
+					"z": 71.197601318359375
+				},
+				"scale3D":
+				{
+					"x": 0.96711444854736328,
+					"y": 0.87895083427429188,
+					"z": 0.96615123748779297
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 7
+		},
+		{
+			"furnitureId": "231",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -7.6665197467758947e-20,
+					"y": -7.6665197467758922e-20,
+					"z": 0.70710678118654735,
+					"w": 0.70710678118654757
+				},
+				"translation":
+				{
+					"x": -495.26385498046875,
+					"y": 566.46533203125,
+					"z": -0.80438601970672607
+				},
+				"scale3D":
+				{
+					"x": 0.65316438674926758,
+					"y": 0.65163505077362061,
+					"z": 0.65330207347869873
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 59,
+				"y": 53
+			},
+			"dimensions":
+			{
+				"x": 6,
+				"y": 7
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "12",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -1085.2037353515625,
+					"y": 498.55157470703125,
+					"z": 1.2402327060699463
+				},
+				"scale3D":
+				{
+					"x": 0.99168962240219116,
+					"y": 0.9940221905708313,
+					"z": 0.9899027943611145
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 1,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 5,
+				"y": 7
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "204",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -1102.1075439453125,
+					"y": 570,
+					"z": 90
+				},
+				"scale3D":
+				{
+					"x": 0.97651875019073486,
+					"y": 0.94899660348892212,
+					"z": 0.99452275037765503
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1,
+				"y": 3.4228541778702493e-08,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "207",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": -990.79364013671875,
+					"y": 479.97808837890625,
+					"z": 44.239273071289062
+				},
+				"scale3D":
+				{
+					"x": 0.99412786960601807,
+					"y": 0.99210494756698608,
+					"z": 0.98240834474563599
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 7,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 11,
+				"y": 4
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "213",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -1000,
+					"y": 468.960693359375,
+					"z": 110
+				},
+				"scale3D":
+				{
+					"x": 0.95462656021118164,
+					"y": 0.9910506010055542,
+					"z": 0.96125346422195435
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "72",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -990,
+					"y": 460.45822143554688,
+					"z": 160
+				},
+				"scale3D":
+				{
+					"x": 0.99965053796768188,
+					"y": 0.99999105930328369,
+					"z": 0.98416179418563843
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 1,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "217",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -864.77362060546875,
+					"y": 565.06976318359375,
+					"z": 0.78928351402282715
+				},
+				"scale3D":
+				{
+					"x": 0.99846792221069336,
+					"y": 0.99324655532836914,
+					"z": 0.69835567474365234
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 20,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 11,
+				"y": 21
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "198",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99999999999999989,
+					"w": 6.123233995736766e-17
+				},
+				"translation":
+				{
+					"x": -729.2991943359375,
+					"y": 260.31716918945312,
+					"z": 94.838973999023438
+				},
+				"scale3D":
+				{
+					"x": 0.9850698709487915,
+					"y": 0.99581921100616455,
+					"z": 0.99915635585784912
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 35,
+				"y": 21
+			},
+			"dimensions":
+			{
+				"x": 8,
+				"y": 10
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "214",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 1,
+					"w": 0
+				},
+				"translation":
+				{
+					"x": -945,
+					"y": 465,
+					"z": 129.08065795898438
+				},
+				"scale3D":
+				{
+					"x": 0.96711444854736317,
+					"y": 0.87895083427429188,
+					"z": 0.96615123748779297
+				}
+			},
+			"surfaceType": 4,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": 13
+		},
+		{
+			"furnitureId": "93",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -450,
+					"y": 474.9959716796875,
+					"z": 0.37708809971809387
+				},
+				"scale3D":
+				{
+					"x": 0.99271833896636963,
+					"y": 0.99801719188690186,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 65,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 4,
+				"y": 3
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "93",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -450,
+					"y": 504.9959716796875,
+					"z": 0.37708809971809387
+				},
+				"scale3D":
+				{
+					"x": 0.99271833896636963,
+					"y": 0.99801719188690186,
+					"z": 1
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 65,
+				"y": 49
+			},
+			"dimensions":
+			{
+				"x": 4,
+				"y": 3
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "94",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -490.00021362304688,
+					"y": 475.0001220703125,
+					"z": 0.33070841431617737
+				},
+				"scale3D":
+				{
+					"x": 0.9926067590713501,
+					"y": 0.99516969919204712,
+					"z": 0.9972112774848938
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 61,
+				"y": 46
+			},
+			"dimensions":
+			{
+				"x": 4,
+				"y": 3
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "105",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -239.99984741210938,
+					"y": 34.106929779052734,
+					"z": 1.07306969165802
+				},
+				"scale3D":
+				{
+					"x": 0.91375911235809326,
+					"y": 0.98404127359390259,
+					"z": 0.99812674522399902
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 86,
+				"y": 1
+			},
+			"dimensions":
+			{
+				"x": 4,
+				"y": 5
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "170",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.70710678118654746,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -747.922119140625,
+					"y": 50,
+					"z": 0
+				},
+				"scale3D":
+				{
+					"x": 0.99936890602111816,
+					"y": 0.9969828724861145,
+					"z": 0.9989553689956665
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1,
+				"y": 3.4228541778702493e-08,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "67",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -329.906494140625,
+					"y": 490.30117797851562,
+					"z": 0.36539357900619507
+				},
+				"scale3D":
+				{
+					"x": 0.98908430337905884,
+					"y": 0.98884731531143188,
+					"z": 0.9913337230682373
+				}
+			},
+			"surfaceType": 1,
+			"gridAnchor":
+			{
+				"x": 77,
+				"y": 47
+			},
+			"dimensions":
+			{
+				"x": 4,
+				"y": 4
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "185",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"w": 1
+				},
+				"translation":
+				{
+					"x": -595,
+					"y": 265,
+					"z": 140.97587585449219
+				},
+				"scale3D":
+				{
+					"x": 0.99345600605010986,
+					"y": 0.99345636367797852,
+					"z": 0.97082489728927612
+				}
+			},
+			"surfaceType": 8,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "17",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": -0,
+					"y": 0,
+					"z": -0.70710678118654757,
+					"w": 0.70710678118654768
+				},
+				"translation":
+				{
+					"x": -409.761962890625,
+					"y": 290,
+					"z": 180
+				},
+				"scale3D":
+				{
+					"x": 0.98359721899032593,
+					"y": 1,
+					"z": 0.98359721899032593
+				}
+			},
+			"surfaceType": 2,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 1,
+				"y": 3.4228541778702493e-08,
+				"z": 0
+			},
+			"parentIndex": -1
+		},
+		{
+			"furnitureId": "185",
+			"transform":
+			{
+				"rotation":
+				{
+					"x": 0,
+					"y": -0,
+					"z": 0.99959771215177051,
+					"w": 0.028362190693711254
+				},
+				"translation":
+				{
+					"x": -225,
+					"y": 215,
+					"z": 140.97587585449219
+				},
+				"scale3D":
+				{
+					"x": 0.99345600605010986,
+					"y": 0.99345636367797852,
+					"z": 0.97082489728927612
+				}
+			},
+			"surfaceType": 8,
+			"gridAnchor":
+			{
+				"x": 0,
+				"y": 0
+			},
+			"dimensions":
+			{
+				"x": 1,
+				"y": 1
+			},
+			"wallNormal":
+			{
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"parentIndex": -1
+		}
+	],
+	"surfaceMaterials": [
+		{
+			"surfaceId": "WallCore_wall_outer_step_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_outer_step_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_outer_bath_bottom_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_outer_bath_bottom_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_hall_left_lower_edge_wall_outer_bath_left_edge_2_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_hall_left_lower_edge_wall_outer_bath_left_edge_2_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_outer_kitchen_bottom_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_outer_kitchen_bottom_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_outer_left_lower_edge_wall_outer_left_upper_edge_2_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_outer_left_lower_edge_wall_outer_left_upper_edge_2_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_bedroom_hall_connector_edge_wall_bedroom_kitchen_edge_2_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_Merge_wall_bedroom_hall_connector_edge_wall_bedroom_kitchen_edge_2_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_kitchen_hall_upper_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_kitchen_hall_upper_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_kitchen_hall_lower_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_kitchen_hall_lower_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_hall_bath_edge_L",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallCore_wall_hall_bath_edge_R",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bedroom_Merge_wall_outer_top_left_edge_wall_outer_top_right_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_outer_top_left_edge_wall_outer_top_right_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bedroom_Merge_wall_outer_upper_right_top_edge_wall_outer_upper_right_bottom_edge_3",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_outer_upper_right_top_edge_wall_outer_upper_right_bottom_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bedroom_Merge_wall_bedroom_hall_connector_edge_twin_wall_bedroom_kitchen_edge_twin_2",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bedroom_wall_outer_left_upper_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_left_upper_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_bedroom_kitchen_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_kitchen_hall_upper_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_kitchen_hall_lower_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_outer_kitchen_bottom_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_kitchen_bottom_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_kitchen_wall_outer_left_lower_edge",
+			"materialPath": "/Game/Assets/Models/Materials/Stucco_Wall_ukmobfecw/Raw/ukmobfecw_tier_0/Materials/MI_ukmobfecw.MI_ukmobfecw",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_left_lower_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_bedroom_hall_connector_edge",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_outer_step_edge",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_step_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_Merge_wall_outer_right_top_edge_wall_outer_right_bottom_edge_3",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_Merge_wall_outer_right_top_edge_wall_outer_right_bottom_edge_3",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_hall_bath_edge_twin",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_hall_left_lower_edge_twin",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_hall_left_lower_edge_twin",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_kitchen_hall_lower_edge_twin",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_hallway_wall_kitchen_hall_upper_edge_twin",
+			"materialPath": "/Game/Fab/Megascans/Surfaces/Stucco_Facade_wfnhfaq/Raw/wfnhfaq_tier_0/Materials/MI_wfnhfaq.MI_wfnhfaq",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_wall_hall_bath_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_wall_outer_bath_right_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_bath_right_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_wall_outer_bath_bottom_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_bath_bottom_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallSurface_bath_wall_outer_bath_left_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "WallExterior_wall_outer_bath_left_edge",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_bedroom",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_SmoothConcreteWall.M_SmoothConcreteWall",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_kitchen",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_SmoothConcreteWall.M_SmoothConcreteWall",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_hallway",
+			"materialPath": "/Game/Assets/Models/Materials/Concrete/M_SituConcrete.M_SituConcrete",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		},
+		{
+			"surfaceId": "FloorFace_bath",
+			"materialPath": "/AnimationSharing/AnimSharingBase.AnimSharingBase",
+			"meshPath": "",
+			"relativeScale":
+			{
+				"x": 1,
+				"y": 1,
+				"z": 1
+			}
+		}
+	]
+}

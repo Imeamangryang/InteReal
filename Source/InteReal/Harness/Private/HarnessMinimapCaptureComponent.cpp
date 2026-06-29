@@ -25,7 +25,8 @@ void UHarnessMinimapCaptureComponent::ApplyStableCaptureSettings()
 
 	bCaptureEveryFrame = false;
 	bCaptureOnMovement = false;
-	PostProcessBlendWeight = 1.0f;
+	PostProcessSettings = FPostProcessSettings();
+	PostProcessBlendWeight = 0.0f;
 
 	ShowFlags.DisableFeaturesForUnlit(false);
 	ShowFlags.DisableAdvancedFeatures();

@@ -5,6 +5,8 @@
 #include "Engine/SkyLight.h"
 #include "EngineUtils.h"
 #include "Components/MeshComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 AEnvController::AEnvController()
 {
@@ -37,9 +39,9 @@ void AEnvController::BeginPlay()
         }
     }
     
-    // 초기 타겟 값 설정
-    TargetSunIntensity = 10000.0f; // 기본 태양 밝기 값 설정
-    TargetSkyIntensity = 1.0f;     // 기본 스카이 밝기 값 설정
+    // 초기 타겟 값 설정 (기본 밝기에 Multiplier를 곱해 Fixed Exposure에서도 타지 않게 함)
+    TargetSunIntensity = 10000.0f * MasterIntensityMultiplier; 
+    TargetSkyIntensity = 1.0f;     
     
     // 1. 컴포넌트를 부모 액터에서 완벽히 분리
     if (WeatherNiagara)
@@ -77,14 +79,14 @@ void AEnvController::BeginPlay()
         // 1. 반사광 배율을 0으로 설정 (Specular Scale)
         SunLight->SetSpecularScale(0.0f);
 
-        // 2. 그림자 얼룩(Shadow Acne) 방지를 위해 기울기 편향을 기본값 수준으로 복구
-        SunLight->SetShadowSlopeBias(0.5f);
+        // 2. 생성 건물의 겹치는 면에서 Shadow Acne가 생기지 않도록 중앙에서 편향값을 관리
+        SunLight->SetShadowSlopeBias(1.0f);
 
-        // 3. 노이즈(Artifact) 유발로 인해 컨택트 섀도 비활성화 유지
-        SunLight->ContactShadowLength = 0.0f;
+        // 3. 접촉 그림자는 짧게만 사용해 모서리 깜빡임을 줄임
+        SunLight->ContactShadowLength = 0.1f;
 
-        // 4. 그림자 시작 지점을 물체에 살짝 당기되 얼룩이 지지 않도록 0.3 설정 (기본값 0.5)
-        SunLight->SetShadowBias(0.3f);
+        // 4. 기본값보다 약간 높은 bias로 z-fighting성 그림자 노이즈 완화
+        SunLight->SetShadowBias(0.7f);
     }
 }
 
@@ -140,7 +142,7 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
     
     // 목표 밝기 계산 
     float AltitudeMultiplier = (Altitude > 0) ? 1.0f : 0.05f;
-    // Clear가 아니면 밝기를 20% 수준으로 낮
+    // Clear가 아니면 밝기를 20% 수준으로 낮춤
     float WeatherContrast = (CurrentWeatherID == FName("Clear")) ? 1.0f : 0.2f;
     
     if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();
@@ -203,12 +205,35 @@ void AEnvController::HandleWeatherChange(FName WeatherID)
         WeatherNiagara->Deactivate();
     }
 
+    // 비 소리 로직 -------------
+    USoundBase* TargetRainSound = nullptr;
+    if (WeatherID == FName("Rainy")) TargetRainSound = RainSound;
+    else if (WeatherID == FName("Stormy")) TargetRainSound = StormRainSound;
+
+    // 다른 날씨로 바뀌거나 사운드가 변경될 때 기존 소리 중지
+    if (RainAudioComponent && RainAudioComponent->GetSound() != TargetRainSound)
+    {
+        RainAudioComponent->Stop();
+        RainAudioComponent->DestroyComponent();
+        RainAudioComponent = nullptr;
+    }
+
+    // 새로운 비 소리 재생 : 즉시 재생 대신 지연 재생 함수 호출
+    if (TargetRainSound && !RainAudioComponent)
+    {
+        PendingRainSound = TargetRainSound;
+        // 0.5초 후 DelayedPlayRainSound 함수를 실행
+        GetWorldTimerManager().SetTimer(RainSoundDelayHandle, this, &AEnvController::DelayedPlayRainSound, 0.5f, false);
+    }
+    
     // 번개 타이머 제어
     if (WeatherID == FName("Stormy")) {
         GetWorldTimerManager().SetTimer(LightningTimerHandle, this, &AEnvController::TriggerRandomLightning, FMath::RandRange(2.0f, 5.0f), true);
     } else {
         GetWorldTimerManager().ClearTimer(LightningTimerHandle);
     }
+    
+    
 }
 void AEnvController::TriggerRandomLightning()
 {
@@ -249,7 +274,7 @@ void AEnvController::TriggerRandomLightning()
             PL->SetVisibility(true);
             
             PL->SetSpecularScale(0.0f);
-            PL->SetShadowSlopeBias(0.0f);
+            PL->SetShadowSlopeBias(1.0f);
         }
 
         // 0.1 ~ 0.2초 사이의 랜덤한 시간으로 설정
@@ -261,6 +286,14 @@ void AEnvController::TriggerRandomLightning()
             if(PL) PL->SetVisibility(false);
         }, RandomDuration, false);
     }
+    
+    // ------------- 천둥 소리 재생 -------------
+    if (ThunderSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, ThunderSound, GetActorLocation());
+    }
+    
+    
     // 전체 하늘 번쩍임
     if (LightningLight) 
     {
@@ -312,5 +345,18 @@ void AEnvController::UpdateBuildingMask()
 
         WeatherNiagara->SetVariableVec3(FName("BuildingCenter"), Center);
         WeatherNiagara->SetVariableVec3(FName("BuildingExtent"), Extent);
+    }
+}
+
+void AEnvController::DelayedPlayRainSound()
+{
+    if (PendingRainSound)
+    {
+        RainAudioComponent = UGameplayStatics::SpawnSoundAtLocation(this, PendingRainSound, GetActorLocation());
+        if (RainAudioComponent) 
+        {
+            RainAudioComponent->bAutoDestroy = true;
+        }
+        PendingRainSound = nullptr;
     }
 }
