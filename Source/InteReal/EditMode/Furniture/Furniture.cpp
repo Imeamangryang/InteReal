@@ -2,8 +2,10 @@
 #include "Engine/PostProcessVolume.h"
 #include "EngineUtils.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "InteReal/EditMode/Gizmo/InteRealGizmoComponent.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "LightFixture.h"
+#include "PhysicsEngine/AggregateGeom.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
 {
@@ -37,6 +39,10 @@ void AFurniture::SetMeshesCustomDepth(bool bEnabled, int32 StencilValue)
 	GetComponents<UMeshComponent>(Meshes);
 	for (UMeshComponent* Mesh : Meshes)
 	{
+		if (GizmoComponent && GizmoComponent->OwnsGizmoComponent(Mesh))
+		{
+			continue;
+		}
 		Mesh->SetRenderCustomDepth(bEnabled);
 		Mesh->SetCustomDepthStencilValue(StencilValue);
 	}
@@ -48,7 +54,48 @@ void AFurniture::SetMeshesVisibilityCollision(ECollisionResponse Response)
 	GetComponents<UMeshComponent>(Meshes);
 	for (UMeshComponent* Mesh : Meshes)
 	{
+		if (GizmoComponent && GizmoComponent->OwnsGizmoComponent(Mesh))
+		{
+			continue;
+		}
 		Mesh->SetCollisionResponseToChannel(ECC_Visibility, Response);
+	}
+}
+
+FBox AFurniture::GetVisualBounds() const
+{
+	FBox Bounds(EForceInit::ForceInit);
+	TArray<UPrimitiveComponent*> Components;
+	GetComponents<UPrimitiveComponent>(Components);
+	for (const UPrimitiveComponent* Component : Components)
+	{
+		if (!Component || (GizmoComponent && GizmoComponent->OwnsGizmoComponent(Component)))
+		{
+			continue;
+		}
+		Bounds += Component->Bounds.GetBox();
+	}
+	return Bounds.IsValid ? Bounds : GetComponentsBoundingBox(true);
+}
+
+static void ApplyFurniturePawnCollision(AFurniture* Furniture)
+{
+	if (!Furniture)
+	{
+		return;
+	}
+
+	const bool bBlocksPawn = Furniture->ActorHasTag(TEXT("WindowAsset"));
+	TArray<UPrimitiveComponent*> Components;
+	Furniture->GetComponents<UPrimitiveComponent>(Components);
+	for (UPrimitiveComponent* Component : Components)
+	{
+		if (!Component)
+		{
+			continue;
+		}
+		Component->SetCollisionObjectType(bBlocksPawn ? ECC_WorldStatic : ECC_WorldDynamic);
+		Component->SetCollisionResponseToChannel(ECC_Pawn, bBlocksPawn ? ECR_Block : ECR_Ignore);
 	}
 }
 
@@ -60,6 +107,7 @@ AFurniture::AFurniture()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	RootComponent = MeshComponent;
 	MeshComponent->bReceivesDecals = false;
+	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 
 	CollisionBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
@@ -69,6 +117,9 @@ AFurniture::AFurniture()
 	CollisionBoxComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionBoxComponent->SetHiddenInGame(true);
+
+	GizmoComponent = CreateDefaultSubobject<UInteRealGizmoComponent>(TEXT("GizmoComponent"));
+	GizmoComponent->SetupAttachment(MeshComponent);
 	
 	LightComponent = CreateDefaultSubobject<UPointLightComponent>(TEXT("LightComponent"));
 	LightComponent->SetupAttachment(MeshComponent);
@@ -108,6 +159,7 @@ void AFurniture::SetPlacementState(EPlacementState NewState)
 			CollisionBoxComponent->SetHiddenInGame(true);
 			CollisionBoxComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 			SetMeshesVisibilityCollision(ECR_Block);
+			ApplyFurniturePawnCollision(this);
 			SetMeshesCustomDepth(false, 0);
 			UpdatePostProcessOutlineColor(GetWorld(), FLinearColor(1.f, 1.f, 1.f, 1.f), PlacedOutlineThickness);
 			break;
@@ -261,11 +313,12 @@ void AFurniture::SetTargetSizeCm(FVector InSizeCm)
 	AlignPlacementBottomCenterTo(FVector(PrevCenter.X, PrevCenter.Y, PrevMinZ), PrevMinZ);
 }
 
-TSubclassOf<AFurniture> AFurniture::ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass)
+TSubclassOf<AFurniture> AFurniture::ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass,
+	TSubclassOf<ALightFixture> LightFixtureClassOverride)
 {
 	if (Row.Category == EFurnitureAssetCategory::Lighting)
 	{
-		return ALightFixture::StaticClass();
+		return LightFixtureClassOverride ? TSubclassOf<AFurniture>(LightFixtureClassOverride) : TSubclassOf<AFurniture>(ALightFixture::StaticClass());
 	}
 	return DefaultClass;
 }
@@ -397,3 +450,86 @@ void AFurniture::SetRotationPreservingPlacement(const FRotator& NewRotation)
 	AddActorWorldOffset(Offset);
 }
 
+static void AddBoxFootprintPoints(const FKBoxElem& BoxElem, TArray<FVector2D>& OutPoints)
+{
+	const FVector Center = BoxElem.Center;
+	const FVector Extent(BoxElem.X * 0.5f, BoxElem.Y * 0.5f, BoxElem.Z * 0.5f);
+	const FQuat Rotation = BoxElem.Rotation.Quaternion();
+
+	const FVector LocalCorners[4] = {
+		FVector(-Extent.X, -Extent.Y, 0.0f),
+		FVector(Extent.X, -Extent.Y, 0.0f),
+		FVector(Extent.X, Extent.Y, 0.0f),
+		FVector(-Extent.X, Extent.Y, 0.0f)
+	};
+
+	for (const FVector& Corner : LocalCorners)
+	{
+		const FVector P = Center + Rotation.RotateVector(Corner);
+		OutPoints.Add(FVector2D(P.X, P.Y));
+	}
+}
+
+static void AddSphereFootprintPoints(const FKSphereElem& SphereElem, TArray<FVector2D>& OutPoints)
+{
+	constexpr int32 SegmentCount = 20;
+	for (int32 Index = 0; Index < SegmentCount; ++Index)
+	{
+		const float Angle = 2.0f * PI * static_cast<float>(Index) / static_cast<float>(SegmentCount);
+		OutPoints.Add(FVector2D(SphereElem.Center.X + FMath::Cos(Angle) * SphereElem.Radius, SphereElem.Center.Y + FMath::Sin(Angle) * SphereElem.Radius));
+	}
+}
+
+static void AddConvexFootprintPoints(const FKConvexElem& ConvexElem, TArray<FVector2D>& OutPoints)
+{
+	for (const FVector& Vertex : ConvexElem.VertexData)
+	{
+		OutPoints.Add(FVector2D(Vertex.X, Vertex.Y));
+	}
+}
+
+void AFurniture::GetCollisionFootprint2D(TArray<FVector2D>& OutLocalPoints) const
+{
+	OutLocalPoints.Reset();
+
+	const UStaticMesh* StaticMesh = MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	const UBodySetup* BodySetup = StaticMesh ? StaticMesh->GetBodySetup() : nullptr;
+	if (!BodySetup || BodySetup->AggGeom.GetElementCount() <= 0)
+	{
+		const FBox Bounds = PlacementLocalBounds.IsValid ? PlacementLocalBounds : StaticMesh ? StaticMesh->GetBounds().GetBox() : FBox(EForceInit::ForceInit);
+		if (Bounds.IsValid)
+		{
+			const FVector2D HalfSize(Bounds.GetExtent().X, Bounds.GetExtent().Y);
+			OutLocalPoints.Add(FVector2D(-HalfSize.X, -HalfSize.Y));
+			OutLocalPoints.Add(FVector2D(HalfSize.X, -HalfSize.Y));
+			OutLocalPoints.Add(FVector2D(HalfSize.X, HalfSize.Y));
+			OutLocalPoints.Add(FVector2D(-HalfSize.X, HalfSize.Y));
+		}
+		return;
+	}
+
+	for (const FKBoxElem& BoxElem : BodySetup->AggGeom.BoxElems)
+	{
+		AddBoxFootprintPoints(BoxElem, OutLocalPoints);
+	}
+
+	for (const FKSphereElem& SphereElem : BodySetup->AggGeom.SphereElems)
+	{
+		AddSphereFootprintPoints(SphereElem, OutLocalPoints);
+	}
+
+	for (const FKConvexElem& ConvexElem : BodySetup->AggGeom.ConvexElems)
+	{
+		AddConvexFootprintPoints(ConvexElem, OutLocalPoints);
+	}
+
+	if (OutLocalPoints.Num() == 0)
+	{
+		const FBox Bounds = PlacementLocalBounds.IsValid ? PlacementLocalBounds : StaticMesh->GetBounds().GetBox();
+		const FVector2D HalfSize(Bounds.GetExtent().X, Bounds.GetExtent().Y);
+		OutLocalPoints.Add(FVector2D(-HalfSize.X, -HalfSize.Y));
+		OutLocalPoints.Add(FVector2D(HalfSize.X, -HalfSize.Y));
+		OutLocalPoints.Add(FVector2D(HalfSize.X, HalfSize.Y));
+		OutLocalPoints.Add(FVector2D(-HalfSize.X, HalfSize.Y));
+	}
+}

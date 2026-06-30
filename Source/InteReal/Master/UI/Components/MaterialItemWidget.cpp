@@ -32,11 +32,11 @@ void UMaterialItemWidget::SetupMaterialItem(const FName& InRowName, const FMater
 
 void UMaterialItemWidget::HandleDisplayButtonClicked()
 {
-	if (UGameInstance* GameInstance = GetGameInstance())
+	if (UGameInstance* GI = GetGameInstance())
 	{
-		if (UInteRealUISubSystem* UISubsystem = GameInstance->GetSubsystem<UInteRealUISubSystem>())
+		if (UInteRealUISubSystem* UISubsystem = GI->GetSubsystem<UInteRealUISubSystem>())
 		{
-			UISubsystem->NotifyWallMaterialChanged(MaterialData.Material);
+			UISubsystem->NotifyWallMaterialDataChanged(MaterialData);
 		}
-	} 
+	}
 }

@@ -781,12 +781,13 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
         OpeningComp->ComponentTags.AddUnique(FName(*FString::Printf(TEXT("Opening_%s"), *Opening.id)));
         OpeningComp->ComponentTags.AddUnique(FName(TEXT("EditableOpening")));
         OpeningComp->ComponentTags.AddUnique(FName(TEXT("OpeningAsset")));
-        OpeningComp->ComponentTags.AddUnique(IsWindowOpening(Opening) ? FName(TEXT("WindowAsset")) : FName(TEXT("DoorAsset")));
+        const bool bIsWindow = IsWindowOpening(Opening);
+        OpeningComp->ComponentTags.AddUnique(bIsWindow ? FName(TEXT("WindowAsset")) : FName(TEXT("DoorAsset")));
 
         OpeningComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-        OpeningComp->SetCollisionObjectType(ECC_WorldDynamic);
+        OpeningComp->SetCollisionObjectType(bIsWindow ? ECC_WorldStatic : ECC_WorldDynamic);
         OpeningComp->SetCollisionResponseToAllChannels(ECR_Block);
-        OpeningComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+        OpeningComp->SetCollisionResponseToChannel(ECC_Pawn, bIsWindow ? ECR_Block : ECR_Ignore);
         OpeningComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
         OpeningComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
         OpeningComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);

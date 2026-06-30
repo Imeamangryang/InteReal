@@ -9,6 +9,7 @@
 #include "InteReal/EditMode/UI/EditModeToolbarWidget.h"
 #include "InteReal/EditMode/UI/FurnitureSizePanelWidget.h"
 #include "InteReal/EditMode/UI/Lights/LightAttributesPanelWidget.h"
+#include "InteReal/Master/UI/SubWidgets/MaterialAttributesPanelWidget.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteRealPlayerController.h"
 #include "InteRealHUD.generated.h"
@@ -138,6 +139,21 @@ public:
 	UPROPERTY()
 	TObjectPtr<ULightAttributesPanelWidget> LightAttributesPanelInstance = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|UI")
+	TSubclassOf<UMaterialAttributesPanelWidget> MaterialAttributesPanelWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialAttributesPanelWidget> MaterialAttributesPanelInstance = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
+	void ShowMaterialAttributesPanel(bool bVisible);
+
+	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
+	void RefreshMaterialAttributesPanel(const FMaterialDataRow& MaterialData);
+	
+	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
+	void ResetMaterialAttributesPanel();
+	
 	// Furniture가 ALightFixture가 아니거나 nullptr이면 패널을 숨기고, 맞으면 보여주면서 RefreshForFurniture를 호출한다
 	UFUNCTION(BlueprintCallable, Category = "EditMode|UI")
 	void ShowLightAttributesPanel(AFurniture* Furniture);

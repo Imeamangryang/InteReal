@@ -186,7 +186,18 @@ void UInteRealPlanViewModel::SaveCurrentStateAsNewVersion(const FString& DeltaJs
     SetIsBusy(true);
     FOnDeltaSaved Delegate;
     Delegate.BindDynamic(this, &UInteRealPlanViewModel::OnDeltaSaved);
-    Network->SaveDeltaAsNewVersion(CurrentPlan.id, DeltaJson, Delegate, FMath::Max(GetActiveVersion(), 1));
+    
+    int32 MaxVersion = 0;
+    for (const FUnrealDeltaVersionItem& Item : DeltaVersionList.items)
+    {
+        if (Item.version > MaxVersion)
+        {
+            MaxVersion = Item.version;
+        }
+    }
+    int32 NextVersion = FMath::Max(MaxVersion + 1, 1);
+
+    Network->SaveDeltaAsNewVersion(CurrentPlan.id, DeltaJson, Delegate, NextVersion);
 }
 
 void UInteRealPlanViewModel::CompareVersions()

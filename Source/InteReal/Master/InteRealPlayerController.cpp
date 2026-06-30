@@ -1,27 +1,22 @@
 ﻿#include "InteRealPlayerController.h"
 #include "InteRealHUD.h"
-#include "InteReal/EditMode/UI/RotationGuideWidget.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Gizmo/InteRealGizmoActor.h"
+#include "InteReal/EditMode/Gizmo/InteRealGizmoComponent.h"
 #include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
-#include "Components/BoxComponent.h"
 #include "CollisionShape.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Overlay.h"
-#include "Public/HarnessCaptureMinimapWidget.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "InteReal/SubSystems/InteRealUISubSystem.h"
 #include "Engine/GameInstance.h"
-#include "Components/DynamicMeshComponent.h"
 #include "Components/InteRealFloorPlanPlacementSyncComponent.h"
 #include "Components/MeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -33,8 +28,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "UI/SubWidgets/EditModeLayoutWidget.h"
 #include "Widgets/SViewport.h"
-
-static FVector GetGizmoAnchorLocation(const AFurniture* Furniture);
+#include "Engine/Texture2D.h"
 
 static bool IsOpeningAssetRowForReplacement(const FFurnitureDataRow& Row)
 {
@@ -49,7 +43,7 @@ static bool IsOpeningAssetRowForReplacement(const FFurnitureDataRow& Row)
 		Label.Contains(TEXT("문")) ||
 		Label.Contains(TEXT("창")) ||
 		Label.Contains(TEXT("현관")) ||
-		Label.Contains(TEXT("미닫")) ||
+		Label.Contains(TEXT("미닫이")) ||
 		Label.Contains(TEXT("슬라이딩"));
 }
 
@@ -168,8 +162,8 @@ static FVector ResolveFirstPersonSafeLocation(UWorld* World, const APawn* Pawn, 
 		return DesiredLocation;
 	}
 
-	// 천장이 낮은 내부 공간에서는 XY를 먼저 밀면 건물 밖 후보가 선택될 수 있으므로,
-	// 같은 내부 좌표에서 Z를 먼저 낮춰 캡슐 상단이 천장과 겹치지 않는 높이를 찾는다.
+	// 천장????? ?��? 공간?�서??XY�?먼�? 밀�?건물 �??�보가 ?�택?????�으므�?
+	// 같�? ?��? 좌표?�서 Z�?먼�? ??�� 캡슐 ?�단??천장�?겹치지 ?�는 ?�이�?찾는??
 	for (float LowerOffset = 10.0f; LowerOffset <= 80.0f; LowerOffset += 10.0f)
 	{
 		FVector LoweredLocation = DesiredLocation;
@@ -249,8 +243,9 @@ void AInteRealPlayerController::BeginPlay()
 		{
 			UISubsystem->OnModeChanged.AddDynamic(this, &AInteRealPlayerController::HandleModeChanged);
 			UISubsystem->OnFurnitureSpawn.AddDynamic(this, &AInteRealPlayerController::HandleFurnitureSpawn);
-			UISubsystem->OnWallMaterialChanged.AddDynamic(this, &AInteRealPlayerController::HandleWallMaterialChanged);
 			UISubsystem->OnIconClicked.AddDynamic(this, &AInteRealPlayerController::HandleIconClicked);
+			UISubsystem->OnWallMaterialDataChanged.RemoveDynamic(this, &AInteRealPlayerController::HandleWallMaterialDataChanged);
+			UISubsystem->OnWallMaterialDataChanged.AddDynamic(this, &AInteRealPlayerController::HandleWallMaterialDataChanged);
 		}
 	}
 
@@ -278,7 +273,7 @@ void AInteRealPlayerController::BeginPlay()
 		SetViewMode(EHarnessViewMode::Isometric);
 	}
 
-	// ★ BeginPlay에서 LayoutWidget 바인딩 + 초기 오프셋 적용
+	// ??BeginPlay?�서 LayoutWidget 바인??+ 초기 ?�프???�용
 	if (AInteRealHUD* HUD = GetInteRealHUD())
 	{
 		if (UEditModeLayoutWidget* LayoutWidget = HUD->EditModeLayoutWidgetInstance)
@@ -288,7 +283,7 @@ void AInteRealPlayerController::BeginPlay()
 			LayoutWidget->OnFloorPlanPanelOpenChanged.AddDynamic(
 				this, &AInteRealPlayerController::HandleFloorPlanPanelOpenChanged);
 
-			// 초기 패널 상태 즉시 적용
+			// 초기 ?�널 ?�태 즉시 ?�용
 			HandleFloorPlanPanelOpenChanged(LayoutWidget->IsFloorPlanPanelOpen());
 		}
 	}
@@ -398,7 +393,7 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 		}
 	}
 
-	if (SpawnedGizmo)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
 		if (PlayerCameraManager)
 		{
@@ -406,31 +401,25 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 				CachedViewModeManager &&
 				CachedViewModeManager->GetCurrentViewMode() == EHarnessViewMode::FirstPerson;
 
-			if (SelectedFurniture)
-			{
-				SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
-			}
-
-			SpawnedGizmo->UpdateConstantScreenSize(
+			Gizmo->UpdateConstantScreenSize(
 				this,
 				bFirstPersonGizmo ? FirstPersonGizmoScaleMultiplier : 1.0f);
 		}
 
-		if (!SpawnedGizmo->IsDragging())
+		if (!Gizmo->IsDragging())
 		{
-			SpawnedGizmo->UpdateHover(bIsHitting, LastCursorHit);
+			Gizmo->UpdateHover(bIsHitting, LastCursorHit);
 		}
 	}
 
-	if (SpawnedGizmo && SpawnedGizmo->IsDragging() && SelectedFurniture)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent(); Gizmo && Gizmo->IsDragging() && SelectedFurniture)
 	{
 		FVector WorldOrigin, WorldDir;
 		DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 		FVector2D MousePos;
 		GetMousePosition(MousePos.X, MousePos.Y);
-		SpawnedGizmo->UpdateDrag(SelectedFurniture, WorldOrigin, WorldDir, GetPlacementSubsystem(), IsInputKeyDown(EKeys::LeftControl), MousePos);
-		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
-		if (FloorPlanPlacementSyncComponent)
+		const bool bChanged = Gizmo->UpdateDrag(WorldOrigin, WorldDir, GetPlacementSubsystem(), IsInputKeyDown(EKeys::LeftControl), MousePos);
+		if (bChanged && FloorPlanPlacementSyncComponent)
 		{
 			FloorPlanPlacementSyncComponent->SyncFloorPlan2DFromFurniture(SelectedFurniture);
 		}
@@ -440,7 +429,7 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 			if (bIsGizmoRotationWidgetActive)
 			{
 				InteRealHUD->UpdateRotationGuideForInput(
-					SpawnedGizmo->GetCurrentRotationDeltaDegrees());
+					Gizmo->GetCurrentRotationDeltaDegrees());
 			}
 		}
 		return;
@@ -455,9 +444,9 @@ void AInteRealPlayerController::Tick(float DeltaTime)
 	if (bIsMovingFurniture && SelectedFurniture && PS2)
 	{
 		PS2->UpdateGizmoMoveFree(CurrentCursorWorldLoc + MoveDragOffset, SelectedFurniture);
-		if (SpawnedGizmo)
+		if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 		{
-			SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+			Gizmo->UpdateAnchorFromOwner();
 		}
 		if (FloorPlanPlacementSyncComponent)
 		{
@@ -624,7 +613,7 @@ void AInteRealPlayerController::HandleModeChanged(bool bIsEditMode)
 	{
 		SetControlMode(EInteRealControlMode::Edit);
 
-		// ★ LayoutWidget 델리게이트 바인딩
+		// ??LayoutWidget ?�리게이??바인??
 		if (AInteRealHUD* HUD = GetInteRealHUD())
 		{
 			if (UEditModeLayoutWidget* LayoutWidget = HUD->EditModeLayoutWidgetInstance)
@@ -634,7 +623,7 @@ void AInteRealPlayerController::HandleModeChanged(bool bIsEditMode)
 				LayoutWidget->OnFloorPlanPanelOpenChanged.AddDynamic(
 					this, &AInteRealPlayerController::HandleFloorPlanPanelOpenChanged);
 
-				// 이미 열려있으면 즉시 적용
+				// ?��? ?�려?�으�?즉시 ?�용
 				HandleFloorPlanPanelOpenChanged(LayoutWidget->IsFloorPlanPanelOpen());
 			}
 		}
@@ -643,7 +632,7 @@ void AInteRealPlayerController::HandleModeChanged(bool bIsEditMode)
 	{
 		SetControlMode(EInteRealControlMode::View);
 
-		// ★ View 모드로 돌아갈 때도 패널 상태 반영
+		// ??View 모드�??�아�??�도 ?�널 ?�태 반영
 		if (AInteRealHUD* HUD = GetInteRealHUD())
 		{
 			if (UEditModeLayoutWidget* LayoutWidget = HUD->EditModeLayoutWidgetInstance)
@@ -671,9 +660,9 @@ void AInteRealPlayerController::HandleFurnitureSpawn(FFurnitureDataRow Furniture
 	StartFurniturePlacement(FurnitureData);
 }
 
-void AInteRealPlayerController::HandleWallMaterialChanged(UMaterialInterface* NewMaterial)
+void AInteRealPlayerController::HandleWallMaterialDataChanged(FMaterialDataRow MaterialData)
 {
-	ApplyMaterialToSelectedSurface(NewMaterial);
+	ApplyMaterialDataToSelectedSurface(MaterialData);
 }
 
 void AInteRealPlayerController::HandlePipelineLoadFinished()
@@ -701,6 +690,34 @@ void AInteRealPlayerController::SelectSurface(UMeshComponent* SurfaceComponent)
 		SelectedSurfaceComponent->SetRenderCustomDepth(true);
 		SelectedSurfaceComponent->SetCustomDepthStencilValue(1);
 	}
+
+	const bool bCanEditMaterial =
+		SelectedSurfaceComponent &&
+		(
+			SelectedSurfaceComponent->ComponentHasTag(TEXT("EditableWall")) ||
+			SelectedSurfaceComponent->ComponentHasTag(TEXT("EditableFloor")) ||
+			SelectedSurfaceComponent->ComponentHasTag(TEXT("Floor"))
+		);
+
+	if (AInteRealHUD* HUD = GetInteRealHUD())
+	{
+		HUD->ShowFurnitureSizePanel(nullptr);
+		HUD->ShowLightAttributesPanel(nullptr);
+		HUD->ShowMaterialAttributesPanel(bCanEditMaterial);
+
+		if (bCanEditMaterial)
+		{
+			FMaterialDataRow SurfaceMaterialData;
+			if (TryGetSurfaceMaterialData(SelectedSurfaceComponent, SurfaceMaterialData))
+			{
+				HUD->RefreshMaterialAttributesPanel(SurfaceMaterialData);
+			}
+			else
+			{
+				HUD->ResetMaterialAttributesPanel();
+			}
+		}
+	}
 }
 
 void AInteRealPlayerController::DeselectSurface()
@@ -710,23 +727,55 @@ void AInteRealPlayerController::DeselectSurface()
 		SelectedSurfaceComponent->SetRenderCustomDepth(false);
 		SelectedSurfaceComponent = nullptr;
 	}
+
+	if (AInteRealHUD* HUD = GetInteRealHUD())
+	{
+		HUD->ShowMaterialAttributesPanel(false);
+	}
 }
 
-void AInteRealPlayerController::ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial)
-{
-	ApplyMaterialToSelectedSurface(NewMaterial);
-}
-
-void AInteRealPlayerController::ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial)
+void AInteRealPlayerController::ApplyMaterialDataToSelectedSurface(const FMaterialDataRow& MaterialData)
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
 	if (!SelectedSurfaceComponent) return;
-	if (!NewMaterial) return;
+	if (!SurfaceMasterMaterial) return;
 
-	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
-		PS->RecordUndoSnapshot();
+	FMaterialDataRow AppliedMaterialData = MaterialData;
 
-	SelectedSurfaceComponent->SetMaterial(0, NewMaterial);
+	FMaterialDataRow ExistingMaterialData;
+	if (!AppliedMaterialData.DisplayImage && TryGetSurfaceMaterialData(SelectedSurfaceComponent, ExistingMaterialData))
+	{
+		AppliedMaterialData.DisplayImage = ExistingMaterialData.DisplayImage;
+	}
+
+	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem()) PS->RecordUndoSnapshot();
+
+	UMaterialInstanceDynamic* SurfaceMID = Cast<UMaterialInstanceDynamic>(SelectedSurfaceComponent->GetMaterial(0));
+	if (!SurfaceMID)
+	{
+		SurfaceMID = UMaterialInstanceDynamic::Create(SurfaceMasterMaterial, this);
+		if (!SurfaceMID) return;
+
+		SelectedSurfaceComponent->SetMaterial(0, SurfaceMID);
+	}
+
+	if (AppliedMaterialData.DisplayImage)
+	{
+		SurfaceMID->SetTextureParameterValue(TEXT("BaseColorTexture"), AppliedMaterialData.DisplayImage);
+	}
+
+	SurfaceMID->SetScalarParameterValue(TEXT("Metallic"), AppliedMaterialData.Metallic);
+	SurfaceMID->SetScalarParameterValue(TEXT("Metalic"), AppliedMaterialData.Metallic);
+	SurfaceMID->SetScalarParameterValue(TEXT("Specular"), AppliedMaterialData.Specular);
+	SurfaceMID->SetScalarParameterValue(TEXT("Roughness"), AppliedMaterialData.Roughness);
+	SurfaceMID->SetScalarParameterValue(TEXT("Emissive"), AppliedMaterialData.Emissive);
+
+	StoreSurfaceMaterialData(SelectedSurfaceComponent, AppliedMaterialData);
+
+	if (AInteRealHUD* HUD = GetInteRealHUD())
+	{
+		HUD->RefreshMaterialAttributesPanel(AppliedMaterialData);
+	}
 }
 
 void AInteRealPlayerController::ApplyCurrentControlMode()
@@ -743,6 +792,7 @@ void AInteRealPlayerController::ApplyCurrentControlMode()
 		{
 			if (PS->HasActivePreview()) PS->CancelPreview();
 			PS->SetGridVisible(false);
+			PS->SetLightFixtureIconsEditModeActive(false);
 		}
 
 		if (FloorPlanPlacementSyncComponent)
@@ -753,6 +803,7 @@ void AInteRealPlayerController::ApplyCurrentControlMode()
 	else if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
 	{
 		PS->SetGridVisible(bGridVisible);
+		PS->SetLightFixtureIconsEditModeActive(true);
 	}
 
 	if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
@@ -846,33 +897,42 @@ UInteriorPlacementSubsystem* AInteRealPlayerController::GetPlacementSubsystem() 
 	return GetWorld() ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>() : nullptr;
 }
 
-// 트레이스 결과는 거리순이므로 화면상 가장 앞에 있는 기즈모 요소를 선택한다.
+// ?�레?�스 결과??거리?�이므�??�면??가???�에 ?�는 기즈�??�소�??�택?�다.
 static bool IsRotateGizmoTag(const FString& Tag)
 {
 	return Tag.StartsWith(TEXT("Rotate")) || Tag == TEXT("RotationRing");
 }
 
-static FVector GetGizmoAnchorLocation(const AFurniture* Furniture)
+static void AddSelectedFurnitureNonGizmoIgnoredComponents(FCollisionQueryParams& Params,
+                                                          const AFurniture* Furniture,
+                                                          const UInteRealGizmoComponent* Gizmo)
 {
 	if (!Furniture)
 	{
-		return FVector::ZeroVector;
+		return;
 	}
 
-	const FBox VisualBounds = Furniture->GetVisualBounds();
-	return VisualBounds.IsValid ? VisualBounds.GetCenter() : Furniture->GetActorLocation();
+	TArray<UPrimitiveComponent*> Components;
+	Furniture->GetComponents<UPrimitiveComponent>(Components);
+	for (UPrimitiveComponent* Component : Components)
+	{
+		if (Component && (!Gizmo || !Gizmo->OwnsGizmoComponent(Component)))
+		{
+			Params.AddIgnoredComponent(Component);
+		}
+	}
 }
 
-static bool SelectGizmoHit(const TArray<FHitResult>& Hits, const AActor* Gizmo, FHitResult& OutHit)
+static bool SelectGizmoHit(const TArray<FHitResult>& Hits, const UInteRealGizmoComponent* Gizmo, FHitResult& OutHit)
 {
+	if (!Gizmo)
+	{
+		return false;
+	}
+
 	for (const FHitResult& Hit : Hits)
 	{
-		if (Hit.GetActor() != Gizmo) continue;
-		const UPrimitiveComponent* Comp = Hit.GetComponent();
-		if (!Comp) continue;
-
-		const FString AxisTag = AInteRealGizmoActor::GetAxisTagFromComponent(Comp);
-		if (!AxisTag.IsEmpty())
+		if (!Gizmo->GetAxisTagFromHit(Hit).IsEmpty())
 		{
 			OutHit = Hit;
 			return true;
@@ -894,9 +954,16 @@ void AInteRealPlayerController::UpdateCursorHit()
 		Params.AddIgnoredActor(P);
 		Params.AddIgnoredActor(SelectedFurniture);
 		
-		if (SpawnedGizmo)
+		if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 		{
 			DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+
+			FCollisionQueryParams GizmoParams(NAME_None, true);
+			if (P)
+			{
+				GizmoParams.AddIgnoredActor(P);
+			}
+			AddSelectedFurnitureNonGizmoIgnoredComponents(GizmoParams, SelectedFurniture, Gizmo);
 
 			TArray<FHitResult> Hits;
 			GetWorld()->LineTraceMultiByChannel(
@@ -904,11 +971,11 @@ void AInteRealPlayerController::UpdateCursorHit()
 				WorldOrigin,
 				WorldOrigin + WorldDir * 100000.f,
 				ECC_Visibility,
-				Params
+				GizmoParams
 			);
 
 			FHitResult GizmoHit;
-			if (SelectGizmoHit(Hits, SpawnedGizmo, GizmoHit))
+			if (SelectGizmoHit(Hits, Gizmo, GizmoHit))
 			{
 				LastCursorHit = GizmoHit;
 				bIsHitting = true;
@@ -926,10 +993,10 @@ void AInteRealPlayerController::UpdateCursorHit()
 					FQuat::Identity,
 					ECC_Visibility,
 					FCollisionShape::MakeSphere(GizmoTraceRadius),
-					Params
+					GizmoParams
 				);
 
-				if (SelectGizmoHit(Hits, SpawnedGizmo, GizmoHit))
+				if (SelectGizmoHit(Hits, Gizmo, GizmoHit))
 				{
 					LastCursorHit = GizmoHit;
 					bIsHitting = true;
@@ -954,8 +1021,8 @@ void AInteRealPlayerController::UpdateCursorHit()
 		return;
 	}
 
-	// 기즈모가 선택된 가구 메시에 가려져도 우선적으로 인식되도록 별도 검사
-	if (SpawnedGizmo)
+	// 기즈모�? ?�택??가�?메시??가?�져???�선?�으�??�식?�도�?별도 검??
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
 		FVector WorldOrigin, WorldDir;
 		if (!DeprojectMousePositionToWorld(WorldOrigin, WorldDir) || WorldDir.SizeSquared() < KINDA_SMALL_NUMBER)
@@ -970,7 +1037,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 		}
 		if (SelectedFurniture)
 		{
-			GizmoParams.AddIgnoredActor(SelectedFurniture);
+			AddSelectedFurnitureNonGizmoIgnoredComponents(GizmoParams, SelectedFurniture, Gizmo);
 		}
 
 		TArray<FHitResult> Hits;
@@ -983,7 +1050,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 		);
 
 		FHitResult GizmoHit;
-		if (SelectGizmoHit(Hits, SpawnedGizmo, GizmoHit))
+		if (SelectGizmoHit(Hits, Gizmo, GizmoHit))
 		{
 			LastCursorHit = GizmoHit;
 			bIsHitting = true;
@@ -1004,7 +1071,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 				GizmoParams
 			);
 
-			if (SelectGizmoHit(Hits, SpawnedGizmo, GizmoHit))
+			if (SelectGizmoHit(Hits, Gizmo, GizmoHit))
 			{
 				LastCursorHit = GizmoHit;
 				bIsHitting = true;
@@ -1014,7 +1081,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 		}
 	}
 
-	// 바닥/가구 등 기본 트레이스
+	// 바닥/가�???기본 ?�레?�스
 	FHitResult FloorHit;
 	FHitResult WallHit;
 	bool bHitFloor = false;
@@ -1034,7 +1101,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 			Params.AddIgnoredActor(P);
 		}
 
-		// 배치 미리보기 중에는 이미 배치된 가구들이 커서 트레이스를 가로막지 않도록 무시 처리
+		// 배치 미리보기 중에???��? 배치??가구들??커서 ?�레?�스�?가로막지 ?�도�?무시 처리
 		if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
 		{
 			if (PS->HasActivePreview())
@@ -1056,12 +1123,12 @@ void AInteRealPlayerController::UpdateCursorHit()
 
 		bHitFloor = GetWorld()->LineTraceSingleByChannel(FloorHit, WorldOrigin, TraceEnd, ECC_Visibility, Params);
 
-		// 벽 전용 트레이스 — 바닥에 가려지지 않아 벽 전체 높이에서 잡힘
+		// �??�용 ?�레?�스 ??바닥??가?��?지 ?�아 �??�체 ?�이?�서 ?�힘
 		bHitWall = GetWorld()->LineTraceSingleByChannel(WallHit, WorldOrigin, TraceEnd, WallTraceChannel, Params);
 	}
 
-	// 배치 중인 가구가 벽 배치를 지원하지 않으면, 화면상 더 가까운 벽이 잡히더라도 무시하고 바닥 히트를 쓴다.
-	// (ISO 시점에서는 다른 방의 벽이 화면상 커서 아래 바닥보다 카메라에 더 가깝게 잡혀 Wall로 오판되는 경우가 있음)
+	// 배치 중인 가구�? �?배치�?지?�하지 ?�으�? ?�면????가까운 벽이 ?�히?�라??무시?�고 바닥 ?�트�??�다.
+	// (ISO ?�점?�서???�른 방의 벽이 ?�면??커서 ?�래 바닥보다 카메?�에 ??가깝게 ?��? Wall�??�판?�는 경우가 ?�음)
 	UInteriorPlacementSubsystem* PS3 = GetPlacementSubsystem();
 	const AFurniture* PreviewFurniture = (PS3 && PS3->HasActivePreview()) ? PS3->GetPreviewFurniture() : nullptr;
 	const bool bPreviewSupportsWall = !PreviewFurniture || PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Wall);
@@ -1072,7 +1139,7 @@ void AInteRealPlayerController::UpdateCursorHit()
 		!PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Wall) &&
 		!PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Ceiling);
 
-	// 화면상 같은 픽셀에서 둘 다 잡히면 카메라에 더 가까운(거리가 짧은) 쪽을 채택
+	// ?�면??같�? ?��??�서 ?????�히�?카메?�에 ??가까운(거리가 짧�?) 쪽을 채택
 	if (bHitWall && bPreviewSupportsWall && (!bHitFloor || WallHit.Distance < FloorHit.Distance))
 	{
 		LastCursorHit = WallHit;
@@ -1155,68 +1222,73 @@ void AInteRealPlayerController::ToggleFreePlacementMode()
 void AInteRealPlayerController::ToggleGizmoDisplayMode()
 {
 	if (CurrentControlMode != EInteRealControlMode::Edit) return;
-	if (!SpawnedGizmo) return;
 
-	switch (SpawnedGizmo->GetDisplayMode())
+	const EInteRealGizmoDisplayMode CurrentMode = bGizmoShowMove && bGizmoShowRotate
+		? EInteRealGizmoDisplayMode::All
+		: bGizmoShowMove
+			? EInteRealGizmoDisplayMode::Move
+			: bGizmoShowRotate
+				? EInteRealGizmoDisplayMode::Rotation
+				: EInteRealGizmoDisplayMode::None;
+
+	switch (CurrentMode)
 	{
 	case EInteRealGizmoDisplayMode::All:
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Move);
+		ApplyGizmoDisplayFlags(true, false);
 		break;
 	case EInteRealGizmoDisplayMode::Move:
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Rotation);
+		ApplyGizmoDisplayFlags(false, true);
 		break;
 	case EInteRealGizmoDisplayMode::Rotation:
 	default:
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::All);
+		ApplyGizmoDisplayFlags(true, true);
 		break;
 	}
 }
 
 void AInteRealPlayerController::SetGizmoShowMove(bool bShow)
 {
-	if (!SpawnedGizmo) return;
 	ApplyGizmoDisplayFlags(bShow, IsGizmoShowingRotate());
 }
 
 void AInteRealPlayerController::SetGizmoShowRotate(bool bShow)
 {
-	if (!SpawnedGizmo) return;
 	ApplyGizmoDisplayFlags(IsGizmoShowingMove(), bShow);
 }
 
 bool AInteRealPlayerController::IsGizmoShowingMove() const
 {
-	if (!SpawnedGizmo) return false;
-	const EInteRealGizmoDisplayMode Mode = SpawnedGizmo->GetDisplayMode();
-	return Mode == EInteRealGizmoDisplayMode::All || Mode == EInteRealGizmoDisplayMode::Move;
+	return bGizmoShowMove;
 }
 
 bool AInteRealPlayerController::IsGizmoShowingRotate() const
 {
-	if (!SpawnedGizmo) return false;
-	const EInteRealGizmoDisplayMode Mode = SpawnedGizmo->GetDisplayMode();
-	return Mode == EInteRealGizmoDisplayMode::All || Mode == EInteRealGizmoDisplayMode::Rotation;
+	return bGizmoShowRotate;
 }
 
 void AInteRealPlayerController::ApplyGizmoDisplayFlags(bool bShowMove, bool bShowRotate)
 {
-	if (!SpawnedGizmo) return;
+	bGizmoShowMove = bShowMove;
+	bGizmoShowRotate = bShowRotate;
 
-	if (bShowMove && bShowRotate)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::All);
-	}
-	else if (bShowMove)
-	{
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Move);
-	}
-	else if (bShowRotate)
-	{
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Rotation);
-	}
-	else
-	{
-		SpawnedGizmo->SetDisplayMode(EInteRealGizmoDisplayMode::None);
+		if (bShowMove && bShowRotate)
+		{
+			Gizmo->SetDisplayMode(EInteRealGizmoDisplayMode::All);
+		}
+		else if (bShowMove)
+		{
+			Gizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Move);
+		}
+		else if (bShowRotate)
+		{
+			Gizmo->SetDisplayMode(EInteRealGizmoDisplayMode::Rotation);
+		}
+		else
+		{
+			Gizmo->SetDisplayMode(EInteRealGizmoDisplayMode::None);
+		}
 	}
 }
 
@@ -1238,8 +1310,8 @@ void AInteRealPlayerController::OnPlaceKey()
 
 			AFurniture* ConfirmedFurniture = ConfirmActivePreviewFurnitureForFloorPlanSync(bContinuePlacement);
 
-			// 연속 배치 중이 아니라면, 막 배치한 조명을 바로 선택 상태로 만들어
-			// 기즈모와 함께 속성 패널이 즉시 뜨도록 한다 (일반 가구는 기존 동작 유지).
+			// ?�속 배치 중이 ?�니?�면, �?배치??조명??바로 ?�택 ?�태�?만들??
+			// 기즈모�? ?�께 ?�성 ?�널??즉시 ?�도�??�다 (?�반 가구는 기존 ?�작 ?��?).
 			if (!bContinuePlacement && Cast<ALightFixture>(ConfirmedFurniture))
 			{
 				SelectFurniture(ConfirmedFurniture);
@@ -1271,9 +1343,10 @@ void AInteRealPlayerController::OnPlaceKey()
 
 	UPrimitiveComponent* HitComp = LastCursorHit.GetComponent();
 
-	if (HitComp && SelectedFurniture && SpawnedGizmo)
+	if (HitComp && SelectedFurniture)
 	{
-		const FString AxisTag = AInteRealGizmoActor::GetAxisTagFromComponent(HitComp);
+		UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent();
+		const FString AxisTag = Gizmo ? Gizmo->GetAxisTagFromHit(LastCursorHit) : FString();
 		if (!AxisTag.IsEmpty())
 		{
 			if (AxisTag.StartsWith(TEXT("Move")))
@@ -1282,7 +1355,7 @@ void AInteRealPlayerController::OnPlaceKey()
 				DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 				FVector2D MousePos;
 				GetMousePosition(MousePos.X, MousePos.Y);
-				SpawnedGizmo->BeginDrag(AxisTag, SelectedFurniture, WorldOrigin, WorldDir, MousePos);
+				Gizmo->BeginDrag(AxisTag, WorldOrigin, WorldDir, MousePos);
 
 				if (UInteriorPlacementSubsystem* PSGizmo = GetPlacementSubsystem())
 					PSGizmo->BeginGizmoMove(SelectedFurniture);
@@ -1298,9 +1371,9 @@ void AInteRealPlayerController::OnPlaceKey()
 				DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 				FVector2D MousePos;
 				GetMousePosition(MousePos.X, MousePos.Y);
-				SpawnedGizmo->BeginDrag(AxisTag, SelectedFurniture, WorldOrigin, WorldDir, MousePos);
+				Gizmo->BeginDrag(AxisTag, WorldOrigin, WorldDir, MousePos);
 
-				const EGizmoTransformAxis RotationAxis = SpawnedGizmo->GetCurrentAxis();
+				const EGizmoTransformAxis RotationAxis = Gizmo->GetCurrentAxis();
 				const FRotator InitialRotation = SelectedFurniture->GetActorRotation();
 				const float InitialAngle = RotationAxis == EGizmoTransformAxis::RotatePitch
 					? InitialRotation.Pitch
@@ -1309,14 +1382,14 @@ void AInteRealPlayerController::OnPlaceKey()
 						: InitialRotation.Yaw;
 
 				FVector2D GizmoScreenPosition = MousePos;
-				ProjectWorldLocationToScreen(SpawnedGizmo->GetActorLocation(), GizmoScreenPosition);
+				ProjectWorldLocationToScreen(Gizmo->GetAnchorLocation(), GizmoScreenPosition);
 				if (AInteRealHUD* InteRealHUD = GetInteRealHUD())
 				{
 					InteRealHUD->ShowRotationGuideForInput(InitialAngle, GizmoScreenPosition);
 				}
 
 				bIsGizmoRotationWidgetActive = true;
-				SpawnedGizmo->SetActorHiddenInGame(true);
+				Gizmo->SetGizmoHidden(true);
 				return;
 			}
 		}
@@ -1331,12 +1404,6 @@ void AInteRealPlayerController::OnPlaceKey()
 				if (FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
 				{
 					FloorPlanPlacementSyncComponent->SelectFloorPlan2DForFurniture(SelectedFurniture);
-				}
-
-				if (!SpawnedGizmo)
-				{
-					SelectFurniture(HitFurniture);
-					return;
 				}
 
 				bIsMovingFurniture = true;
@@ -1384,9 +1451,10 @@ void AInteRealPlayerController::OnPlaceReleasedKey()
 		InteRealHUD->UpdateRotationGuide(false, 0.0f, FVector2D::ZeroVector);
 	}
 
-	if (SpawnedGizmo)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
-		const EGizmoTransformAxis DraggedAxis = SpawnedGizmo->GetCurrentAxis();
+		Gizmo->SetGizmoHidden(false);
+		const EGizmoTransformAxis DraggedAxis = Gizmo->GetCurrentAxis();
 
 		const bool bTransforming =
 			DraggedAxis == EGizmoTransformAxis::MoveX ||
@@ -1413,8 +1481,7 @@ void AInteRealPlayerController::OnPlaceReleasedKey()
 			SelectedFurniture->SetSelected(true);
 		}
 
-		SpawnedGizmo->EndDrag();
-		SpawnedGizmo->SetActorHiddenInGame(false);
+		Gizmo->EndDrag();
 	}
 	bIsGizmoRotationWidgetActive = false;
 
@@ -1524,10 +1591,9 @@ void AInteRealPlayerController::RotateEditFurniture(float AngleDeg)
 			if (PS) PS->RecordUndoSnapshot();
 			SelectedFurniture->SetRotationPreservingPlacement(Rot);
 		}
-		if (SpawnedGizmo)
+		if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 		{
-			SpawnedGizmo->SetActorRotation(FRotator::ZeroRotator);
-			SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+			Gizmo->UpdateAnchorFromOwner();
 		}
 		if (FloorPlanPlacementSyncComponent)
 		{
@@ -1563,9 +1629,9 @@ void AInteRealPlayerController::SetSelectedFurnitureLocationCm(FVector NewLocati
 		SelectedFurniture->SetActorLocation(NewLocationCm);
 	}
 
-	if (SpawnedGizmo)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
-		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+		Gizmo->UpdateAnchorFromOwner();
 	}
 	if (FloorPlanPlacementSyncComponent)
 	{
@@ -1616,10 +1682,9 @@ void AInteRealPlayerController::SetSelectedFurnitureRotationYaw(float AbsoluteYa
 		SelectedFurniture->SetRotationPreservingPlacement(Rot);
 	}
 
-	if (SpawnedGizmo)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
-		SpawnedGizmo->SetActorRotation(FRotator::ZeroRotator);
-		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+		Gizmo->UpdateAnchorFromOwner();
 	}
 	if (FloorPlanPlacementSyncComponent)
 	{
@@ -1694,8 +1759,8 @@ void AInteRealPlayerController::OnContinuousPressed()
 {
 	bContinuousModifierHeld = true;
 
-	// 이미 배치된 가구를 선택한 상태에서 Shift를 누르면, 그 가구를 같은 종류의 새 프리뷰로
-	// 다시 꺼내서 연속배치를 시작할 수 있게 한다.
+	// ?��? 배치??가구�? ?�택???�태?�서 Shift�??�르�? �?가구�? 같�? 종류?????�리뷰로
+	// ?�시 꺼내???�속배치�??�작?????�게 ?�다.
 	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
 	if (PS && !PS->HasActivePreview() && SelectedFurniture)
 	{
@@ -1747,39 +1812,11 @@ void AInteRealPlayerController::SelectFurniture(AFurniture* Furniture)
 	if (SelectedFurniture)
 	{
 		SelectedFurniture->SetSelected(true);
-
-		// ---- Gizmo ----
-		if (GizmoActorClass && GetWorld())
+		if (UInteRealGizmoComponent* Gizmo = SelectedFurniture->GetGizmoComponent())
 		{
-			FActorSpawnParameters Params;
-			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			const FVector GizmoSpawnLoc = GetGizmoAnchorLocation(SelectedFurniture);
-
-			SpawnedGizmo = GetWorld()->SpawnActor<AInteRealGizmoActor>(
-				GizmoActorClass,
-				GizmoSpawnLoc,
-				FRotator::ZeroRotator,
-				Params);
-
-			if (SpawnedGizmo)
-			{
-				FAttachmentTransformRules AttachRules(
-					EAttachmentRule::KeepWorld,
-					EAttachmentRule::KeepWorld,
-					EAttachmentRule::KeepWorld,
-					false
-				);
-
-				SpawnedGizmo->AttachToActor(SelectedFurniture, AttachRules);
-
-				if (USceneComponent* GizmoRoot = SpawnedGizmo->GetRootComponent())
-				{
-					GizmoRoot->SetUsingAbsoluteRotation(true);
-				}
-
-				SpawnedGizmo->InitAxisMaterials();
-			}
+			Gizmo->SetSelectedActive(true);
+			ApplyGizmoDisplayFlags(bGizmoShowMove, bGizmoShowRotate);
+			Gizmo->UpdateAnchorFromOwner();
 		}
 		
 		if (FloorPlanPlacementSyncComponent && !FloorPlanPlacementSyncComponent->IsSyncingFurniture3DFrom2D())
@@ -2139,7 +2176,7 @@ void AInteRealPlayerController::OnFocusSelectionKey()
 	{
 		if (APawn* P = GetPawn())
 		{
-			// 가구 반경만큼 떨어진 위치, Z는 고정 눈높이
+			// 가�?반경만큼 ?�어�??�치, Z??고정 ?�높??
 			const float HalfExtent = FMath::Max(Bounds.GetExtent().X, Bounds.GetExtent().Y);
 			const float ViewDistance = 150.0f;
 
@@ -2520,9 +2557,12 @@ void AInteRealPlayerController::SyncFurnitureSizeChangeToFloorPlan2D(AFurniture*
 		FloorPlanPlacementSyncComponent->SyncFloorPlan2DFromFurniture(Furniture);
 	}
 
-	if (SpawnedGizmo && SelectedFurniture.Get() == Furniture)
+	if (SelectedFurniture.Get() == Furniture)
 	{
-		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(Furniture));
+		if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
+		{
+			Gizmo->UpdateAnchorFromOwner();
+		}
 	}
 }
 
@@ -2551,19 +2591,13 @@ void AInteRealPlayerController::DeleteFurnitureActor(AFurniture* FurnitureActor)
 
 void AInteRealPlayerController::ClearFurnitureSelectionInternal(bool bSyncFloorPlan2D)
 {
-	if (SpawnedGizmo)
-	{
-		if (SpawnedGizmo->IsDragging())
-		{
-			SpawnedGizmo->EndDrag();
-		}
-
-		SpawnedGizmo->Destroy();
-		SpawnedGizmo = nullptr;
-	}
-	
 	if (SelectedFurniture)
 	{
+		if (UInteRealGizmoComponent* Gizmo = SelectedFurniture->GetGizmoComponent())
+		{
+			Gizmo->EndDrag();
+			Gizmo->SetSelectedActive(false);
+		}
 		SelectedFurniture->SetSelected(false);
 		SelectedFurniture = nullptr;
 	}
@@ -2572,6 +2606,7 @@ void AInteRealPlayerController::ClearFurnitureSelectionInternal(bool bSyncFloorP
 	{
 		HUD->ShowFurnitureSizePanel(nullptr);
 		HUD->ShowLightAttributesPanel(nullptr);
+		HUD->ShowMaterialAttributesPanel(false);
 	}
 
 	bIsMovingFurniture = false;
@@ -2584,6 +2619,30 @@ void AInteRealPlayerController::ClearFurnitureSelectionInternal(bool bSyncFloorP
 		FloorPlanPlacementSyncComponent->ClearFloorPlan2DSelection();
 	}
 }
+
+UInteRealGizmoComponent* AInteRealPlayerController::GetSelectedGizmoComponent() const
+{
+	return SelectedFurniture ? SelectedFurniture->GetGizmoComponent() : nullptr;
+}
+
+bool AInteRealPlayerController::TryGetSurfaceMaterialData(UMeshComponent* SurfaceComponent, FMaterialDataRow& OutMaterialData) const
+{
+	if (!SurfaceComponent) return false;
+
+	const FMaterialDataRow* FoundData = SurfaceMaterialDataMap.Find(TObjectKey<UMeshComponent>(SurfaceComponent));
+	if (!FoundData) return false;
+
+	OutMaterialData = *FoundData;
+	return true;
+}
+
+void AInteRealPlayerController::StoreSurfaceMaterialData(UMeshComponent* SurfaceComponent, const FMaterialDataRow& MaterialData)
+{
+	if (!SurfaceComponent) return;
+
+	SurfaceMaterialDataMap.Add(TObjectKey<UMeshComponent>(SurfaceComponent), MaterialData);
+}
+
 void AInteRealPlayerController::OnGizmoRotationChanged(float NewYawDegrees)
 {
 	if (!SelectedFurniture) return;
@@ -2592,9 +2651,9 @@ void AInteRealPlayerController::OnGizmoRotationChanged(float NewYawDegrees)
 	NewRot.Yaw = NewYawDegrees;
 	SelectedFurniture->SetActorRotation(NewRot);
 
-	if (SpawnedGizmo)
+	if (UInteRealGizmoComponent* Gizmo = GetSelectedGizmoComponent())
 	{
-		SpawnedGizmo->SetActorLocation(GetGizmoAnchorLocation(SelectedFurniture));
+		Gizmo->UpdateAnchorFromOwner();
 	}
 
 	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())

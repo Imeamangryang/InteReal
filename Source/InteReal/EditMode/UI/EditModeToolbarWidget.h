@@ -21,12 +21,10 @@ protected:
 
 public:
 	void InitializeForPlayer(AInteRealPlayerController* InPlayerController);
-
-	// 펼쳐진(활성) 상태일 때 보이는 화살표 — 누르면 접힌다는 뜻으로 오른쪽을 가리킴
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Toolbar|Icons")
 	UTexture2D* Icon_CollapseRight = nullptr;
-
-	// 접힌 상태일 때 보이는 화살표 — 누르면 펼쳐진다는 뜻으로 왼쪽을 가리킴
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Toolbar|Icons")
 	UTexture2D* Icon_CollapseLeft = nullptr;
 	
@@ -50,6 +48,9 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	UToggleButtonWidget* Btn_Grid;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	UToggleButtonWidget* Btn_LightIcons;
+
 	UPROPERTY(meta = (BindWidget))
 	UToggleButtonWidget* Btn_PlacementMode;
 
@@ -67,6 +68,9 @@ private:
 
 	UFUNCTION()
 	void HandleGridClicked();
+
+	UFUNCTION()
+	void HandleLightIconsClicked();
 
 	UFUNCTION()
 	void HandlePlacementModeClicked();
@@ -88,6 +92,7 @@ private:
 
 	bool bCachedInitialized = false;
 	bool bCachedShowGrid = true;
+	bool bCachedShowLightIcons = true;
 	bool bCachedFreePlacement = false;
 	bool bCachedShowMove = true;
 	bool bCachedShowRotate = true;

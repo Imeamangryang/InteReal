@@ -10,6 +10,8 @@
 #include "Furniture.generated.h"
 
 class AGridSpaceManager;
+class ALightFixture;
+class UInteRealGizmoComponent;
 
 UENUM(BlueprintType)
 enum class EPlacementState : uint8
@@ -40,6 +42,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UBoxComponent* CollisionBoxComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture|Gizmo")
+	TObjectPtr<UInteRealGizmoComponent> GizmoComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
@@ -84,6 +89,7 @@ public:
 	AFurniture* ParentFurniture = nullptr;
 
 	EPlacementState GetPlacementState() const { return PlacementState; }
+	UInteRealGizmoComponent* GetGizmoComponent() const { return GizmoComponent; }
 
 	bool SupportsPlacementType(EPlacementSurfaceType Type) const
 	{
@@ -102,10 +108,7 @@ public:
 		return MeshComponent->Bounds.GetBox();
 	}
 
-	FBox GetVisualBounds() const
-	{
-		return GetComponentsBoundingBox(true);
-	}
+	FBox GetVisualBounds() const;
 
 	FBox GetMeshBounds() const
 	{
@@ -135,13 +138,13 @@ public:
 	void SetRotationPreservingPlacement(const FRotator& NewRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
-	void SetPlacementState(EPlacementState NewState);
+	virtual void SetPlacementState(EPlacementState NewState);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	virtual void ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow);
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
-	void SetSelected(bool bSelected);
+	virtual void SetSelected(bool bSelected);
 
 	// 배치 후 선택된 가구의 실측 크기(cm, X=Width/Y=Depth/Z=Height)를 다시 읽거나(UI 패널 초기값) 직접 바꿀 때(슬라이더 등) 사용
 	UFUNCTION(BlueprintPure, Category = "Furniture|Size")
@@ -151,13 +154,18 @@ public:
 	void SetTargetSizeCm(FVector InSizeCm);
 
 	// Row.Category에 따라 스폰할 AFurniture 서브클래스를 결정한다 (예: Lighting -> ALightFixture)
-	static TSubclassOf<AFurniture> ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass);
+	// LightFixtureClassOverride를 지정하면(BP_LightFixture 등) 네이티브 ALightFixture 대신 그 블루프린트가 스폰된다.
+	static TSubclassOf<AFurniture> ResolveSpawnClass(const FFurnitureDataRow& Row, TSubclassOf<AFurniture> DefaultClass,
+		TSubclassOf<ALightFixture> LightFixtureClassOverride = nullptr);
 
 	UFUNCTION(BlueprintPure, Category = "Furniture")
 	const FFurnitureDataRow& GetFurnitureDataRow() const { return FurnitureDataRow; }
 
 	UFUNCTION(BlueprintPure, Category = "Furniture")
 	bool HasFurnitureDataRow() const { return bHasFurnitureDataRow; }
+	
+	UFUNCTION(BlueprintPure, Category = "Furniture|2D")
+	void GetCollisionFootprint2D(TArray<FVector2D>& OutLocalPoints) const;
 	
 private:
 	// 0(미설정) 축은 보정하지 않고 그대로 둔다 — NativeSize 기준 1.0

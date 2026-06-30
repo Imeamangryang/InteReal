@@ -22,6 +22,10 @@ void UEditModeToolbarWidget::NativeConstruct()
 	{
 		Btn_Grid->OnToggled.AddDynamic(this, &UEditModeToolbarWidget::HandleGridClicked);
 	}
+	if (Btn_LightIcons)
+	{
+		Btn_LightIcons->OnToggled.AddDynamic(this, &UEditModeToolbarWidget::HandleLightIconsClicked);
+	}
 	if (Btn_PlacementMode)
 	{
 		Btn_PlacementMode->OnToggled.AddDynamic(this, &UEditModeToolbarWidget::HandlePlacementModeClicked);
@@ -76,6 +80,15 @@ void UEditModeToolbarWidget::HandleGridClicked()
 	if (AInteRealPlayerController* PC = PlayerController.Get())
 	{
 		PC->SetGridVisible(!PC->IsGridVisible());
+	}
+	RefreshAll();
+}
+
+void UEditModeToolbarWidget::HandleLightIconsClicked()
+{
+	if (UInteriorPlacementSubsystem* Subsystem = GetPlacementSubsystemFromWorld(GetWorld()))
+	{
+		Subsystem->ToggleLightFixtureIconsVisible();
 	}
 	RefreshAll();
 }
@@ -144,12 +157,14 @@ void UEditModeToolbarWidget::RefreshAll()
 	AInteRealPlayerController* PC = PlayerController.Get();
 
 	const bool bShowGrid = PC ? PC->IsGridVisible() : bCachedShowGrid;
+	const bool bShowLightIcons = Subsystem ? Subsystem->IsLightFixtureIconsVisible() : bCachedShowLightIcons;
 	const bool bFreePlacement = Subsystem ? Subsystem->IsFreePlacementMode() : bCachedFreePlacement;
 	const bool bShowMove = PC ? PC->IsGizmoShowingMove() : bCachedShowMove;
 	const bool bShowRotate = PC ? PC->IsGizmoShowingRotate() : bCachedShowRotate;
 
 	if (bCachedInitialized &&
 		bShowGrid == bCachedShowGrid &&
+		bShowLightIcons == bCachedShowLightIcons &&
 		bFreePlacement == bCachedFreePlacement &&
 		bShowMove == bCachedShowMove &&
 		bShowRotate == bCachedShowRotate)
@@ -160,6 +175,11 @@ void UEditModeToolbarWidget::RefreshAll()
 	if (Btn_Grid)
 	{
 		Btn_Grid->SetActiveVisual(bShowGrid);
+	}
+
+	if (Btn_LightIcons)
+	{
+		Btn_LightIcons->SetActiveVisual(bShowLightIcons);
 	}
 
 	if (Btn_PlacementMode)
@@ -179,6 +199,7 @@ void UEditModeToolbarWidget::RefreshAll()
 
 	bCachedInitialized = true;
 	bCachedShowGrid = bShowGrid;
+	bCachedShowLightIcons = bShowLightIcons;
 	bCachedFreePlacement = bFreePlacement;
 	bCachedShowMove = bShowMove;
 	bCachedShowRotate = bShowRotate;

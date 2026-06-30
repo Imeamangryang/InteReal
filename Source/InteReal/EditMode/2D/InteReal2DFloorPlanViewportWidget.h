@@ -404,6 +404,9 @@ private:
         const FLinearColor& OutlineColor
     ) const;
     
+    void DrawFurnitureShape(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId, const FInteReal2DPlacedFurniture& Furniture, const FLinearColor& FillColor, const FLinearColor& OutlineColor) const;
+    
+    
     bool TryGetPlacedFurnitureIndexAtLocalPosition(
         const FVector2D& LocalPosition,
         const FVector2D& LocalSize,

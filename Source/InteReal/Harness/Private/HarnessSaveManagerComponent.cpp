@@ -11,6 +11,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Engine/DataTable.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/Managers/InteriorPlacementManager.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
@@ -76,6 +77,49 @@ namespace
 
 		Furniture->Tags.AddUnique(FName(TEXT("OpeningAsset")));
 		Furniture->Tags.AddUnique(FName(HarnessSave_IsWindowFurnitureRow(Row) ? TEXT("WindowAsset") : TEXT("DoorAsset")));
+	}
+
+	uint8 HarnessSave_AllLightPlacementTypes()
+	{
+		return static_cast<uint8>(EPlacementSurfaceType::Floor)
+		     | static_cast<uint8>(EPlacementSurfaceType::Wall)
+		     | static_cast<uint8>(EPlacementSurfaceType::Ceiling);
+	}
+
+	EFurnitureAssetCategory HarnessSave_GetAssetCategory(const AFurniture* Furniture)
+	{
+		if (!Furniture)
+		{
+			return EFurnitureAssetCategory::None;
+		}
+		if (Cast<ALightFixture>(Furniture))
+		{
+			return EFurnitureAssetCategory::Lighting;
+		}
+		return Furniture->HasFurnitureDataRow()
+			? Furniture->GetFurnitureDataRow().Category
+			: EFurnitureAssetCategory::None;
+	}
+
+	FLightAttributes HarnessSave_GetLightAttributes(const AFurniture* Furniture)
+	{
+		if (const ALightFixture* LightFixture = Cast<ALightFixture>(Furniture))
+		{
+			return LightFixture->GetLightAttributes();
+		}
+		return Furniture && Furniture->HasFurnitureDataRow()
+			? Furniture->GetFurnitureDataRow().LightAttributes
+			: FLightAttributes();
+	}
+
+	FFurnitureDataRow HarnessSave_MakeLightRowFromDelta(int32 FurnitureID, const FFurnitureDelta& Delta, const FFurnitureDataRow* ExistingRow)
+	{
+		FFurnitureDataRow Row = ExistingRow ? *ExistingRow : FFurnitureDataRow();
+		Row.ID = FurnitureID;
+		Row.Category = EFurnitureAssetCategory::Lighting;
+		Row.LightAttributes = Delta.LightAttributes;
+		Row.AllowedPlacementTypes = HarnessSave_AllLightPlacementTypes();
+		return Row;
 	}
 
 	FString FindHarnessSurfaceId(const UMeshComponent* MeshComp)
@@ -150,6 +194,8 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 		FFurnitureDelta Delta;
 		Delta.Transform = Actor->GetActorTransform();
 		Delta.FurnitureID = FName(FString::FromInt(Furn->FurnitureID));
+		Delta.AssetCategory = HarnessSave_GetAssetCategory(Furn);
+		Delta.LightAttributes = HarnessSave_GetLightAttributes(Furn);
 		Delta.SurfaceType = static_cast<uint8>(Furn->GetPlacedSurfaceType());
 		Delta.GridAnchor = Furn->PlacedGridAnchor;
 		Delta.Dimensions = Furn->PlacedDimensions;
@@ -234,7 +280,16 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 				{
 					const FFurnitureDelta& Delta = DeltaList.FurnitureItems[SourceIndex];
 					const int32 FurnitureID = FCString::Atoi(*Delta.FurnitureID.ToString());
+					FFurnitureDataRow ResolvedLightRow;
 					const FFurnitureDataRow* Row = PlacementSubsystem->FindFurnitureRowByID(FurnitureID);
+					if (Delta.AssetCategory == EFurnitureAssetCategory::Lighting)
+					{
+						const FFurnitureDataRow* LightSourceRow = Row && Row->Category == EFurnitureAssetCategory::Lighting
+							? Row
+							: nullptr;
+						ResolvedLightRow = HarnessSave_MakeLightRowFromDelta(FurnitureID, Delta, LightSourceRow);
+						Row = &ResolvedLightRow;
+					}
 					if (!Row)
 					{
 						continue;
@@ -251,6 +306,10 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 					}
 
 					SpawnedActor->ApplyFurnitureRow(*Row);
+					// 💡 [수정 사항] 저장된 가구의 스케일(기본/수정된 값 모두 포함)을 복원합니다. 
+					// ApplyFurnitureRow가 스케일을 덮어쓰기 때문에 다시 적용해야 합니다.
+					SpawnedActor->SetActorScale3D(Delta.Transform.GetScale3D());
+					
 					SpawnedActor->PlacedGridAnchor = Delta.GridAnchor;
 					SpawnedActor->PlacedDimensions = Delta.Dimensions.IsNearlyZero()
 						? FVector2D(Row->Dimensions.X, Row->Dimensions.Y)
@@ -311,17 +370,30 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 			{
 				// ID를 숫자로 변환 (AInteriorPlacementManager가 int32 ID를 사용하므로)
 				int32 FurnID = FCString::Atoi(*Delta.FurnitureID.ToString());
+				FFurnitureDataRow ResolvedLightRow;
 				const FFurnitureDataRow* Row = PlacementManager->FindFurnitureRowByID(FurnID);
+				if (Delta.AssetCategory == EFurnitureAssetCategory::Lighting)
+				{
+					const FFurnitureDataRow* LightSourceRow = Row && Row->Category == EFurnitureAssetCategory::Lighting
+						? Row
+						: nullptr;
+					ResolvedLightRow = HarnessSave_MakeLightRowFromDelta(FurnID, Delta, LightSourceRow);
+					Row = &ResolvedLightRow;
+				}
 
 				if (Row && PlacementManager->FurnitureClass)
 				{
 					FActorSpawnParameters SpawnParams;
 					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 					
-					AFurniture* SpawnedActor = GetWorld()->SpawnActor<AFurniture>(PlacementManager->FurnitureClass, Delta.Transform, SpawnParams);
+					const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(*Row, PlacementManager->FurnitureClass);
+					AFurniture* SpawnedActor = GetWorld()->SpawnActor<AFurniture>(SpawnClass, Delta.Transform, SpawnParams);
 					if (SpawnedActor)
 					{
 						SpawnedActor->ApplyFurnitureRow(*Row);
+						// 💡 [수정 사항] 저장된 가구의 스케일(기본/수정된 값 모두 포함)을 복원합니다.
+						SpawnedActor->SetActorScale3D(Delta.Transform.GetScale3D());
+
 						SpawnedActor->FurnitureID = FurnID;
 						SpawnedActor->SetPlacementState(EPlacementState::Placed);
 						

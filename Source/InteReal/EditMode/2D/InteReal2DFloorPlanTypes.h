@@ -100,4 +100,7 @@ struct FInteReal2DPlacedFurniture
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="InteReal2D|Furniture")
 	float RotationDegrees = 0.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FVector2D> FootprintLocalPoints;
 };

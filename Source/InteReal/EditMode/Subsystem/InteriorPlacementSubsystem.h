@@ -46,6 +46,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Placement|Grid")
 	void SetGridVisible(bool bVisible);
 
+	// ===== 라이트 아이콘 =====
+	// 사용자가 토글 버튼으로 고르는 선호값(모드 전환과 무관하게 유지)
+	UFUNCTION(BlueprintCallable, Category = "Placement|LightIcons")
+	void SetLightFixtureIconsVisible(bool bVisible);
+
+	UFUNCTION(BlueprintPure, Category = "Placement|LightIcons")
+	bool IsLightFixtureIconsVisible() const { return bLightFixtureIconsPreferred; }
+
+	UFUNCTION(BlueprintCallable, Category = "Placement|LightIcons")
+	void ToggleLightFixtureIconsVisible() { SetLightFixtureIconsVisible(!bLightFixtureIconsPreferred); }
+
+	// Edit/View 모드 전환 시 컨트롤러가 호출 — 선호값은 그대로 두고 실제 표시 여부만 갱신
+	void SetLightFixtureIconsEditModeActive(bool bActive);
+
+	// 새로 배치되는 라이트가 따라야 할, 선호값과 모드를 모두 반영한 실제 표시 여부
+	bool AreLightFixtureIconsCurrentlyVisible() const { return bLightFixtureIconsPreferred && bLightFixtureIconsEditModeActive; }
+
 	// ===== 프리뷰 =====
 	UFUNCTION(BlueprintPure, Category = "Placement|Preview")
 	bool HasActivePreview() const { return PreviewFurniture != nullptr; }
@@ -232,6 +249,12 @@ private:
 	// ===== 배치된 가구 목록 =====
 	UPROPERTY()
 	TArray<AFurniture*> PlacedFurnitures;
+
+	// ===== 라이트 아이콘 상태 =====
+	bool bLightFixtureIconsPreferred = true;
+	bool bLightFixtureIconsEditModeActive = true;
+
+	void ApplyLightFixtureIconsEffectiveState();
 
 	// ===== 내부 헬퍼 =====
 	IPlacementHandler* FindHandlerForHit(const FHitResult& Hit) const;

@@ -1,7 +1,23 @@
-#include "ViewModeCharacter.h"
+﻿#include "ViewModeCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+
+namespace
+{
+	void ConfigureFirstPersonCapsuleCollision(UCapsuleComponent* Capsule)
+	{
+		if (!Capsule)
+		{
+			return;
+		}
+
+		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Capsule->SetCollisionObjectType(ECC_Pawn);
+		Capsule->SetCollisionResponseToAllChannels(ECR_Ignore);
+		Capsule->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	}
+}
 
 AViewModeCharacter::AViewModeCharacter()
 {
@@ -9,7 +25,7 @@ AViewModeCharacter::AViewModeCharacter()
 
 	// 1. 물리 설정: 캡슐 크기를 사람 정도로 설정
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	ConfigureFirstPersonCapsuleCollision(GetCapsuleComponent());
 
 	// 2. 이동 설정: 공중을 날지 않고 바닥을 걷도록 설정
 	GetCharacterMovement()->DefaultLandMovementMode = MOVE_Walking;
@@ -31,6 +47,7 @@ AViewModeCharacter::AViewModeCharacter()
 void AViewModeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	ConfigureFirstPersonCapsuleCollision(GetCapsuleComponent());
 	
 	// 시각적으로 숨김 (요청 사항)
 	SetActorHiddenInGame(true);

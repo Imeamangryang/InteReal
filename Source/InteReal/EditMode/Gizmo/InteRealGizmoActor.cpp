@@ -34,6 +34,20 @@ static void SetGizmoOutlineColor(UWorld* World, FLinearColor Color)
 	}
 }
 
+static void ConfigureGizmoCollision(UPrimitiveComponent* Component, bool bEnabled)
+{
+	if (!Component)
+	{
+		return;
+	}
+
+	Component->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	Component->SetCollisionObjectType(ECC_WorldDynamic);
+	Component->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Component->SetCollisionResponseToChannel(ECC_Visibility, bEnabled ? ECR_Block : ECR_Ignore);
+	Component->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+}
+
 AInteRealGizmoActor::AInteRealGizmoActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -159,7 +173,7 @@ void AInteRealGizmoActor::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 		const bool bIsVisualMesh = Component->IsA<UMeshComponent>();
 		Component->SetVisibility(bIsVisualMesh && bShouldShow, true);
 		Component->SetHiddenInGame(!bIsVisualMesh || !bShouldShow, true);
-		Component->SetCollisionEnabled(bShouldShow ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+		ConfigureGizmoCollision(Component, bShouldShow);
 	}
 }
 

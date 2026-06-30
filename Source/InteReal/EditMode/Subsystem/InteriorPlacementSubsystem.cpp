@@ -1,5 +1,6 @@
 ﻿#include "InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Placement/FloorPlacementHandler.h"
 #include "InteReal/EditMode/Placement/DoorWindowPlacementHandler.h"
@@ -165,6 +166,30 @@ void UInteriorPlacementSubsystem::SetGridVisible(bool bVisible)
 	}
 }
 
+void UInteriorPlacementSubsystem::SetLightFixtureIconsVisible(bool bVisible)
+{
+	bLightFixtureIconsPreferred = bVisible;
+	ApplyLightFixtureIconsEffectiveState();
+}
+
+void UInteriorPlacementSubsystem::SetLightFixtureIconsEditModeActive(bool bActive)
+{
+	bLightFixtureIconsEditModeActive = bActive;
+	ApplyLightFixtureIconsEffectiveState();
+}
+
+void UInteriorPlacementSubsystem::ApplyLightFixtureIconsEffectiveState()
+{
+	const bool bShow = AreLightFixtureIconsCurrentlyVisible();
+	for (AFurniture* Furniture : PlacedFurnitures)
+	{
+		if (ALightFixture* Light = Cast<ALightFixture>(Furniture))
+		{
+			Light->SetIconForcedHidden(!bShow);
+		}
+	}
+}
+
 void UInteriorPlacementSubsystem::SetFreePlacementMode(bool bEnable)
 {
 	bFreePlacementMode = bEnable;
@@ -208,7 +233,7 @@ void UInteriorPlacementSubsystem::CreatePreviewFurnitureFromRow(FVector RayPosit
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(InFurnitureRow, Visualizer->FurnitureClass);
+	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(InFurnitureRow, Visualizer->FurnitureClass, Visualizer->LightFixtureClass);
 	PreviewFurniture = GetWorld()->SpawnActor<AFurniture>(SpawnClass, RayPosition, Rotation, Params);
 	if (!PreviewFurniture)
 	{
@@ -804,7 +829,7 @@ void UInteriorPlacementSubsystem::PlaceFurnitureCopyAtGridAnchor(FVector2D GridA
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(Row, Visualizer->FurnitureClass);
+	const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(Row, Visualizer->FurnitureClass, Visualizer->LightFixtureClass);
 	AFurniture* NewFurniture = GetWorld()->SpawnActor<AFurniture>(SpawnClass, World, Rotation, Params);
 	if (!NewFurniture)
 	{

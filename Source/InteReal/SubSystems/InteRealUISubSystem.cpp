@@ -21,15 +21,6 @@ void UInteRealUISubSystem::NotifyFurnitureSpawn(const FFurnitureDataRow& Furnitu
 	OnFurnitureSpawn.Broadcast(FurnitureData);
 }
 
-void UInteRealUISubSystem::NotifyWallMaterialChanged(UMaterialInterface* NewMaterial)
-{
-	UE_LOG(LogTemp, Warning, TEXT("[WallMaterialDebug] NotifyWallMaterialChanged: NewMaterial=%s ListenerCount=%d"),
-		NewMaterial ? *NewMaterial->GetPathName() : TEXT("<null>"),
-		OnWallMaterialChanged.IsBound() ? 1 : 0);
-
-	OnWallMaterialChanged.Broadcast(NewMaterial);
-}
-
 void UInteRealUISubSystem::NotifyViewModeChanged(EHarnessViewMode NewMode)
 {
 	OnViewModeChanged.Broadcast(NewMode);
@@ -38,4 +29,13 @@ void UInteRealUISubSystem::NotifyViewModeChanged(EHarnessViewMode NewMode)
 void UInteRealUISubSystem::NotifyIconClicked(FName Command)
 {
 	OnIconClicked.Broadcast(Command);
+}
+
+void UInteRealUISubSystem::NotifyWallMaterialDataChanged(const FMaterialDataRow& MaterialData)
+{
+	UE_LOG(LogTemp, Log, TEXT("[Material] NotifyWallMaterialDataChanged: Name=%s DisplayImage=%s"),
+		*MaterialData.DisplayName.ToString(),
+		MaterialData.DisplayImage ? *MaterialData.DisplayImage->GetPathName() : TEXT("<null>"));
+
+	OnWallMaterialDataChanged.Broadcast(MaterialData);
 }

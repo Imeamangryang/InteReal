@@ -188,6 +188,19 @@ void UCeilingPlacementHandler::UpdateGizmoMove(AFurniture* Target, FVector Curso
 	{
 		NewLoc.Y = Cursor.Y;
 	}
+	else if (Axis == EGizmoTransformAxis::MoveZ)
+	{
+		NewLoc.Z = Cursor.Z;
+		Target->SetActorLocation(NewLoc);
+		if (Subsystem)
+		{
+			if (APlacementVisualizerActor* Visualizer = Subsystem->GetVisualizer())
+			{
+				Visualizer->ClearPlacementCellViz();
+			}
+		}
+		return;
+	}
 	else
 	{
 		NewLoc.X = Cursor.X;

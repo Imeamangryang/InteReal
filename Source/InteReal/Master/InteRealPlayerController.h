@@ -5,6 +5,7 @@
 #include "InteReal/ViewMode/ViewModeData.h"
 #include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Materials/FMaterialDataRow.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InputActionValue.h"
 #include "InteRealPlayerController.generated.h"
@@ -13,8 +14,7 @@ class UInteRealMinimap;
 class UInteriorPlacementSubsystem;
 class AViewModeManager;
 class AInteRealHUD;
-class AInteRealGizmoActor;
-class UFurnitureGizmoComponent;
+class UInteRealGizmoComponent;
 class UHarnessMinimapCaptureComponent;
 class UHarnessCaptureMinimapWidget;
 class UInputMappingContext;
@@ -24,8 +24,8 @@ class UTextureRenderTarget2D;
 class UDynamicMeshComponent;
 class UMeshComponent;
 class UMaterialInterface;
-class UMaterialInstanceDynamic;
 class UInteRealFloorPlanPlacementSyncComponent;
+class UTexture2D;
 
 UENUM(BlueprintType)
 enum class EInteRealControlMode : uint8
@@ -60,7 +60,7 @@ public:
 	void HandleFurnitureSpawn(FFurnitureDataRow FurnitureData);
 	
 	UFUNCTION()
-	void HandleWallMaterialChanged(UMaterialInterface* NewMaterial);
+	void HandleWallMaterialDataChanged(FMaterialDataRow MaterialData);
 	
 	UFUNCTION()
 	void HandlePipelineLoadFinished();
@@ -85,12 +85,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Web")
 	void ReceiveWebCommand(const FString& JsonString);
-
-	UFUNCTION(BlueprintCallable, Category = "EditMode|Wall")
-	void ApplyMaterialToSelectedWall(UMaterialInterface* NewMaterial);
 	
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Surface")
-	void ApplyMaterialToSelectedSurface(UMaterialInterface* NewMaterial);
+	void ApplyMaterialDataToSelectedSurface(const FMaterialDataRow& MaterialData);
 	
 	UFUNCTION(BlueprintPure, Category = "InteReal|FloorPlanSync")
 	AFurniture* GetSelectedFurniture() const { return SelectedFurniture.Get(); }
@@ -125,9 +122,6 @@ public:
 	AFurniture* ConfirmActivePreviewFurnitureForFloorPlanSync(bool bContinuePlacement);
 	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
-	TSubclassOf<AInteRealGizmoActor> GizmoActorClass;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo|FirstPerson")
 	float FirstPersonGizmoScaleMultiplier = 1.0f;
 
@@ -314,6 +308,9 @@ public:
 	UPROPERTY()
 	TObjectPtr<UInteRealFloorPlanPlacementSyncComponent> FloorPlanPlacementSyncComponent;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Surface|Material")
+	TObjectPtr<UMaterialInterface> SurfaceMasterMaterial = nullptr;
+	
 private:
 	// ===== Edit Mode State =====
 	bool bIsHitting = false;
@@ -333,6 +330,7 @@ private:
 	) const;
 	void DeleteFurnitureActor(AFurniture* FurnitureActor);
 	void ClearFurnitureSelectionInternal(bool bSyncFloorPlan2D);
+	UInteRealGizmoComponent* GetSelectedGizmoComponent() const;
 
 	UPROPERTY()
 	TObjectPtr<AFurniture> SelectedFurniture = nullptr;
@@ -340,14 +338,14 @@ private:
 	UPROPERTY()
 	TObjectPtr<UMeshComponent> SelectedSurfaceComponent = nullptr;
 	
-	UPROPERTY()
-	TObjectPtr<AInteRealGizmoActor> SpawnedGizmo = nullptr;
-
 	bool bHasCopiedFurniture = false;
 	FFurnitureDataRow CopiedFurnitureRow;
 	FRotator CopiedFurnitureRotation = FRotator::ZeroRotator;
 
 	FVector DragStartFurnitureLocation = FVector::ZeroVector;
+
+	bool bGizmoShowMove = true;
+	bool bGizmoShowRotate = true;
 
 	// 1인칭 포커스 보간
 	bool bIsFocusingFirstPerson = false;
@@ -358,4 +356,9 @@ private:
 	TObjectPtr<AViewModeManager> CachedViewModeManager = nullptr;
 	
 	bool bFloorPlanOffsetInitialized = false;
+	
+	TMap<TObjectKey<UMeshComponent>, FMaterialDataRow> SurfaceMaterialDataMap;
+
+	bool TryGetSurfaceMaterialData(UMeshComponent* SurfaceComponent, FMaterialDataRow& OutMaterialData) const;
+	void StoreSurfaceMaterialData(UMeshComponent* SurfaceComponent, const FMaterialDataRow& MaterialData);
 };

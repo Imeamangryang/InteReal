@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Furniture/FFurnitureDataRow.h"
 #include "InteReal/ViewMode/ViewModeData.h"
+#include "Materials/FMaterialDataRow.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "InteRealUISubSystem.generated.h"
 
@@ -10,7 +11,7 @@ class UMaterialInterface;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeChanged, bool, bIsEditMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFurnitureSpawn, FFurnitureDataRow, FurnitureData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWallMaterialChanged, UMaterialInterface*, NewMaterial);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWallMaterialDataChanged, FMaterialDataRow, MaterialData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnViewModeChanged, EHarnessViewMode, NewMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIconClicked, FName, Command);
 
@@ -29,11 +30,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
 	FOnFurnitureSpawn OnFurnitureSpawn;
 	
-	UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
-	FOnWallMaterialChanged OnWallMaterialChanged;
-	
 	UPROPERTY(BlueprintAssignable, Category="InteReal|UI")
 	FOnViewModeChanged OnViewModeChanged;
+	
+	UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
+	FOnWallMaterialDataChanged OnWallMaterialDataChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category="InteReal|UI")
 	FOnIconClicked OnIconClicked;
@@ -44,12 +45,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
 	void NotifyFurnitureSpawn(const FFurnitureDataRow& FurnitureData);
 	
-	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
-	void NotifyWallMaterialChanged(UMaterialInterface* NewMaterial);
-	
 	UFUNCTION(BlueprintCallable)
 	void NotifyViewModeChanged(EHarnessViewMode NewMode);
 	
 	UFUNCTION(BlueprintCallable)
 	void NotifyIconClicked(FName Command);
+	
+	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+	void NotifyWallMaterialDataChanged(const FMaterialDataRow& MaterialData);
 };

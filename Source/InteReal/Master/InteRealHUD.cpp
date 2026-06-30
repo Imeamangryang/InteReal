@@ -161,6 +161,16 @@ void AInteRealHUD::InitializeHUDWidgets()
 			LightAttributesPanelInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+	
+	if (MaterialAttributesPanelWidgetClass)
+	{
+		MaterialAttributesPanelInstance = CreateWidget<UMaterialAttributesPanelWidget>(GetOwningPlayerController(), MaterialAttributesPanelWidgetClass);
+		if (MaterialAttributesPanelInstance)
+		{
+			MaterialAttributesPanelInstance->AddToViewport(ToolOverlayZOrder);
+			MaterialAttributesPanelInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 }
 
 void AInteRealHUD::ShowFurnitureSizePanel(AFurniture* Furniture)
@@ -242,6 +252,11 @@ void AInteRealHUD::UpdateModeUIVisibility(EInteRealControlMode CurrentMode)
 		EnvironmentPanelInstance->SetVisibility(ViewVisibility);
 	}
 
+	if (MaterialAttributesPanelInstance && !bIsEdit)
+	{
+		MaterialAttributesPanelInstance->SetVisibility(EditVisibility);
+	}
+	
 	if (MinimapWidgetInstance)
 	{
 		MinimapWidgetInstance->SetVisibility(
@@ -463,4 +478,36 @@ UInteReal2DFloorPlanViewportWidget* AInteRealHUD::GetFloorPlan2DWidget() const
 	return EditModeLayoutWidgetInstance
 		? EditModeLayoutWidgetInstance->GetFloorPlan2DWidget()
 		: nullptr;
+}
+
+void AInteRealHUD::ShowMaterialAttributesPanel(bool bVisible)
+{
+	if (!MaterialAttributesPanelInstance)
+	{
+		return;
+	}
+
+	MaterialAttributesPanelInstance->SetVisibility(bVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Hidden);
+}
+
+void AInteRealHUD::RefreshMaterialAttributesPanel(const FMaterialDataRow& MaterialData)
+{
+	if (!MaterialAttributesPanelInstance)
+	{
+		return;
+	}
+
+	MaterialAttributesPanelInstance->RefreshForMaterial(MaterialData);
+	MaterialAttributesPanelInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+void AInteRealHUD::ResetMaterialAttributesPanel()
+{
+	if (!MaterialAttributesPanelInstance)
+	{
+		return;
+	}
+
+	MaterialAttributesPanelInstance->ResetForSurfaceWithoutMaterial(); 
+	MaterialAttributesPanelInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }

@@ -1,6 +1,7 @@
 ﻿#include "PlacementSerializer.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 #include "Dom/JsonObject.h"
@@ -72,6 +73,111 @@ void PlacementSerializer_RestoreOpeningFurnitureTags(AFurniture* Furniture, cons
 	Furniture->Tags.AddUnique(FName(TEXT("OpeningAsset")));
 	Furniture->Tags.AddUnique(FName(PlacementSerializer_IsWindowFurnitureRow(Row) ? TEXT("WindowAsset") : TEXT("DoorAsset")));
 }
+
+uint8 PlacementSerializer_AllLightPlacementTypes()
+{
+	return static_cast<uint8>(EPlacementSurfaceType::Floor)
+	     | static_cast<uint8>(EPlacementSurfaceType::Wall)
+	     | static_cast<uint8>(EPlacementSurfaceType::Ceiling);
+}
+
+EFurnitureAssetCategory PlacementSerializer_GetAssetCategory(const AFurniture* Furniture)
+{
+	if (!Furniture)
+	{
+		return EFurnitureAssetCategory::None;
+	}
+	if (Cast<ALightFixture>(Furniture))
+	{
+		return EFurnitureAssetCategory::Lighting;
+	}
+	return Furniture->HasFurnitureDataRow()
+		? Furniture->GetFurnitureDataRow().Category
+		: EFurnitureAssetCategory::None;
+}
+
+FLightAttributes PlacementSerializer_GetLightAttributes(const AFurniture* Furniture)
+{
+	if (const ALightFixture* LightFixture = Cast<ALightFixture>(Furniture))
+	{
+		return LightFixture->GetLightAttributes();
+	}
+	return Furniture && Furniture->HasFurnitureDataRow()
+		? Furniture->GetFurnitureDataRow().LightAttributes
+		: FLightAttributes();
+}
+
+void PlacementSerializer_WriteLightAttributes(const TSharedPtr<FJsonObject>& Obj, const FLightAttributes& Attributes)
+{
+	if (!Obj.IsValid())
+	{
+		return;
+	}
+
+	Obj->SetBoolField(TEXT("lightEmits"), Attributes.bEmitsLight);
+	Obj->SetNumberField(TEXT("lightFixtureType"), static_cast<uint8>(Attributes.LightFixtureType));
+	Obj->SetNumberField(TEXT("lightColorR"), Attributes.LightColor.R);
+	Obj->SetNumberField(TEXT("lightColorG"), Attributes.LightColor.G);
+	Obj->SetNumberField(TEXT("lightColorB"), Attributes.LightColor.B);
+	Obj->SetNumberField(TEXT("lightColorA"), Attributes.LightColor.A);
+	Obj->SetNumberField(TEXT("lightIntensity"), Attributes.LightIntensity);
+	Obj->SetNumberField(TEXT("lightAttenuationRadius"), Attributes.AttenuationRadius);
+}
+
+FLightAttributes PlacementSerializer_ReadLightAttributes(const TSharedPtr<FJsonObject>& Obj)
+{
+	FLightAttributes Attributes;
+	if (!Obj.IsValid())
+	{
+		return Attributes;
+	}
+
+	bool bEmitsLight = Attributes.bEmitsLight;
+	if (Obj->TryGetBoolField(TEXT("lightEmits"), bEmitsLight))
+	{
+		Attributes.bEmitsLight = bEmitsLight;
+	}
+	if (Obj->HasField(TEXT("lightFixtureType")))
+	{
+		Attributes.LightFixtureType = static_cast<ELightFixtureType>((uint8)Obj->GetIntegerField(TEXT("lightFixtureType")));
+	}
+	if (Obj->HasField(TEXT("lightColorR")))
+	{
+		Attributes.LightColor.R = (float)Obj->GetNumberField(TEXT("lightColorR"));
+	}
+	if (Obj->HasField(TEXT("lightColorG")))
+	{
+		Attributes.LightColor.G = (float)Obj->GetNumberField(TEXT("lightColorG"));
+	}
+	if (Obj->HasField(TEXT("lightColorB")))
+	{
+		Attributes.LightColor.B = (float)Obj->GetNumberField(TEXT("lightColorB"));
+	}
+	if (Obj->HasField(TEXT("lightColorA")))
+	{
+		Attributes.LightColor.A = (float)Obj->GetNumberField(TEXT("lightColorA"));
+	}
+	if (Obj->HasField(TEXT("lightIntensity")))
+	{
+		Attributes.LightIntensity = (float)Obj->GetNumberField(TEXT("lightIntensity"));
+	}
+	if (Obj->HasField(TEXT("lightAttenuationRadius")))
+	{
+		Attributes.AttenuationRadius = (float)Obj->GetNumberField(TEXT("lightAttenuationRadius"));
+	}
+
+	return Attributes;
+}
+
+FFurnitureDataRow PlacementSerializer_MakeLightRowFromJson(int32 FurnitureID, const TSharedPtr<FJsonObject>& Obj, const FFurnitureDataRow* ExistingRow)
+{
+	FFurnitureDataRow Row = ExistingRow ? *ExistingRow : FFurnitureDataRow();
+	Row.ID = FurnitureID;
+	Row.Category = EFurnitureAssetCategory::Lighting;
+	Row.LightAttributes = PlacementSerializer_ReadLightAttributes(Obj);
+	Row.AllowedPlacementTypes = PlacementSerializer_AllLightPlacementTypes();
+	return Row;
+}
 }
 
 void UPlacementSerializer::Initialize(UInteriorPlacementSubsystem* InSubsystem)
@@ -109,8 +215,14 @@ FString UPlacementSerializer::ExportPlacedFurnituresJson() const
 		const FVector Location = Placed->GetActorLocation();
 		const FRotator Rotation = Placed->GetActorRotation();
 		const FVector Scale = Placed->GetActorScale3D();
+		const EFurnitureAssetCategory AssetCategory = PlacementSerializer_GetAssetCategory(Placed);
 
 		Obj->SetNumberField(TEXT("furnitureId"), Placed->FurnitureID);
+		Obj->SetNumberField(TEXT("assetCategory"), static_cast<uint8>(AssetCategory));
+		if (AssetCategory == EFurnitureAssetCategory::Lighting)
+		{
+			PlacementSerializer_WriteLightAttributes(Obj, PlacementSerializer_GetLightAttributes(Placed));
+		}
 		Obj->SetNumberField(TEXT("surfaceType"), static_cast<uint8>(Placed->GetPlacedSurfaceType()));
 		Obj->SetNumberField(TEXT("locationX"), Location.X);
 		Obj->SetNumberField(TEXT("locationY"), Location.Y);
@@ -207,7 +319,19 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 			                                          ? static_cast<EPlacementSurfaceType>((uint8)Obj->GetIntegerField(TEXT("surfaceType")))
 			                                          : EPlacementSurfaceType::Floor;
 
+		FFurnitureDataRow ResolvedLightRow;
 		const FFurnitureDataRow* Row = Subsystem->FindFurnitureRowByID(FurnID);
+		const EFurnitureAssetCategory AssetCategory = Obj->HasField(TEXT("assetCategory"))
+			                                               ? static_cast<EFurnitureAssetCategory>((uint8)Obj->GetIntegerField(TEXT("assetCategory")))
+			                                               : (Row ? Row->Category : EFurnitureAssetCategory::None);
+		if (AssetCategory == EFurnitureAssetCategory::Lighting)
+		{
+			const FFurnitureDataRow* LightSourceRow = Row && Row->Category == EFurnitureAssetCategory::Lighting
+				? Row
+				: nullptr;
+			ResolvedLightRow = PlacementSerializer_MakeLightRowFromJson(FurnID, Obj, LightSourceRow);
+			Row = &ResolvedLightRow;
+		}
 		if (!Row)
 		{
 			continue;

@@ -137,6 +137,7 @@ void UHarnessGeneratorComponent::SetCeilingVisibility(bool bVisible)
             {
                 Primitive->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
                 Primitive->SetCollisionResponseToAllChannels(ECR_Block);
+                Primitive->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
             }
             else
             {

@@ -7,6 +7,8 @@
 #include "InteReal/EditMode/Furniture/Furniture.h"
 #include "InteReal/Master/InteRealPlayerController.h"
 #include "InteReal/Network/InteRealNetworkSubsystem.h"
+#include "InteReal/Network/ViewModel/InteRealPlanViewModel.h"
+#include "UObject/UObjectIterator.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -75,11 +77,36 @@ void UHarnessPipelineManager::SaveCurrentProjectInternal(bool bCreateNewVersion)
 	
 	FOnDeltaSaved Delegate;
 	Delegate.BindDynamic(this, &UHarnessPipelineManager::HandleDeltaSaved);
-	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate, FMath::Max(CurrentDeltaVersion, 1), bCreateNewVersion);
+	
+	int32 RequestVersion = FMath::Max(CurrentDeltaVersion, 1);
+	if (bCreateNewVersion)
+	{
+		int32 MaxVersion = 0;
+		if (GetWorld())
+		{
+			for (TObjectIterator<UInteRealPlanViewModel> It; It; ++It)
+			{
+				if (It->GetWorld() == GetWorld())
+				{
+					for (const FUnrealDeltaVersionItem& Item : It->GetDeltaVersionList().items)
+					{
+						if (Item.version > MaxVersion)
+						{
+							MaxVersion = Item.version;
+						}
+					}
+					break;
+				}
+			}
+		}
+		RequestVersion = FMath::Max(MaxVersion + 1, RequestVersion + 1);
+	}
+
+	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate, RequestVersion, bCreateNewVersion);
 	
 	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d at version %d (CreateNewVersion: %s)"),
 		CurrentPlanId,
-		CurrentDeltaVersion,
+		RequestVersion,
 		bCreateNewVersion ? TEXT("TRUE") : TEXT("FALSE"));
 }
 

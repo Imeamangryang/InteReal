@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
 #include "HarnessDataTypes.generated.h"
 
 USTRUCT(BlueprintType)
@@ -11,8 +12,14 @@ struct FFurnitureDelta
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
     FName FurnitureID;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	EFurnitureAssetCategory AssetCategory = EFurnitureAssetCategory::None;
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
     FTransform Transform;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+	FLightAttributes LightAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
 	uint8 SurfaceType = 1;

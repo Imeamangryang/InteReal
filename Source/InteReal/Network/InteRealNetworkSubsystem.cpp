@@ -1308,10 +1308,6 @@ void UInteRealNetworkSubsystem::SaveDelta(int32 PlanId, const FString& DeltaJson
     }
 
     FString Endpoint = BuildEndpoint(DeltaVersionEndpointFormat, PlanId, RequestVersion);
-    if (bCreateNewVersion)
-    {
-        AppendQueryParam(Endpoint, TEXT("create_new_version"), TEXT("true"));
-    }
 
     auto Req = CreateRequest(TEXT("POST"), Endpoint);
     Req->SetContentAsString(DeltaJson);

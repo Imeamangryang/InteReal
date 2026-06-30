@@ -8,6 +8,8 @@
 #include "InteReal/EditMode/Furniture/Furniture.h"
 #include "PlacementVisualizerActor.generated.h"
 
+class ALightFixture;
+
 // 레벨에 배치되는 시각/설정 전담 Actor.
 // 로직은 UInteriorPlacementSubsystem이 담당하고, 이 Actor는 렌더링과 에디터 설정값만 소유한다.
 UCLASS()
@@ -25,6 +27,10 @@ public:
 	// ===== 설정 (에디터에서 지정) =====
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	TSubclassOf<AFurniture> FurnitureClass;
+
+	// 지정하면 조명(Category=Lighting)은 네이티브 ALightFixture 대신 이 블루프린트로 스폰된다 (예: BP_LightFixture)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
+	TSubclassOf<ALightFixture> LightFixtureClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	UDataTable* FurnitureDataTable;
