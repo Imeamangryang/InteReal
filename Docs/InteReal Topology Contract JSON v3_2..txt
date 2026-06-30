@@ -1,0 +1,396 @@
+﻿InteReal Topology Contract JSON v3.2 분석 및 Unreal 적용 기준
+
+이번 JSON은 수정된 2D 편집툴에서 생성한 Unreal 연동용 v3.2 topology contract입니다.
+
+1. 기본 구조
+
+현재 JSON은 다음 구조를 가집니다.
+
+{
+  "schema_version": "3.2",
+  "unit": "mm",
+  "coordinate_system": {
+    "origin": "top_left",
+    "x_axis": "right",
+    "y_axis": "down",
+    "rotation_degrees": 0
+  },
+  "walls": [],
+  "spaces": [],
+  "openings": [],
+  "wall_groups": [],
+  "finish_groups": [],
+  "asset_requirements": []
+}
+
+좌표계는 원본 도면 이미지 기준입니다.
+
+- 원점: 이미지 좌상단
+- x축: 오른쪽
+- y축: 아래쪽
+- 단위: mm
+- 서버 JSON 단계에서는 Unreal 좌표계 변환이나 Y축 반전을 하지 않습니다.
+- Unreal import 단계에서 필요한 좌표계 변환을 해주면 됩니다.
+
+---
+
+2. 현재 샘플 데이터 요약
+
+현재 샘플에는 다음 데이터가 들어 있습니다.
+
+walls: 50개
+spaces: 16개
+openings: 13개
+  - door: 10개
+  - window: 3개
+
+wall_groups: 0개
+finish_groups: 0개
+asset_requirements: 0개
+
+이전 버전에서 문제가 되었던 "openings: []" 문제는 해결되어, 현재 JSON에는 문/창문 개구부가 정상적으로 포함되어 있습니다.
+
+---
+
+3. 공간 boundary 좌표 정합성
+
+이번 JSON 기준으로 space boundary 좌표를 확인한 결과, 공간끼리 동일한 좌표를 공유하는 부분이 존재합니다.
+
+space boundary vertex 총 74개
+unique point 43개
+여러 공간이 공유하는 동일 좌표 point 29개
+여러 공간이 공유하는 동일 edge 7개
+
+또한 space boundary point 기준으로 보면 대부분 wall 기준점에 붙어 있습니다.
+
+총 74개 boundary point 중
+70개는 wall endpoint와 정확히 일치
+4개는 wall segment 위에 위치
+
+따라서 현재 JSON은 “공간 boundary가 벽 꼭지점에 전혀 붙지 않은 상태”는 아닙니다.
+대부분의 boundary point는 wall endpoint 또는 wall segment에 snap되어 있습니다.
+
+---
+
+4. Unreal에서 공간이 떨어져 보일 수 있는 이유
+
+현재 "spaces[].boundary"는 벽의 안쪽 마감면이 아니라 "walls[].centerline"에 맞춰진 좌표에 가깝습니다.
+
+즉 벽은 다음 방식으로 생성됩니다.
+
+wall centerline + thickness + height
+
+반면 공간 floor는 다음 방식으로 생성됩니다.
+
+space boundary polygon
+
+따라서 Unreal에서 벽을 centerline 기준으로 두께 생성하고, floor polygon도 그대로 생성하면 벽 두께 처리 방식에 따라 공간 사이가 떨어져 보이거나 floor가 벽 아래로 먹혀 보일 수 있습니다.
+
+Unreal import 시 아래 정책을 명확히 잡아야 합니다.
+
+walls.centerline은 벽 중심선이다.
+spaces.boundary는 현재 벽 중심선 기준의 공간 polygon이다.
+floor를 벽 안쪽 마감면까지 채울지, centerline까지 채울지 Unreal 쪽에서 결정해야 한다.
+
+공간끼리 완전히 stitched된 floor mesh를 원하면 Unreal 쪽에서 동일 좌표/근접 좌표 기준으로 edge stitching 또는 tolerance merge가 필요할 수 있습니다.
+
+---
+
+5. spaces 처리 권장 방식
+
+각 space는 다음 구조를 가집니다.
+
+{
+  "id": "space_room_xxx",
+  "kind": "bedroom",
+  "name": "안방",
+  "level_id": "level_1",
+  "boundary": [
+    { "x": 1986.6667, "y": 5712.1319 },
+    { "x": 4110.0, "y": 5716.066 },
+    { "x": 4113.9406, "y": 4195.0 },
+    { "x": 2000.0036, "y": 4195.0 }
+  ],
+  "metadata": {
+    "boundary_snap": []
+  }
+}
+
+Unreal에서는 "boundary" polygon을 기준으로 floor/ceiling을 만들면 됩니다.
+
+다만 주의할 점은 다음과 같습니다.
+
+1. boundary polygon은 mm 기준이다.
+2. boundary는 현재 wall centerline 기준에 가깝다.
+3. 인접 공간이 모든 edge를 완전히 공유하는 것은 아니다.
+4. 일부 boundary point는 wall segment 위에 projection된 점이다.
+5. metadata.boundary_snap에는 각 boundary point가 어떤 wall endpoint/segment에 붙었는지 들어 있다.
+
+"boundary_walls"는 현재 빈 배열이므로, 공간-벽 관계가 필요하면 "metadata.boundary_snap" 또는 geometry matching으로 판단해야 합니다.
+
+---
+
+6. walls 처리 권장 방식
+
+각 wall은 다음 구조를 가집니다.
+
+{
+  "id": "ws_wc_0",
+  "kind": "outer",
+  "level_id": "level_1",
+  "height": 2400.0,
+  "thickness": 200.0,
+  "centerline": [
+    { "x": 1988.3373, "y": 790.0 },
+    { "x": 6609.9921, "y": 790.0 }
+  ],
+  "metadata": {
+    "exported_length_mm": 4621.6548
+  }
+}
+
+Unreal에서는 다음 방식으로 벽을 만들면 됩니다.
+
+1. centerline[0] → centerline[1] 방향으로 벽 축 생성
+2. thickness 기준으로 좌우 두께 생성
+3. height 기준으로 Z 방향 생성
+
+현재 샘플에서는 주로 다음 두께가 사용됩니다.
+
+outer: 200mm
+inner: 150mm
+unknown: 150mm
+
+---
+
+7. openings 처리 권장 방식
+
+현재 openings는 13개입니다.
+
+door: 10개
+window: 3개
+
+각 opening은 "span.start/end"를 기준으로 배치합니다.
+
+예시:
+
+{
+  "id": "door_1782265593172",
+  "kind": "door",
+  "span": {
+    "start": { "x": 2150.0, "y": 1220.0 },
+    "end": { "x": 2450.0, "y": 1220.0 },
+    "drawn_width_mm": 300.0
+  },
+  "height": 2100.0,
+  "bottom": 0,
+  "connects": [
+    "space_room_1782270146056",
+    "space_room_1782270116917"
+  ],
+  "anchors": {
+    "start": {
+      "kind": "endpoint",
+      "wall_id": "wall_1782268734967",
+      "endpoint": "end",
+      "distance_mm": 16.8177
+    },
+    "end": {
+      "kind": "endpoint",
+      "wall_id": "wall_1782265529821",
+      "endpoint": "end",
+      "distance_mm": 0
+    }
+  },
+  "measurement": {
+    "source": "drawn",
+    "status": "missing",
+    "opening_width_mm": 900.0
+  }
+}
+
+중요한 점:
+
+opening의 실제 위치/방향 기준은 span.start/end이다.
+anchors는 snap 참조/검증용이다.
+connects는 연결 공간 판정용이다.
+measurement.opening_width_mm는 실측/제품 폭 정보다.
+
+---
+
+8. span width와 measurement width 차이
+
+현재 JSON에는 "OPENING_SPAN_MEASUREMENT_MISMATCH" 경고가 있습니다.
+
+예를 들어 일부 door는 다음과 같습니다.
+
+span.drawn_width_mm: 약 300mm
+measurement.opening_width_mm: 900mm
+
+이 말은 도면 위에서 배치된 개구부 길이와 입력된 실측/제품 폭이 다르다는 뜻입니다.
+
+Unreal 처리 권장:
+
+배치 위치/방향: span.start/end 기준
+문/창문 에셋 폭 또는 scaling: measurement.opening_width_mm 참고
+경고 표시: import log 또는 QA panel에 표시
+
+단, 실제 배치 정책은 Unreal 쪽에서 결정해야 합니다.
+
+선택지:
+
+A. span.start/end 길이에 맞춰 mesh를 생성한다.
+B. measurement.opening_width_mm 기준으로 에셋 폭을 만든다.
+C. span 위치를 중심점/방향으로만 사용하고, 폭은 measurement 기준으로 배치한다.
+
+현재 서비스 방향상 가장 안전한 해석은 C입니다.
+
+span = 위치와 방향
+measurement = 실제 제품/개구부 폭
+
+---
+
+9. opening anchors
+
+"anchors"는 opening의 start/end가 어떤 벽에 붙었는지 알려주는 참조 정보입니다.
+
+예:
+
+"anchors": {
+  "start": {
+    "kind": "endpoint",
+    "wall_id": "wall_1782268734967",
+    "endpoint": "end",
+    "distance_mm": 16.8177
+  },
+  "end": {
+    "kind": "endpoint",
+    "wall_id": "wall_1782265529821",
+    "endpoint": "end",
+    "distance_mm": 0
+  }
+}
+
+해석:
+
+- "kind: endpoint": 벽 endpoint에 붙은 점
+- "kind: segment": 벽 segment 위에 projection된 점
+- "wall_id": 연결된 wall id
+- "endpoint": start/end 중 어느 endpoint인지
+- "distance_mm": snap 대상과의 거리
+
+Unreal에서는 anchors를 필수 배치 기준으로 보지 말고, 검증/보정/벽 연결 추정용으로 사용하는 것이 좋습니다.
+
+---
+
+10. connects
+
+"connects"는 opening이 연결하는 공간 ID 목록입니다.
+
+예:
+
+"connects": [
+  "space_room_1782270146056",
+  "space_room_1782270116917"
+]
+
+또는:
+
+"connects": [
+  "space_room_1782269990328",
+  "exterior"
+]
+
+해석:
+
+- 두 space id가 들어 있으면 실내 공간 간 연결
+- "exterior"가 들어 있으면 외부와 연결된 문/창문
+
+Unreal에서는 connects를 사용해 실내문/외부문/외부창 여부를 판단할 수 있습니다.
+
+---
+
+11. 현재 비어 있는 데이터
+
+현재 샘플에서 아래 항목은 비어 있습니다.
+
+"wall_groups": [],
+"finish_groups": [],
+"asset_requirements": []
+
+의미:
+
+wall_groups: 아직 같은 논리 벽 묶음 없음
+finish_groups: 아직 같은 마감/벽지 묶음 없음
+asset_requirements: 아직 견적 기반 에셋 후보 없음
+
+따라서 이번 샘플에서는 각 wall을 개별 벽으로 처리하면 됩니다.
+
+추후 wall group / finish group이 들어오면 같은 group에 속한 wall은 동일 벽 또는 동일 마감 대상으로 처리하면 됩니다.
+
+---
+
+12. warnings
+
+현재 주요 warning은 다음입니다.
+
+SCALE_MISSING_USING_FALLBACK
+OPENING_SPAN_MEASUREMENT_MISMATCH
+
+SCALE_MISSING_USING_FALLBACK
+
+원본 도면에 "scale_mm_per_px"가 없어 fallback 10mm/px가 사용되었습니다.
+
+현재 좌표 자체는 mm로 들어오지만, 스케일 캘리브레이션이 확정되지 않은 상태이므로 import log에 경고로 표시하는 것이 좋습니다.
+
+OPENING_SPAN_MEASUREMENT_MISMATCH
+
+opening의 도면상 span 길이와 measurement 폭이 다릅니다.
+
+이 경우 Unreal에서는 import를 막기보다 경고로 표시하고, 배치 정책을 선택해야 합니다.
+
+---
+
+13. Unreal import 권장 순서
+
+1. schema_version 확인
+   - 현재 3.2
+2. unit 확인
+   - mm
+3. coordinate_system 확인
+   - top-left, x-right, y-down
+4. levels 생성
+5. walls 생성
+   - centerline + thickness + height
+6. spaces 생성
+   - boundary polygon으로 floor/ceiling 생성
+7. openings 생성
+   - span.start/end 기준 위치/방향 계산
+   - height/bottom 적용
+   - connects로 실내/외부 연결 판단
+   - measurement 또는 door_spec으로 placeholder/asset 스케일 결정
+8. warnings 표시
+9. wall_groups / finish_groups / asset_requirements는 현재 샘플에서는 skip
+
+---
+
+14. 현재 Unreal 쪽에서 확인해야 할 것
+
+이번 JSON에서 Unreal 쪽 확인 포인트는 다음입니다.
+
+1. walls 50개가 centerline/thickness/height 기준으로 생성되는지
+2. spaces 16개가 boundary polygon 기준으로 floor/ceiling 생성되는지
+3. openings 13개가 span.start/end 기준으로 배치되는지
+4. door/window가 kind에 따라 구분되는지
+5. bottom 값이 door/window에 맞게 적용되는지
+6. connects가 실내/외부 연결 판정에 활용되는지
+7. span width와 measurement width mismatch를 경고로 표시하는지
+8. spaces가 떨어져 보일 경우, floor polygon stitching 또는 wall thickness 처리 기준을 확인하는지
+
+현재 JSON상 공간 좌표는 상당수 동일 좌표를 공유하고 있으므로, Unreal에서 공간 사이가 벌어져 보인다면 우선 다음을 확인해야 합니다.
+
+- space boundary를 wall centerline 기준으로 해석하고 있는지
+- floor polygon을 벽 안쪽 면 기준으로 offset하고 있는지
+- 동일 좌표/근접 좌표를 tolerance merge하고 있는지
+- 개별 space mesh를 만들 때 edge stitching을 하지 않아 틈이 생기는지
+- wall thickness가 floor 영역을 덮거나 밀어내고 있는지
