@@ -1,6 +1,7 @@
 ﻿#include "PlacementHistoryHandler.h"
 #include "PlacementSerializer.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
+#include "InteReal/Harness/Public/HarnessPipelineManager.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -35,6 +36,8 @@ void UPlacementHistoryHandler::PushSnapshot(const FString& Snapshot)
 	{
 		UndoStack.RemoveAt(0);
 	}
+
+	NotifyProjectEdited();
 }
 
 void UPlacementHistoryHandler::Undo()
@@ -51,6 +54,7 @@ void UPlacementHistoryHandler::Undo()
 	bRestoringHistory = true;
 	ImportEditStateJson(Previous);
 	bRestoringHistory = false;
+	NotifyProjectEdited();
 }
 
 void UPlacementHistoryHandler::Redo()
@@ -67,6 +71,20 @@ void UPlacementHistoryHandler::Redo()
 	bRestoringHistory = true;
 	ImportEditStateJson(Next);
 	bRestoringHistory = false;
+	NotifyProjectEdited();
+}
+
+void UPlacementHistoryHandler::NotifyProjectEdited() const
+{
+	if (!Subsystem || !Subsystem->GetWorld())
+	{
+		return;
+	}
+
+	if (UHarnessPipelineManager* Pipeline = Subsystem->GetWorld()->GetSubsystem<UHarnessPipelineManager>())
+	{
+		Pipeline->NotifyUserEditedProject();
+	}
 }
 
 void UPlacementHistoryHandler::BeginGizmoSnapshot()

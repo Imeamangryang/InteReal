@@ -126,7 +126,7 @@ public:
 	float FirstPersonGizmoScaleMultiplier = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EditMode|Gizmo")
-	float GizmoTraceRadius = 18.0f;
+	float GizmoTraceRadius = 10.0f;
 	
 	UFUNCTION(BlueprintCallable, Category = "EditMode|Gizmo")
 	void ToggleFreePlacementMode();
@@ -361,4 +361,6 @@ private:
 
 	bool TryGetSurfaceMaterialData(UMeshComponent* SurfaceComponent, FMaterialDataRow& OutMaterialData) const;
 	void StoreSurfaceMaterialData(UMeshComponent* SurfaceComponent, const FMaterialDataRow& MaterialData);
+	
+	bool bPendingShowPreviewSizePanel = false;
 };

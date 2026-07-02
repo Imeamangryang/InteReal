@@ -182,7 +182,7 @@ void AInteRealHUD::ShowFurnitureSizePanel(AFurniture* Furniture)
 
 	if (Furniture)
 	{
-		FurnitureSizePanelInstance->SetVisibility(ESlateVisibility::Visible);
+		FurnitureSizePanelInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		FurnitureSizePanelInstance->RefreshForFurniture(Furniture);
 	}
 	else
@@ -202,7 +202,7 @@ void AInteRealHUD::ShowLightAttributesPanel(AFurniture* Furniture)
 	// 여기서 미리 걸러내지 않으면 일반 가구를 선택했을 때 패널이 비어있는 채로 보이게 된다.
 	if (ALightFixture* LightFixture = Cast<ALightFixture>(Furniture))
 	{
-		LightAttributesPanelInstance->SetVisibility(ESlateVisibility::Visible);
+		LightAttributesPanelInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		LightAttributesPanelInstance->RefreshForFurniture(LightFixture);
 	}
 	else

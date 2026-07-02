@@ -13,17 +13,6 @@ class AGridSpaceManager;
 class APlacementVisualizerActor;
 class UPlacementHistoryHandler;
 
-UENUM(BlueprintType)
-enum class EPlacementInvalidReason : uint8
-{
-	None UMETA(DisplayName = "없음"),
-	Overlapping UMETA(DisplayName = "다른 가구와 겹칩니다"),
-	OutOfBounds UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
-	OutsideFloor UMETA(DisplayName = "도면 범위를 벗어났습니다"),
-	IntersectsWall UMETA(DisplayName = "벽과 겹칩니다"),
-	UnsupportedSurface UMETA(DisplayName = "이 위치에는 배치할 수 없습니다"),
-};
-
 UCLASS()
 class INTEREAL_API UInteriorPlacementSubsystem : public UWorldSubsystem
 {
@@ -74,9 +63,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Placement|Preview")
 	void UpdatePreviewLocation(const FHitResult& CursorHit);
-
-	// 커서가 유효한 표면을 히트하지 못하는 동안(예: 마우스가 웹 UI 위에 있을 때) 프리뷰가
-	// 월드 원점 등 엉뚱한 위치에 보이는 것을 막기 위해 숨김 처리한다.
+	
 	UFUNCTION(BlueprintCallable, Category = "Placement|Preview")
 	void SetPreviewHidden(bool bHidden);
 
@@ -103,6 +90,11 @@ public:
 	bool IsOverlappingPlacedFurniture(const AFurniture* Target,
 	                                  const AFurniture* IgnoredFurniture = nullptr,
 	                                  const AFurniture* RequiredParent = nullptr) const;
+
+	void RevalidatePlacedFurnitureWarnings();
+	
+	UFUNCTION(BlueprintPure, Category = "Placement|UI")
+	EPlacementInvalidReason GetTooltipReasonFor(const AFurniture* SelectedFurniture) const;
 
 	// ===== 기즈모 =====
 	UFUNCTION(BlueprintCallable, Category = "Placement|Gizmo")
@@ -172,6 +164,7 @@ public:
 	float GetGridCellSize() const { return GridCellSize; }
 	float GetWallThickness() const { return WallThickness; }
 	float GetFloorZ() const { return FloorZ; }
+	float GetCeilingZ() const { return CeilingZ; }
 	const TArray<FVector2D>& GetFloorPolygon() const { return FloorPolygon; }
 	const TArray<TArray<FVector2D>>& GetFloorRoomPolygons() const { return FloorRoomPolygons; }
 	const TArray<TPair<FVector2D, FVector2D>>& GetWallSegments() const { return WallSegments; }
@@ -224,6 +217,7 @@ private:
 	float GridCellSize = 50.0f;
 	float WallThickness = 20.0f;
 	float FloorZ = 0.0f;
+	float CeilingZ = 240.0f;
 
 	// ===== 공유 기하 데이터 =====
 	TArray<FVector2D> FloorPolygon;
@@ -242,6 +236,8 @@ private:
 	EPlacementSurfaceType CurrentPreviewSurfaceType = EPlacementSurfaceType::Floor;
 	FFurnitureDataRow CurrentFurnitureRow;
 	FVector2D LineFillAnchor = FVector2D::ZeroVector;
+	
+	mutable FFurnitureDataRow CachedLightFurnitureRow;
 
 	UPROPERTY()
 	UObject* ActivePlacementHandler = nullptr;

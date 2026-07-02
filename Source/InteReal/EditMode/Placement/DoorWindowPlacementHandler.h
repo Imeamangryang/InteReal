@@ -19,7 +19,7 @@ public:
 	virtual bool CanHandle(const FHitResult& Hit) const override;
 	virtual bool OwnsFurniture(const AFurniture* Furniture) const override;
 	virtual void UpdatePreview(AFurniture* Preview, const FHitResult& Hit) override;
-	virtual void OnConfirm(AFurniture* Furniture) override;
+	virtual void OnConfirm(AFurniture* Furniture, bool bIsValid = true) override;
 	virtual void OnRemove(AFurniture* Furniture) override;
 
 	virtual void BeginGizmoMove(AFurniture* Target) override;

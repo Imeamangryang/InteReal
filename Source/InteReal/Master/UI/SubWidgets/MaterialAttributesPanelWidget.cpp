@@ -55,6 +55,14 @@ void UMaterialAttributesPanelWidget::NativeConstruct()
 	{
 		Btn_Close->OnClicked.AddDynamic(this, &UMaterialAttributesPanelWidget::HandleCancelClicked);
 	}
+	if (Slider_TextureTiling)
+	{
+		Slider_TextureTiling->OnBaseValueChanged.AddDynamic(this, &UMaterialAttributesPanelWidget::HandleTextureTilingChanged);
+	}
+	if (Input_TextureTilingValue)
+	{
+		Input_TextureTilingValue->OnBaseTextCommitted.AddDynamic(this, &UMaterialAttributesPanelWidget::HandleTextureTilingInputCommitted);
+	}
 	
 	InitializeFromInputValues();
 }
@@ -71,6 +79,7 @@ void UMaterialAttributesPanelWidget::RefreshForMaterial(const FMaterialDataRow& 
 	SetSliderValueSilently(Slider_Specular, CurrentMaterialData.Specular);
 	SetSliderValueSilently(Slider_Roughness, CurrentMaterialData.Roughness);
 	SetSliderValueSilently(Slider_Emissive, CurrentMaterialData.Emissive);
+	SetSliderValueSilently(Slider_TextureTiling, CurrentMaterialData.TextureTiling);
 
 	RefreshValueReadouts();
 
@@ -110,6 +119,15 @@ void UMaterialAttributesPanelWidget::HandleEmissiveChanged(float NewValue)
 
 	CurrentMaterialData.Emissive = NewValue;
 	SetInputText(Input_EmissiveValue, NewValue);
+	ApplyToSelectedSurface();
+}
+
+void UMaterialAttributesPanelWidget::HandleTextureTilingChanged(float NewValue)
+{
+	if (bIsRefreshing) return;
+
+	CurrentMaterialData.TextureTiling = FMath::Max(NewValue, 0.01f);
+	SetInputText(Input_TextureTilingValue, CurrentMaterialData.TextureTiling);
 	ApplyToSelectedSurface();
 }
 
@@ -165,6 +183,19 @@ void UMaterialAttributesPanelWidget::HandleEmissiveInputCommitted(const FText& T
 	ApplyToSelectedSurface();
 }
 
+void UMaterialAttributesPanelWidget::HandleTextureTilingInputCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	const float NewValue = FMath::Clamp(FCString::Atof(*Text.ToString()), 0.01f, 20.0f);
+	CurrentMaterialData.TextureTiling = NewValue;
+
+	bIsRefreshing = true;
+	SetSliderValueSilently(Slider_TextureTiling, NewValue);
+	SetInputText(Input_TextureTilingValue, NewValue);
+	bIsRefreshing = false;
+
+	ApplyToSelectedSurface();
+}
+
 void UMaterialAttributesPanelWidget::HandleCancelClicked()
 {
 	if (bHasMaterialData)
@@ -198,6 +229,7 @@ void UMaterialAttributesPanelWidget::RefreshValueReadouts()
 	SetInputText(Input_SpecularValue, CurrentMaterialData.Specular);
 	SetInputText(Input_RoughnessValue, CurrentMaterialData.Roughness);
 	SetInputText(Input_EmissiveValue, CurrentMaterialData.Emissive);
+	SetInputText(Input_TextureTilingValue, CurrentMaterialData.TextureTiling);
 }
 
 void UMaterialAttributesPanelWidget::SetSliderValueSilently(UBaseSlider* Slider, float Value)
@@ -222,11 +254,13 @@ void UMaterialAttributesPanelWidget::InitializeFromInputValues()
 	CurrentMaterialData.Specular = ClampMaterialAttributeValue(ReadInputValue(Input_SpecularValue, CurrentMaterialData.Specular), 0.0f, 1.0f);
 	CurrentMaterialData.Roughness = ClampMaterialAttributeValue(ReadInputValue(Input_RoughnessValue, CurrentMaterialData.Roughness), 0.0f, 1.0f);
 	CurrentMaterialData.Emissive = FMath::Max(ReadInputValue(Input_EmissiveValue, CurrentMaterialData.Emissive), 0.0f);
-
+	CurrentMaterialData.TextureTiling = FMath::Clamp(ReadInputValue(Input_TextureTilingValue, CurrentMaterialData.TextureTiling), 0.01f, 20.0f);
+	
 	SetSliderValueSilently(Slider_Metallic, CurrentMaterialData.Metallic);
 	SetSliderValueSilently(Slider_Specular, CurrentMaterialData.Specular);
 	SetSliderValueSilently(Slider_Roughness, CurrentMaterialData.Roughness);
 	SetSliderValueSilently(Slider_Emissive, CurrentMaterialData.Emissive);
+	SetSliderValueSilently(Slider_TextureTiling, CurrentMaterialData.TextureTiling);
 
 	RefreshValueReadouts();
 
@@ -266,6 +300,7 @@ void UMaterialAttributesPanelWidget::ResetForSurfaceWithoutMaterial()
 	SetSliderValueSilently(Slider_Specular, CurrentMaterialData.Specular);
 	SetSliderValueSilently(Slider_Roughness, CurrentMaterialData.Roughness);
 	SetSliderValueSilently(Slider_Emissive, CurrentMaterialData.Emissive);
+	SetSliderValueSilently(Slider_TextureTiling, CurrentMaterialData.TextureTiling);
 
 	RefreshValueReadouts();
 

@@ -15,6 +15,7 @@ enum class EHarnessSpaceBoundaryPolicy : uint8
 };
 
 class UStaticMesh;
+class UPrimitiveComponent;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class INTEREAL_API UHarnessGeneratorComponent : public UActorComponent
@@ -23,6 +24,8 @@ class INTEREAL_API UHarnessGeneratorComponent : public UActorComponent
 
 public:
     UHarnessGeneratorComponent();
+
+    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
     // 예외 처리를 위한 기본 방어용 머티리얼
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness")
@@ -93,6 +96,37 @@ private:
     void FabricateDynamicPlanes(const FHarnessFloorData& FloorData);
     void InstallOpeningComponents(const FHarnessFloorData& FloorData);
     void AddGeneratedComponentTags(UActorComponent* Component, const FString& ComponentType, const FString& EntityId = FString(), const TArray<FString>& ExtraMetadataTags = TArray<FString>()) const;
+
+    UPROPERTY(EditAnywhere, Category="Harness|Animation")
+    bool bPlayBuildRevealAnimation = true;
+
+    UPROPERTY(EditAnywhere, Category="Harness|Animation", meta=(ClampMin="0.05", UIMin="0.05", UIMax="2.0"))
+    float BuildRevealDuration = 0.18f;
+
+    UPROPERTY(EditAnywhere, Category="Harness|Animation", meta=(ClampMin="0.0", UIMin="0.0", UIMax="0.2"))
+    float BuildRevealStepDelay = 0.012f;
+
+    UPROPERTY(EditAnywhere, Category="Harness|Animation", meta=(ClampMin="0.0", UIMin="0.0", UIMax="150.0"))
+    float BuildRevealRiseOffset = 35.0f;
+
+    struct FHarnessRevealAnimItem
+    {
+        TWeakObjectPtr<UPrimitiveComponent> Component;
+        FVector OriginalRelativeLocation = FVector::ZeroVector;
+        FVector OriginalRelativeScale = FVector::OneVector;
+        float Delay = 0.0f;
+        float Duration = 0.18f;
+        bool bIsFloor = false;
+        bool bAnimateScale = true;
+    };
+
+    TArray<FHarnessRevealAnimItem> RevealAnimItems;
+    float RevealAnimTime = 0.0f;
+    bool bIsPlayingRevealAnimation = false;
+
+    void StartHarnessRevealAnimation();
+    void UpdateHarnessRevealAnimation(float DeltaTime);
+    float GetHarnessRevealSortDelay(const UPrimitiveComponent* Component, int32 Index) const;
 
     // 생성된 모든 컴포넌트를 추적하여 도면 교체 시 메모리 누수 방지
     UPROPERTY(Transient)

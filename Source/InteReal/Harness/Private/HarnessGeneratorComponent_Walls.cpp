@@ -511,10 +511,9 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
         const FVector2D SurfaceCenter = Side.Center + (SurfaceNormal * OffsetDistance);
         const float HalfLength = Side.Length * 0.5f;
 
-        // Visible finish panels should cover the full wall span, but must not invade adjacent rooms.
-        // Only single-room outer wall surfaces need a small overlap to hide exposed core at outer corners.
-        const bool bOuterSingleRoomWall = Side.bHasOuterWall && !Side.bTouchesAnotherRoom;
-        const float SurfaceEndOverlapCm = bOuterSingleRoomWall ? 2.0f : 0.0f;
+        // Visible finish panels should cover the full wall span.
+        // Wall surfaces need to reach the offset corner line so corner caps and ends stay covered.
+        const float SurfaceEndOverlapCm = FMath::Max(OffsetDistance, 2.0f);
 
         float XMin = -HalfLength - SurfaceEndOverlapCm;
         float XMax = HalfLength + SurfaceEndOverlapCm;
@@ -1284,6 +1283,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
     // Keep visible finish panels untrimmed. WallCore handles endpoint insets for Z-fighting prevention.
     ApplyWallRunEndpointInsets(WallRuns);
 
+    int32 WallCoreBuildIndex = 0;
     for (const FWallRun& Run : WallRuns)
     {
         if (Run.Edges.Num() == 0 || Run.Length <= KINDA_SMALL_NUMBER)
@@ -1335,6 +1335,11 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             Opening.CenterX += OpeningCenterShift;
         }
 
+        // Stagger core top faces slightly so overlapping corner caps do not share the exact same Z plane.
+        const float CoreTopZFightOffsetCm = (static_cast<float>(WallCoreBuildIndex % 9) + 1.0f) * 0.05f;
+        const float AdjustedCoreTopZ = CoreTopZ + CoreTopZFightOffsetCm;
+        ++WallCoreBuildIndex;
+
         // 💡 [수정] 통짜 뼈대를 세로로 반갈라 왼쪽/오른쪽 2개의 얇은 벽으로 분리 생성합니다.
         const float HalfThickness = Run.WallThickness * 0.5f;
         const float CoreCenterGapCm = FMath::Min(HarnessWallZFightSeparationCm * 0.5f, FMath::Max(HalfThickness - 1.0f, 0.0f));
@@ -1352,7 +1357,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             CoreLength + Run.WallThickness,
             CoreHalfDepth,
             CoreBottomZ,
-            CoreTopZ,
+            AdjustedCoreTopZ,
             CoreOpenings,
             {
                 FName(TEXT("WallCore")),
@@ -1371,7 +1376,7 @@ void UHarnessGeneratorComponent::AssembleStructuralWalls(const FHarnessFloorData
             CoreLength + Run.WallThickness,
             CoreHalfDepth,
             CoreBottomZ,
-            CoreTopZ,
+            AdjustedCoreTopZ,
             CoreOpenings,
             {
                 FName(TEXT("WallCore")),

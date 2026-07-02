@@ -1,6 +1,7 @@
 ﻿#include "CeilingPlacementHandler.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Furniture/Furniture.h"
+#include "InteReal/EditMode/Furniture/LightFixture.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 
@@ -50,8 +51,8 @@ float UCeilingPlacementHandler::ResolveCeilingPlaneZ(const FHitResult& Hit, cons
 			return CeilingHit.ImpactPoint.Z;
 		}
 	}
-
-	return Hit.ImpactPoint.Z;
+	
+	return Subsystem->GetCeilingZ();
 }
 
 void UCeilingPlacementHandler::AlignFurnitureTopToCeiling(AFurniture* Furniture, float CeilingPlaneZ) const
@@ -89,7 +90,12 @@ bool UCeilingPlacementHandler::CanHandle(const FHitResult& Hit) const
 	{
 		return true;
 	}
-	return Hit.ImpactNormal.Z < -0.5f;
+	if (Hit.ImpactNormal.Z < -0.5f)
+	{
+		return true;
+	}
+	
+	return !Preview->SupportsPlacementType(EPlacementSurfaceType::Floor);
 }
 
 bool UCeilingPlacementHandler::OwnsFurniture(const AFurniture* Furniture) const
@@ -119,23 +125,31 @@ void UCeilingPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResu
 	AlignFurnitureTopToCeiling(Preview, CeilingPlaneZ);
 	Subsystem->SetLastRayPosition(Preview->GetActorLocation());
 
+	// 실내조명: 겹침 검사 대상에서 제외(물리적 실체가 아니라 광원이므로)
 	bool bValid = true;
-	const FBox Bounds = Preview->GetVisualBounds().ExpandBy(-1.0f);
-	for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
+	if (!Preview->IsA<ALightFixture>())
 	{
-		if (!IsValid(Placed) || Placed == Preview)
+		const FBox Bounds = Preview->GetVisualBounds().ExpandBy(-1.0f);
+		for (const AFurniture* Placed : Subsystem->GetPlacedFurnitures())
 		{
-			continue;
-		}
-		if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Ceiling)
-		{
-			continue;
-		}
-		if (Bounds.Intersect(Placed->GetVisualBounds()))
-		{
-			bValid = false;
-			Subsystem->SetInvalidReason(EPlacementInvalidReason::Overlapping);
-			break;
+			if (!IsValid(Placed) || Placed == Preview)
+			{
+				continue;
+			}
+			if (Placed->GetPlacedSurfaceType() != EPlacementSurfaceType::Ceiling)
+			{
+				continue;
+			}
+			if (Placed->IsA<ALightFixture>())
+			{
+				continue;
+			}
+			if (Bounds.Intersect(Placed->GetVisualBounds()))
+			{
+				bValid = false;
+				Subsystem->SetInvalidReason(EPlacementInvalidReason::Overlapping);
+				break;
+			}
 		}
 	}
 
@@ -150,7 +164,7 @@ void UCeilingPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResu
 	}
 }
 
-void UCeilingPlacementHandler::OnConfirm(AFurniture* Furniture)
+void UCeilingPlacementHandler::OnConfirm(AFurniture* Furniture, bool bIsValid)
 {
 	if (!Furniture)
 	{

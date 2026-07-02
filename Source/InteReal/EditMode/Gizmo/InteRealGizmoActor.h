@@ -75,7 +75,7 @@ public:
 	// MoveX/Y/Z 아웃라인 → 흰색
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
 	int32 MoveOutlineStencil = 2;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Outline")
 	int32 RotateOutlineStencil = 3;
 

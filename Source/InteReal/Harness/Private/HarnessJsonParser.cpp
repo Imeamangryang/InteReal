@@ -3,11 +3,14 @@
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "Misc/FileHelper.h"
+#include "Public/HarnessGeneratorGeometry.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 namespace
 {
+using namespace InteReal::HarnessGenerator;
+
 constexpr float MmToCm = 0.1f;
 constexpr TCHAR ExpectedTopologySchemaVersion[] = TEXT("3.2");
 
@@ -966,7 +969,7 @@ bool ConvertTopologyToFloorData(const TSharedPtr<FJsonObject>& RootObject, FHarn
 		const FString TwinId = MakeWallTwinEdgeId(WallId);
 		const FString Kind = ReadStringField(WallObject, TEXT("kind"), TEXT("inner"));
 		const FString LevelId = ReadStringField(WallObject, TEXT("level_id"));
-		const float ThicknessCm = ReadNumberMmAsCm(WallObject, TEXT("thickness"), 20.0f);
+		const float ThicknessCm = HarnessDefaultWallThicknessCm;
 		const float HeightCm = ReadNumberMmAsCm(WallObject, TEXT("height"), ResolveLevelHeightCm(LevelHeightById, LevelId));
 		CommonWallHeightCm = CommonWallHeightCm > UE_SMALL_NUMBER
 			? FMath::Max(CommonWallHeightCm, HeightCm)

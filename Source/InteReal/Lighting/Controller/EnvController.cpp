@@ -8,6 +8,72 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
 
+namespace
+{
+    FLinearColor GetLightningFlashColor()
+    {
+        return FLinearColor(1.0f, 0.90f, 0.65f);
+    }
+
+    float GetClampedWeatherTemperature(float Temperature, FName WeatherID)
+    {
+        const float FallbackDaylightTemperature = 4800.0f;
+        const float SafeTemperature = Temperature > 1000.0f ? Temperature : FallbackDaylightTemperature;
+
+        if (WeatherID == FName("Clear"))
+        {
+            return FMath::Clamp(SafeTemperature, 3200.0f, 7000.0f);
+        }
+
+        return FMath::Clamp(SafeTemperature, 3200.0f, 4800.0f);
+    }
+
+    float GetWeatherSunContrast(FName WeatherID)
+    {
+        if (WeatherID == FName("Clear"))
+        {
+            return 1.0f;
+        }
+
+        if (WeatherID == FName("Stormy"))
+        {
+            return 0.3f;
+        }
+
+        return 0.4f;
+    }
+
+    float GetWeatherSkyIntensityScale(FName WeatherID)
+    {
+        if (WeatherID == FName("Clear"))
+        {
+            return 1.0f;
+        }
+
+        if (WeatherID == FName("Stormy"))
+        {
+            return 0.08f;
+        }
+
+        return 0.12f;
+    }
+
+    FLinearColor GetSkyLightTint(float Altitude, FName WeatherID)
+    {
+        if (Altitude < 0.0f)
+        {
+            return FLinearColor(0.055f, 0.05f, 0.035f);
+        }
+
+        if (WeatherID != FName("Clear"))
+        {
+            return FLinearColor(1.0f, 0.82f, 0.42f);
+        }
+
+        return FLinearColor::White;
+    }
+}
+
 AEnvController::AEnvController()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -32,10 +98,10 @@ void AEnvController::BeginPlay()
             NewLight->RegisterComponent();
             NewLight->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
             NewLight->SetVisibility(false);
-            NewLight->SetAttenuationRadius(12000.0f);
-            NewLight->SetSourceRadius(1000.0f);
-            NewLight->SetIntensity(100000.0f);
-            NewLight->SetLightColor(FLinearColor(0.8f, 0.9f, 1.0f));
+            NewLight->SetAttenuationRadius(3500.0f);
+            NewLight->SetSourceRadius(400.0f);
+            NewLight->SetIntensity(12000.0f);
+            NewLight->SetLightColor(GetLightningFlashColor());
         }
     }
     
@@ -138,37 +204,31 @@ void AEnvController::UpdateEnvironment(FWeatherData W, FCityMainData C, FCityDet
     
     // 즉시 적용 항목
     SunLight->SetRelativeRotation(FRotator(-Altitude, Azimuth + Orientation + 180.0f, 0.0f));
-    SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(W.Temperature));
+    SunLight->SetLightColor(FLinearColor::MakeFromColorTemperature(GetClampedWeatherTemperature(W.Temperature, CurrentWeatherID)));
     
     // 목표 밝기 계산 
     float AltitudeMultiplier = (Altitude > 0) ? 1.0f : 0.05f;
-    // Clear가 아니면 밝기를 20% 수준으로 낮춤
-    float WeatherContrast = (CurrentWeatherID == FName("Clear")) ? 1.0f : 0.2f;
+    // 비/눈/폭풍에서는 직사광을 줄이되 주변광이 과하게 파랗게 보이지 않을 정도는 유지
+    float WeatherContrast = GetWeatherSunContrast(CurrentWeatherID);
     
     if (IsValid(SkyLight) && SkyLight->GetLightComponent()) SkyLight->GetLightComponent()->RecaptureSky();
         
     TargetSunIntensity = W.IntensityLux * AltitudeMultiplier * WeatherContrast * MasterIntensityMultiplier; 
     
     // 최소 밝기 설정 
-    float MinNightIntensity = 0.05f; 
-    TargetSkyIntensity = FMath::Max(W.SkyIntensity * AltitudeMultiplier, MinNightIntensity);
+    const float MinSkyIntensity = (Altitude < 0.0f) ? 0.006f : 0.01f;
+    TargetSkyIntensity = FMath::Max(W.SkyIntensity * AltitudeMultiplier * GetWeatherSkyIntensityScale(CurrentWeatherID), MinSkyIntensity);
 
-    // 태양이 졌을 때 차가운 푸른빛 틴트 적용
-    if (Altitude < 0) 
+    if (IsValid(SkyLight) && SkyLight->GetLightComponent())
     {
-        // 밤에는 하늘 조명을 약간 푸른 남색 톤으로 고정
-        FLinearColor NightTint = FLinearColor(0.1f, 0.15f, 0.3f);
-        SkyLight->GetLightComponent()->SetLightColor(NightTint);
-    } 
-    else 
-    {
-        SkyLight->GetLightComponent()->SetLightColor(FLinearColor::White);
+        // 비/눈/폭풍의 캡처된 하늘빛이 파랗게 들어와도 색 보정으로 파란 채널을 강하게 누름
+        SkyLight->GetLightComponent()->SetLightColor(GetSkyLightTint(Altitude, CurrentWeatherID));
     }
     
     if (IsValid(Fog))
     {
         Fog->SetFogDensity(W.FogDensity);
-        FLinearColor FogColor = (Altitude < 0) ? FLinearColor(0.02f, 0.02f, 0.05f) : FLinearColor::LerpUsingHSV(FLinearColor::White, FLinearColor::Gray, W.SkyIntensity);
+        FLinearColor FogColor = (Altitude < 0) ? FLinearColor(0.025f, 0.022f, 0.018f) : FLinearColor::LerpUsingHSV(FLinearColor(1.0f, 0.94f, 0.78f), FLinearColor::Gray, FMath::Clamp(W.SkyIntensity, 0.0f, 1.0f));
         Fog->SetFogInscatteringColor(FogColor);
     }
 }
@@ -267,10 +327,10 @@ void AEnvController::TriggerRandomLightning()
             PL->SetWorldLocation(LightningSkyPos);
             
             // [광원 강화 설정]
-            PL->SetAttenuationRadius(12000.0f); // 영향 범위 확대
-            PL->SetSourceRadius(1000.0f);       // 광원을 구체처럼 만들어 빛이 부드럽게 퍼짐
-            PL->SetIntensity(100000.0f);        // 광량 대폭 상향
-            PL->SetLightColor(FLinearColor(0.8f, 0.9f, 1.0f)); // 푸른빛이 섞인 흰색
+            PL->SetAttenuationRadius(3500.0f);  // 실내 전체가 물들지 않도록 범위 완화
+            PL->SetSourceRadius(400.0f);        // 광원을 구체처럼 만들어 빛이 부드럽게 퍼짐
+            PL->SetIntensity(12000.0f);         // 과한 색 번짐을 줄이기 위해 광량 완화
+            PL->SetLightColor(GetLightningFlashColor());
             PL->SetVisibility(true);
             
             PL->SetSpecularScale(0.0f);
@@ -298,9 +358,10 @@ void AEnvController::TriggerRandomLightning()
     if (LightningLight) 
     {
         LightningLight->SetWorldLocation(FVector(0, 0, 5000.0f));
-        LightningLight->SetAttenuationRadius(30000.0f); // 맵 전체를 덮는 범위
-        LightningLight->SetSourceRadius(5000.0f);       // 전체 하늘이 번쩍이도록 설정
-        LightningLight->SetIntensity(250000.0f);        // 아주 강한 밝기
+        LightningLight->SetAttenuationRadius(6000.0f);  // 맵 전체가 푸르게 덮이지 않도록 범위 완화
+        LightningLight->SetSourceRadius(1000.0f);       // 전체 하늘이 번쩍이도록 설정
+        LightningLight->SetIntensity(18000.0f);         // 과한 색 번짐을 줄이기 위해 광량 완화
+        LightningLight->SetLightColor(GetLightningFlashColor());
         LightningLight->SetVisibility(true);
     
         FTimerHandle GlobalResetHandle;

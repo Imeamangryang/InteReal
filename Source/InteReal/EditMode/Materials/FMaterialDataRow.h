@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material|Params")
 	float Emissive = 0.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material|Params")
+	float TextureTiling = 1.0f;
 };

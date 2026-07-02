@@ -38,12 +38,7 @@ void UHarnessPipelineManager::LoadProject(int32 PlanId)
 	CurrentPlanId = PlanId;
 	CurrentDeltaVersion = 1;
 	ClearWorld();
-
-	if (GetWorld())
-	{
-		// Auto-save every 3 minutes (180 seconds)
-		GetWorld()->GetTimerManager().SetTimer(AutoSaveTimerHandle, this, &UHarnessPipelineManager::SaveCurrentProject, 180.0f, true);
-	}
+	ResetAutoSaveTracking();
 }
 
 void UHarnessPipelineManager::SaveCurrentProject()
@@ -54,6 +49,18 @@ void UHarnessPipelineManager::SaveCurrentProject()
 void UHarnessPipelineManager::SaveCurrentProjectAsNewVersion()
 {
 	SaveCurrentProjectInternal(true);
+}
+
+void UHarnessPipelineManager::NotifyUserEditedProject()
+{
+	if (CurrentPlanId == 0)
+	{
+		return;
+	}
+
+	++ProjectChangeSerial;
+	bHasPendingUserChanges = true;
+	ScheduleAutoSave();
 }
 
 void UHarnessPipelineManager::SetCurrentDeltaVersion(int32 Version)
@@ -102,12 +109,129 @@ void UHarnessPipelineManager::SaveCurrentProjectInternal(bool bCreateNewVersion)
 		RequestVersion = FMath::Max(MaxVersion + 1, RequestVersion + 1);
 	}
 
+	PendingSavedDeltaJson = DeltaJson;
+	PendingSaveChangeSerial = ProjectChangeSerial;
+
 	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate, RequestVersion, bCreateNewVersion);
 	
 	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d at version %d (CreateNewVersion: %s)"),
 		CurrentPlanId,
 		RequestVersion,
 		bCreateNewVersion ? TEXT("TRUE") : TEXT("FALSE"));
+}
+
+bool UHarnessPipelineManager::SaveCurrentProjectInternalWithDelta(bool bCreateNewVersion, const FString& DeltaJson)
+{
+	if (CurrentPlanId == 0 || !SaveManagerComp) return false;
+
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	if (!GI) return false;
+
+	UInteRealNetworkSubsystem* Network = GI->GetSubsystem<UInteRealNetworkSubsystem>();
+	if (!Network) return false;
+
+	bSkipCameraFocusOnNextLoad = true;
+
+	FOnDeltaSaved Delegate;
+	Delegate.BindDynamic(this, &UHarnessPipelineManager::HandleDeltaSaved);
+
+	int32 RequestVersion = FMath::Max(CurrentDeltaVersion, 1);
+	if (bCreateNewVersion)
+	{
+		int32 MaxVersion = 0;
+		if (GetWorld())
+		{
+			for (TObjectIterator<UInteRealPlanViewModel> It; It; ++It)
+			{
+				if (It->GetWorld() == GetWorld())
+				{
+					for (const FUnrealDeltaVersionItem& Item : It->GetDeltaVersionList().items)
+					{
+						if (Item.version > MaxVersion)
+						{
+							MaxVersion = Item.version;
+						}
+					}
+					break;
+				}
+			}
+		}
+		RequestVersion = FMath::Max(MaxVersion + 1, RequestVersion + 1);
+	}
+
+	PendingSavedDeltaJson = DeltaJson;
+	PendingSaveChangeSerial = ProjectChangeSerial;
+
+	Network->SaveDelta(CurrentPlanId, DeltaJson, Delegate, RequestVersion, bCreateNewVersion);
+
+	UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Saving Current Project %d at version %d (CreateNewVersion: %s)"),
+		CurrentPlanId,
+		RequestVersion,
+		bCreateNewVersion ? TEXT("TRUE") : TEXT("FALSE"));
+	return true;
+}
+
+void UHarnessPipelineManager::HandleAutoSaveTimer()
+{
+	if (!bHasPendingUserChanges || CurrentPlanId == 0 || !SaveManagerComp)
+	{
+		return;
+	}
+
+	const FString CurrentDeltaJson = SaveManagerComp->SaveInteriorState();
+	if (CurrentDeltaJson == LastSavedDeltaJson)
+	{
+		bHasPendingUserChanges = false;
+		UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Auto-save skipped; no state changes."));
+		return;
+	}
+
+	if (!SaveCurrentProjectInternalWithDelta(false, CurrentDeltaJson))
+	{
+		ScheduleAutoSave();
+	}
+}
+
+void UHarnessPipelineManager::ScheduleAutoSave()
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		AutoSaveTimerHandle,
+		this,
+		&UHarnessPipelineManager::HandleAutoSaveTimer,
+		AutoSaveDelaySeconds,
+		false);
+}
+
+void UHarnessPipelineManager::ResetAutoSaveTracking()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	LastSavedDeltaJson.Empty();
+	PendingSavedDeltaJson.Empty();
+	ProjectChangeSerial = 0;
+	PendingSaveChangeSerial = 0;
+	bHasPendingUserChanges = false;
+}
+
+void UHarnessPipelineManager::CaptureCurrentStateAsSavedBaseline()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+	}
+	LastSavedDeltaJson = SaveManagerComp ? SaveManagerComp->SaveInteriorState() : FString();
+	PendingSavedDeltaJson.Empty();
+	ProjectChangeSerial = 0;
+	PendingSaveChangeSerial = 0;
+	bHasPendingUserChanges = false;
 }
 
 void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response)
@@ -120,11 +244,26 @@ void UHarnessPipelineManager::HandleDeltaSaved(bool bSuccess, const FUnrealOkRes
 		{
 			CurrentDeltaVersion = Response.version;
 		}
+		LastSavedDeltaJson = PendingSavedDeltaJson;
+		PendingSavedDeltaJson.Empty();
+		if (PendingSaveChangeSerial == ProjectChangeSerial)
+		{
+			bHasPendingUserChanges = false;
+			if (GetWorld())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimerHandle);
+			}
+		}
 		UE_LOG(LogTemp, Log, TEXT("[Harness] PipelineManager: Save complete. Version: %d"), Response.version);
 		return;
 	}
 
 	bSkipCameraFocusOnNextLoad = false; // 저장 실패 시 리로드 스킵용 플래그 해제
+	PendingSavedDeltaJson.Empty();
+	if (bHasPendingUserChanges)
+	{
+		ScheduleAutoSave();
+	}
 	UE_LOG(LogTemp, Error, TEXT("[Harness] PipelineManager: Save failed."));
 }
 
@@ -163,5 +302,6 @@ void UHarnessPipelineManager::ApplyDelta(const FString& DeltaJson)
 	if (!SaveManagerComp) return;
 
 	SaveManagerComp->LoadInteriorState(DeltaJson);
+	CaptureCurrentStateAsSavedBaseline();
 	OnPipelineLoadFinished.Broadcast();
 }

@@ -125,13 +125,13 @@ private:
 	FVector TopDownPanelClosedOffset = FVector(0.0f, 0.0f, 500.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|PanelOffset", meta = (AllowPrivateAccess = "true"))
-	FVector TopDownPanelOpenOffsetDelta = FVector(-500.0f, 0.0f, 0.0f);
+	FVector TopDownPanelOpenOffsetDelta = FVector(-300.0f, 0.0f, 0.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|PanelOffset", meta = (AllowPrivateAccess = "true"))
 	FVector IsometricPanelClosedOffset = FVector(0.0f, 0.0f, 0.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ViewMode|PanelOffset", meta = (AllowPrivateAccess = "true"))
-	FVector IsometricPanelOpenOffsetDelta = FVector(-700.0f, -700.0f, 0.0f);
+	FVector IsometricPanelOpenOffsetDelta = FVector(-300.0f, -300.0f, 0.0f);
 	
 private:
 	UPROPERTY()

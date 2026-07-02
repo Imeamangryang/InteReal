@@ -35,6 +35,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	UDataTable* FurnitureDataTable;
 
+	// 조명 카탈로그 테이블 (FLightsDataRow) — FindFurnitureRowByID가 가구 테이블에서
+	// 못 찾았을 때 이 테이블도 마저 찾아본다 (조명은 ID가 가구와 별개 체계임).
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
+	UDataTable* LightsDataTable;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config|Wall")
 	float WallThickness = 20.0f;
 

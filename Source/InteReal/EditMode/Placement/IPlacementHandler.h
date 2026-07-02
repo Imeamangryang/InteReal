@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
@@ -40,7 +40,7 @@ public:
 	virtual void UpdatePreview(AFurniture* Preview, const FHitResult& Hit) = 0;
 
 	// 배치 확정 (그리드 점유, Attach 등 표면별 후처리)
-	virtual void OnConfirm(AFurniture* Furniture) = 0;
+	virtual void OnConfirm(AFurniture* Furniture, bool bIsValid = true) = 0;
 
 	// 제거 시 정리 (그리드 셀 해제 etc)
 	virtual void OnRemove(AFurniture* Furniture) = 0;

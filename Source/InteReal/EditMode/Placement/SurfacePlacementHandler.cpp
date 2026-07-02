@@ -78,7 +78,7 @@ void USurfacePlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResu
 	Preview->SetPlacementState(bValid ? EPlacementState::Preview : EPlacementState::Invalid);
 }
 
-void USurfacePlacementHandler::OnConfirm(AFurniture* Furniture)
+void USurfacePlacementHandler::OnConfirm(AFurniture* Furniture, bool bIsValid)
 {
 	if (!Furniture || !CurrentSurfaceParent)
 	{
@@ -178,10 +178,8 @@ void USurfacePlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	{
 		return;
 	}
-	if (Subsystem->InvalidReason != EPlacementInvalidReason::None)
-	{
-		Target->SetActorLocation(GizmoDragStartLocation);
-	}
+	// 부모 가구 밖으로 나가거나 다른 표면 가구와 겹쳐도 위치는 그대로 두고 경고만 표시한다.
+	Target->SetOverlapWarning(Subsystem->InvalidReason);
 	Target->SetPlacementState(EPlacementState::Placed);
 	Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
 }

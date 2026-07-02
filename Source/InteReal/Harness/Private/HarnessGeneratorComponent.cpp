@@ -4,6 +4,7 @@
 #include "EngineUtils.h"
 #include "Public/HarnessPipelineManager.h"
 #include "Public/HarnessSaveManagerComponent.h"
+#include "Public/HarnessGeneratorGeometry.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 
 #include "UObject/ConstructorHelpers.h"
@@ -11,7 +12,7 @@
 
 UHarnessGeneratorComponent::UHarnessGeneratorComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false;
+    PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.bStartWithTickEnabled = false; 
 
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMat(TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"));
@@ -109,6 +110,7 @@ void UHarnessGeneratorComponent::RebuildHarnessFromRuntimeData(const FHarnessFlo
         }
     }
     SetCeilingVisibility(bShowCeiling);
+    StartHarnessRevealAnimation();
 }
 
 void UHarnessGeneratorComponent::SetCeilingVisibility(bool bVisible)
@@ -147,11 +149,178 @@ void UHarnessGeneratorComponent::SetCeilingVisibility(bool bVisible)
     }
 }
 
+void UHarnessGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    UpdateHarnessRevealAnimation(DeltaTime);
+}
+
+float UHarnessGeneratorComponent::GetHarnessRevealSortDelay(const UPrimitiveComponent* Component, int32 Index) const
+{
+    if (!Component)
+    {
+        return Index * BuildRevealStepDelay;
+    }
+
+    if (Component->ComponentTags.Contains(FName(TEXT("Floor"))))
+    {
+        return 0.0f;
+    }
+
+    if (Component->ComponentTags.Contains(FName(TEXT("HarnessWall"))) || Component->ComponentTags.Contains(FName(TEXT("Wall"))))
+    {
+        return 0.08f + Index * BuildRevealStepDelay;
+    }
+
+    if (Component->ComponentTags.Contains(FName(TEXT("HarnessWallSurface"))))
+    {
+        return 0.14f + Index * BuildRevealStepDelay;
+    }
+
+    if (Component->ComponentTags.Contains(FName(TEXT("HarnessOpening"))))
+    {
+        return 0.22f + Index * BuildRevealStepDelay;
+    }
+
+    return Index * BuildRevealStepDelay;
+}
+
+void UHarnessGeneratorComponent::StartHarnessRevealAnimation()
+{
+    RevealAnimItems.Reset();
+    RevealAnimTime = 0.0f;
+    bIsPlayingRevealAnimation = false;
+
+    if (!bPlayBuildRevealAnimation)
+    {
+        SetComponentTickEnabled(false);
+        return;
+    }
+
+    int32 RevealIndex = 0;
+
+    for (UActorComponent* ActorComponent : SpawnedComponents)
+    {
+        UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(ActorComponent);
+        if (!IsValid(Primitive))
+        {
+            continue;
+        }
+
+        if (Primitive->ComponentTags.Contains(FName(TEXT("Ceiling"))) || Primitive->ComponentTags.Contains(FName(TEXT("HarnessCeiling"))))
+        {
+            continue;
+        }
+
+        FHarnessRevealAnimItem Item;
+        Item.Component = Primitive;
+        Item.OriginalRelativeLocation = Primitive->GetRelativeLocation();
+        Item.OriginalRelativeScale = Primitive->GetRelativeScale3D();
+        Item.Delay = GetHarnessRevealSortDelay(Primitive, RevealIndex);
+        Item.Duration = FMath::Max(BuildRevealDuration, 0.05f);
+        Item.bIsFloor = Primitive->ComponentTags.Contains(FName(TEXT("Floor"))) || Primitive->ComponentTags.Contains(FName(TEXT("HarnessFloor")));
+        const bool bIsOpening =
+            Primitive->ComponentTags.Contains(FName(TEXT("HarnessOpening"))) ||
+            Primitive->ComponentTags.Contains(FName(TEXT("EditableOpening"))) ||
+            Primitive->ComponentTags.Contains(FName(TEXT("OpeningAsset")));
+        Item.bAnimateScale = !bIsOpening;
+
+        const FVector StartLocation = Item.bIsFloor ? Item.OriginalRelativeLocation : Item.OriginalRelativeLocation - FVector(0.0f, 0.0f, BuildRevealRiseOffset);
+
+        if (Item.bAnimateScale)
+        {
+            const FVector StartScale = Item.bIsFloor ? FVector(Item.OriginalRelativeScale.X * 0.96f, Item.OriginalRelativeScale.Y * 0.96f, Item.OriginalRelativeScale.Z) : FVector(Item.OriginalRelativeScale.X, Item.OriginalRelativeScale.Y, FMath::Max(Item.OriginalRelativeScale.Z * 0.02f, 0.01f));
+            Primitive->SetRelativeScale3D(StartScale);
+        }
+        Primitive->SetRelativeLocation(StartLocation);
+        Primitive->SetVisibility(false, true);
+
+        RevealAnimItems.Add(Item);
+        RevealIndex++;
+    }
+
+    if (RevealAnimItems.Num() == 0)
+    {
+        SetComponentTickEnabled(false);
+        return;
+    }
+
+    bIsPlayingRevealAnimation = true;
+    SetComponentTickEnabled(true);
+}
+
+void UHarnessGeneratorComponent::UpdateHarnessRevealAnimation(float DeltaTime)
+{
+    if (!bIsPlayingRevealAnimation)
+    {
+        return;
+    }
+
+    RevealAnimTime += DeltaTime;
+    bool bAnyAnimating = false;
+
+    for (FHarnessRevealAnimItem& Item : RevealAnimItems)
+    {
+        UPrimitiveComponent* Primitive = Item.Component.Get();
+        if (!IsValid(Primitive))
+        {
+            continue;
+        }
+
+        const float LocalTime = RevealAnimTime - Item.Delay;
+        if (LocalTime < 0.0f)
+        {
+            bAnyAnimating = true;
+            continue;
+        }
+
+        const float RawAlpha = FMath::Clamp(LocalTime / Item.Duration, 0.0f, 1.0f);
+        const float Alpha = FMath::InterpEaseOut(0.0f, 1.0f, RawAlpha, 3.0f);
+
+        if (!Primitive->IsVisible())
+        {
+            Primitive->SetVisibility(true, true);
+        }
+
+        const FVector StartLocation = Item.bIsFloor ? Item.OriginalRelativeLocation : Item.OriginalRelativeLocation - FVector(0.0f, 0.0f, BuildRevealRiseOffset);
+
+        if (Item.bAnimateScale)
+        {
+            const FVector StartScale = Item.bIsFloor ? FVector(Item.OriginalRelativeScale.X * 0.96f, Item.OriginalRelativeScale.Y * 0.96f, Item.OriginalRelativeScale.Z) : FVector(Item.OriginalRelativeScale.X, Item.OriginalRelativeScale.Y, FMath::Max(Item.OriginalRelativeScale.Z * 0.02f, 0.01f));
+            Primitive->SetRelativeScale3D(FMath::Lerp(StartScale, Item.OriginalRelativeScale, Alpha));
+        }
+        Primitive->SetRelativeLocation(FMath::Lerp(StartLocation, Item.OriginalRelativeLocation, Alpha));
+
+        if (RawAlpha < 1.0f)
+        {
+            bAnyAnimating = true;
+        }
+        else
+        {
+            if (Item.bAnimateScale)
+            {
+                Primitive->SetRelativeScale3D(Item.OriginalRelativeScale);
+            }
+            Primitive->SetRelativeLocation(Item.OriginalRelativeLocation);
+        }
+    }
+
+    if (!bAnyAnimating)
+    {
+        bIsPlayingRevealAnimation = false;
+        RevealAnimItems.Reset();
+        SetComponentTickEnabled(false);
+    }
+}
+
+
 // ==============================================================================
 // ?袁ⓦ늺 2D JSON ?怨쀬뵠?怨? ???뼓??뤿연 ?紐꺿봺??3D ?ル슦紐닸?Z-Up)??筌띿쉳苡?筌?Ŋ???몃빍??
 // ==============================================================================
 void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& FloorData)
 {
+    using namespace InteReal::HarnessGenerator;
+
     for (const FTopologyVertex& V : FloorData.vertices)
     {
         // ?袁ⓦ늺???怨밸릭 獄쏆꼷???롫뮉 野껉퍔??筌띾맦由??袁る퉸 X, Y?곕벡???대Ŋ媛?筌띲끋釉??몃빍??
@@ -162,7 +331,9 @@ void UHarnessGeneratorComponent::BuildTopologyCaches(const FHarnessFloorData& Fl
         // Half-Edge ?닌듼?癒?퐣 餓λ쵎???롫뮉 ?봔??Twin Edge)?? ??뽰뇚??랁??⑥쥙???甕곗럥???怨쀬뵠?怨뺤춸 ??ｍ돥??덈뼄.
         if (!EdgeCache.Contains(Edge.twin_id))
         {
-            EdgeCache.Add(Edge.id, Edge);
+            FTopologyHalfEdge NormalizedEdge = Edge;
+            NormalizedEdge.wall_thickness = HarnessDefaultWallThicknessCm;
+            EdgeCache.Add(NormalizedEdge.id, NormalizedEdge);
         }
     }
 }
@@ -175,6 +346,10 @@ void UHarnessGeneratorComponent::BuildHarness(const FHarnessFloorData& FloorData
     if (!GetOwner()) return;
 
     SourceFloorData = FloorData;
+    for (FTopologyHalfEdge& Edge : SourceFloorData.half_edges)
+    {
+        Edge.wall_thickness = InteReal::HarnessGenerator::HarnessDefaultWallThicknessCm;
+    }
     RebuildHarnessWithCurrentScale();
 }
 

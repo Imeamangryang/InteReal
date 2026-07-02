@@ -418,6 +418,9 @@ void UPlacementSerializer::ImportPlacedFurnituresJson(const FString& JsonString)
 			}
 		}
 	}
+
+	// 저장된 경고 상태를 그대로 믿지 않고, 불러온 시점의 실제 도면/그리드 기준으로 다시 판정한다.
+	Subsystem->RevalidatePlacedFurnitureWarnings();
 }
 
 FString UPlacementSerializer::ExportEditStateJson() const

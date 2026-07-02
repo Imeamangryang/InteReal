@@ -163,7 +163,7 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(const FPaintArgs& Args, co
         const bool bIsHovered = FurnitureIndex == HoveredFurnitureIndex;
         const FLinearColor FillColor = bIsSelected ? SelectedFurnitureFillColor : bIsHovered ? HoveredFurnitureFillColor : FurnitureFillColor;
         const FLinearColor OutlineColor = bIsSelected ? SelectedFurnitureOutlineColor : bIsHovered ? HoveredFurnitureOutlineColor : FurnitureOutlineColor;
-        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
+        DrawFurnitureShape(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
     }
 
     LayerId += 2;
@@ -176,9 +176,10 @@ int32 UInteReal2DFloorPlanViewportWidget::NativePaint(const FPaintArgs& Args, co
         PreviewFurniture.CenterDocumentPosition = PreviewFurnitureCenterDocument;
         PreviewFurniture.Size = PendingFurnitureSize;
         PreviewFurniture.RotationDegrees = PreviewFurnitureRotationDegrees;
+        PreviewFurniture.FootprintLocalPoints = PreviewFurnitureFootprintLocalPoints;
 
-        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, PreviewFurniture, bIsFurniturePreviewPlacementValid ? FurniturePreviewFillColor : InvalidFurniturePreviewFillColor, bIsFurniturePreviewPlacementValid ? FurniturePreviewOutlineColor : InvalidFurniturePreviewOutlineColor);
-
+        DrawFurnitureShape(OutDrawElements, AllottedGeometry, LayerId, PreviewFurniture, bIsFurniturePreviewPlacementValid ? FurniturePreviewFillColor : InvalidFurniturePreviewFillColor, bIsFurniturePreviewPlacementValid ? FurniturePreviewOutlineColor : InvalidFurniturePreviewOutlineColor);
+        
         LayerId += 2;
 
         if (bDrawObjectSnapGuide && bHasObjectSnapGuide)
@@ -851,6 +852,127 @@ void UInteReal2DFloorPlanViewportWidget::DrawFurnitureRect(
     );
 }
 
+static float Cross2D(const FVector2D& O, const FVector2D& A, const FVector2D& B)
+{
+    return (A.X - O.X) * (B.Y - O.Y) - (A.Y - O.Y) * (B.X - O.X);
+}
+
+static void BuildConvexHull2D(const TArray<FVector2D>& InPoints, TArray<FVector2D>& OutHull)
+{
+    OutHull.Reset();
+
+    TArray<FVector2D> Points;
+    Points.Reserve(InPoints.Num());
+
+    for (const FVector2D& Point : InPoints)
+    {
+        bool bExists = false;
+        for (const FVector2D& Existing : Points)
+        {
+            if (FVector2D::Distance(Point, Existing) <= 0.1f)
+            {
+                bExists = true;
+                break;
+            }
+        }
+
+        if (!bExists)
+        {
+            Points.Add(Point);
+        }
+    }
+
+    if (Points.Num() < 3)
+    {
+        OutHull = Points;
+        return;
+    }
+
+    Points.Sort([](const FVector2D& A, const FVector2D& B)
+    {
+        if (!FMath::IsNearlyEqual(A.X, B.X, 0.01f))
+        {
+            return A.X < B.X;
+        }
+
+        return A.Y < B.Y;
+    });
+
+    TArray<FVector2D> Lower;
+    for (const FVector2D& Point : Points)
+    {
+        while (Lower.Num() >= 2 && Cross2D(Lower[Lower.Num() - 2], Lower[Lower.Num() - 1], Point) <= 0.0f)
+        {
+            Lower.Pop();
+        }
+
+        Lower.Add(Point);
+    }
+
+    TArray<FVector2D> Upper;
+    for (int32 Index = Points.Num() - 1; Index >= 0; --Index)
+    {
+        const FVector2D& Point = Points[Index];
+
+        while (Upper.Num() >= 2 && Cross2D(Upper[Upper.Num() - 2], Upper[Upper.Num() - 1], Point) <= 0.0f)
+        {
+            Upper.Pop();
+        }
+
+        Upper.Add(Point);
+    }
+
+    Lower.Pop();
+    Upper.Pop();
+
+    OutHull.Append(Lower);
+    OutHull.Append(Upper);
+}
+
+void UInteReal2DFloorPlanViewportWidget::DrawFurnitureShape(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId, const FInteReal2DPlacedFurniture& Furniture, const FLinearColor& FillColor, const FLinearColor& OutlineColor) const
+{
+    if (Furniture.FootprintLocalPoints.Num() < 3)
+    {
+        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
+        return;
+    }
+
+    TArray<FVector2D> HullPoints;
+    BuildConvexHull2D(Furniture.FootprintLocalPoints, HullPoints);
+
+    if (HullPoints.Num() < 3)
+    {
+        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
+        return;
+    }
+
+    const FVector2D LocalSize = AllottedGeometry.GetLocalSize();
+    const float RotationRadians = FMath::DegreesToRadians(Furniture.RotationDegrees);
+    const float CosAngle = FMath::Cos(RotationRadians);
+    const float SinAngle = FMath::Sin(RotationRadians);
+
+    TArray<FVector2D> DrawPoints;
+    DrawPoints.Reserve(HullPoints.Num() + 1);
+
+    for (const FVector2D& LocalPoint : HullPoints)
+    {
+        const FVector2D RotatedPoint(LocalPoint.X * CosAngle - LocalPoint.Y * SinAngle, LocalPoint.X * SinAngle + LocalPoint.Y * CosAngle);
+        const FVector2D DocPoint = Furniture.CenterDocumentPosition + RotatedPoint;
+        DrawPoints.Add(TransformDocumentPointToLocal(DocPoint, LocalSize));
+    }
+
+    if (DrawPoints.Num() < 3)
+    {
+        DrawFurnitureRect(OutDrawElements, AllottedGeometry, LayerId, Furniture, FillColor, OutlineColor);
+        return;
+    }
+
+    const FVector2D FirstDrawPoint = DrawPoints[0];
+    DrawPoints.Add(FirstDrawPoint);
+
+    FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(), DrawPoints, ESlateDrawEffect::None, OutlineColor, true, FurnitureOutlineThickness);
+}
+
 FGuid UInteReal2DFloorPlanViewportWidget::AddPlacedFurnitureAtDocumentPosition(
     const FFurnitureDataRow& FurnitureRow,
     const FVector2D& CenterDocumentPosition,
@@ -1387,4 +1509,23 @@ void UInteReal2DFloorPlanViewportWidget::SetObjectSnapEnabled2D(bool bEnabled)
 void UInteReal2DFloorPlanViewportWidget::ToggleObjectSnap2D()
 {
     SetObjectSnapEnabled2D(!bEnableObjectSnap2D);
+}
+
+bool UInteReal2DFloorPlanViewportWidget::UpdatePlacedFurnitureFootprintByGuid(const FGuid& InstanceGuid, const TArray<FVector2D>& FootprintLocalPoints)
+{
+    const int32 FurnitureIndex = FindPlacedFurnitureIndexByGuid(InstanceGuid);
+    if (!PlacedFurnitures2D.IsValidIndex(FurnitureIndex))
+    {
+        return false;
+    }
+
+    PlacedFurnitures2D[FurnitureIndex].FootprintLocalPoints = FootprintLocalPoints;
+    Invalidate(EInvalidateWidgetReason::Paint);
+    return true;
+}
+
+void UInteReal2DFloorPlanViewportWidget::SetFurniturePreviewFootprint(const TArray<FVector2D>& FootprintLocalPoints)
+{
+    PreviewFurnitureFootprintLocalPoints = FootprintLocalPoints;
+    Invalidate(EInvalidateWidgetReason::Paint);
 }

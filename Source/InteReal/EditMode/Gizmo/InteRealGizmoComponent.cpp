@@ -57,6 +57,25 @@ namespace
 		Part.RelativeTransform = FTransform(Rotation, Location, Scale);
 		return Part;
 	}
+	
+	
+	static void ConfigureAlwaysOnTopGizmoMesh(UStaticMeshComponent* MeshComponent)
+	{
+		if (!MeshComponent)
+		{
+			return;
+		}
+
+		MeshComponent->SetCastShadow(false);
+		MeshComponent->bCastDynamicShadow = false;
+		MeshComponent->bCastStaticShadow = false;
+		MeshComponent->bReceivesDecals = false;
+		MeshComponent->SetRenderInMainPass(true);
+		MeshComponent->SetRenderCustomDepth(false);
+		MeshComponent->SetTranslucentSortPriority(9999);
+		MeshComponent->SetBoundsScale(10.0f);
+		MeshComponent->MarkRenderStateDirty();
+	}
 }
 
 UInteRealGizmoComponent::UInteRealGizmoComponent()
@@ -67,12 +86,12 @@ UInteRealGizmoComponent::UInteRealGizmoComponent()
 	const TCHAR* ArrowMesh = TEXT("/Game/EditMode/Resources/GizmoArrowHandle.GizmoArrowHandle");
 	const TCHAR* RingMesh = TEXT("/Game/EditMode/Resources/GizmoFullCircleHandle.GizmoFullCircleHandle");
 	VisualParts = {
-		MakeGizmoPart(TEXT("MoveX"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_X_Inst.M_Gizmo_X_Inst"), FVector(90.0f, 0.0f, 0.0f), FRotator::ZeroRotator, FVector(1.0f)),
-		MakeGizmoPart(TEXT("MoveY"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Y_Inst.M_Gizmo_Y_Inst"), FVector(0.0f, 90.0f, 0.0f), FRotator(0.0f, 90.0f, 0.0f), FVector(1.0f)),
-		MakeGizmoPart(TEXT("MoveZ"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Z_Inst.M_Gizmo_Z_Inst"), FVector(0.0f, 0.0f, 90.0f), FRotator(0.0f, 0.0f, -90.0f), FVector(1.0f)),
-		MakeGizmoPart(TEXT("RotateYaw"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Inst.M_Gizmo_Rot_Inst"), FVector::ZeroVector, FRotator::ZeroRotator, FVector(1.6f)),
-		MakeGizmoPart(TEXT("RotatePitch"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Pitch_Inst.M_Gizmo_Rot_Pitch_Inst"), FVector::ZeroVector, FRotator(0.0f, 90.0f, 0.0f), FVector(1.6f)),
-		MakeGizmoPart(TEXT("RotateRoll"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Roll_Inst.M_Gizmo_Rot_Roll_Inst"), FVector::ZeroVector, FRotator(90.0f, 0.0f, 0.0f), FVector(1.6f))
+		MakeGizmoPart(TEXT("MoveX"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_X_Inst.M_Gizmo_X_Inst"), FVector::ZeroVector, FRotator::ZeroRotator, FVector(3.0f)),
+		MakeGizmoPart(TEXT("MoveY"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Y_Inst.M_Gizmo_Y_Inst"), FVector::ZeroVector, FRotator(0.0f, 90.0f, 0.0f), FVector(3.0f)),
+		MakeGizmoPart(TEXT("MoveZ"), ArrowMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Z_Inst.M_Gizmo_Z_Inst"), FVector::ZeroVector, FRotator(90.0f, 0.0f, 0.0f), FVector(3.0f)),
+		MakeGizmoPart(TEXT("RotateYaw"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Inst.M_Gizmo_Rot_Inst"), FVector::ZeroVector, FRotator(90.0f, 0.0f, 0.0f), FVector(1.2f)),
+		MakeGizmoPart(TEXT("RotatePitch"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Pitch_Inst.M_Gizmo_Rot_Pitch_Inst"), FVector::ZeroVector, FRotator(0.0f, 90.0f, 0.0f), FVector(1.2f)),
+		MakeGizmoPart(TEXT("RotateRoll"), RingMesh, TEXT("/Game/EditMode/Materials/M_Gizmo_Rot_Roll_Inst.M_Gizmo_Rot_Roll_Inst"), FVector::ZeroVector, FRotator::ZeroRotator, FVector(1.2f))
 	};
 }
 
@@ -132,6 +151,7 @@ void UInteRealGizmoComponent::BuildGeneratedVisuals()
 		MeshComponent->SetupAttachment(this);
 		MeshComponent->SetRelativeTransform(Part.RelativeTransform);
 		MeshComponent->bReceivesDecals = false;
+		ConfigureAlwaysOnTopGizmoMesh(MeshComponent);
 		ConfigureGizmoCollision(MeshComponent, false);
 		MeshComponent->SetVisibility(false, true);
 		MeshComponent->SetHiddenInGame(true, true);
@@ -169,10 +189,13 @@ void UInteRealGizmoComponent::ConfigureGizmoCollision(UPrimitiveComponent* Compo
 		return;
 	}
 
+	const ECollisionChannel GizmoTraceChannel = ECC_GameTraceChannel1;
+
 	Component->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 	Component->SetCollisionObjectType(ECC_WorldDynamic);
 	Component->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Component->SetCollisionResponseToChannel(ECC_Visibility, bEnabled ? ECR_Block : ECR_Ignore);
+	Component->SetCollisionResponseToChannel(GizmoTraceChannel, bEnabled ? ECR_Block : ECR_Ignore);
 	Component->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
@@ -252,6 +275,7 @@ void UInteRealGizmoComponent::SetDisplayMode(EInteRealGizmoDisplayMode NewMode)
 			}
 		}
 
+		ConfigureAlwaysOnTopGizmoMesh(Mesh);
 		Mesh->SetVisibility(bShouldShow, true);
 		Mesh->SetHiddenInGame(!bShouldShow, true);
 		ConfigureGizmoCollision(Mesh, bShouldShow);

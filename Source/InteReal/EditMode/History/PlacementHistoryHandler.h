@@ -46,6 +46,7 @@ private:
 	FString PendingGizmoSnapshot;
 
 	void PushSnapshot(const FString& Snapshot);
+	void NotifyProjectEdited() const;
 
 public:
 	void BeginGizmoSnapshot();

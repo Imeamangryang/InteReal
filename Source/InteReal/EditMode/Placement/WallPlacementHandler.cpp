@@ -132,7 +132,7 @@ void UWallPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult&
 	}
 }
 
-void UWallPlacementHandler::OnConfirm(AFurniture* Furniture)
+void UWallPlacementHandler::OnConfirm(AFurniture* Furniture, bool bIsValid)
 {
 	if (!Furniture)
 	{
@@ -215,12 +215,10 @@ void UWallPlacementHandler::UpdateGizmoMoveFree(AFurniture* Target, FVector Targ
 
 void UWallPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 {
-	if (Target && Subsystem && Subsystem->InvalidReason != EPlacementInvalidReason::None)
-	{
-		Target->SetActorLocation(GizmoDragStartLocation);
-	}
 	if (Target)
 	{
+		// 겹치거나 벽을 벗어나도 위치는 그대로 두고 경고만 표시한다 (되돌리지 않음).
+		Target->SetOverlapWarning(Subsystem ? Subsystem->InvalidReason : EPlacementInvalidReason::None);
 		Target->WallNormalAtPlacement = CurrentWallNormal;
 		Target->SetPlacementState(EPlacementState::Placed);
 	}

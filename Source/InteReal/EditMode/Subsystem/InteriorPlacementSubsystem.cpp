@@ -1,6 +1,7 @@
 ﻿#include "InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 #include "InteReal/EditMode/Furniture/LightFixture.h"
+#include "InteReal/EditMode/Lights/FLightsDataRow.h"
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Placement/FloorPlacementHandler.h"
 #include "InteReal/EditMode/Placement/DoorWindowPlacementHandler.h"
@@ -79,9 +80,11 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 	if (!FloorData.faces.IsEmpty())
 	{
 		FloorZ = FloorData.faces[0].z_offset;
+		CeilingZ = FloorData.faces[0].z_offset + FloorData.faces[0].height_cm;
 		for (const FTopologyFace& Face : FloorData.faces)
 		{
 			FloorZ = FMath::Min(FloorZ, Face.z_offset);
+			CeilingZ = FMath::Max(CeilingZ, Face.z_offset + Face.height_cm);
 		}
 	}
 	else
@@ -104,6 +107,7 @@ void UInteriorPlacementSubsystem::InitializeFromFloorData(const FHarnessFloorDat
 				break;
 			}
 		}
+		CeilingZ = FloorZ + FloorData.common_wall_height_cm;
 	}
 
 	Cell = FMath::Max(Cell, 1.0f);
@@ -353,30 +357,6 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 			PreviewFurniture ? TEXT("valid") : TEXT("null"), Grid ? TEXT("valid") : TEXT("null"));
 		return;
 	}
-	if (PreviewFurniture->GetPlacementState() == EPlacementState::Invalid)
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[Placement] Confirm rejected: id=%d state=Invalid reason=%s surface=%d dims=%s bounds=%s anchor=%s"),
-			PreviewFurniture->FurnitureID, *UEnum::GetValueAsString(InvalidReason),
-			static_cast<int32>(CurrentPreviewSurfaceType), *CurrentDimensions.ToString(),
-			*PreviewFurniture->GetCollisionBounds().GetSize().ToCompactString(), *PreviewGridAnchor.ToString());
-		return;
-	}
-	if (InvalidReason != EPlacementInvalidReason::None)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Placement] Confirm rejected: id=%d reason=%s"),
-			PreviewFurniture->FurnitureID, *UEnum::GetValueAsString(InvalidReason));
-		return;
-	}
-
-	const bool bIsFloor = (CurrentPreviewSurfaceType == EPlacementSurfaceType::Floor);
-	if (bIsFloor && !IsPreviewLotEmpty())
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[Placement] Confirm rejected: grid occupancy changed id=%d dims=%s anchor=%s"),
-			PreviewFurniture->FurnitureID, *CurrentDimensions.ToString(), *PreviewGridAnchor.ToString());
-		return;
-	}
 
 	RecordUndoSnapshot();
 
@@ -387,9 +367,21 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 			PreviewFurniture->FurnitureID, static_cast<int32>(CurrentPreviewSurfaceType));
 		return;
 	}
+	
+	const bool bIsFloor = (CurrentPreviewSurfaceType == EPlacementSurfaceType::Floor);
+	EPlacementInvalidReason WarningReason = InvalidReason;
+	if (WarningReason == EPlacementInvalidReason::None && PreviewFurniture->GetPlacementState() == EPlacementState::Invalid)
+	{
+		WarningReason = EPlacementInvalidReason::UnsupportedSurface;
+	}
+	if (WarningReason == EPlacementInvalidReason::None && bIsFloor && !IsPreviewLotEmpty())
+	{
+		WarningReason = EPlacementInvalidReason::Overlapping;
+	}
+	const bool bHasWarning = WarningReason != EPlacementInvalidReason::None;
 
-	// 라인 채우기 (바닥 전용)
-	if (bIsFloor && bContinuePlacement && LineFillAnchor != PreviewGridAnchor)
+	// 라인 채우기 (바닥 전용, 유효한 배치일 때만 — 경고 상태에서 줄줄이 복제하면 안 됨)
+	if (bIsFloor && !bHasWarning && bContinuePlacement && LineFillAnchor != PreviewGridAnchor)
 	{
 		const int32 L = (int32)CurrentDimensions.X;
 		const int32 B = (int32)CurrentDimensions.Y;
@@ -418,10 +410,11 @@ void UInteriorPlacementSubsystem::ConfirmFurniture(bool bContinuePlacement)
 		}
 	}
 
-	Handler->OnConfirm(PreviewFurniture);
+	Handler->OnConfirm(PreviewFurniture, !bHasWarning);
 
 	PreviewFurniture->Tags.Add(TEXT("InteriorFurniture"));
 	PreviewFurniture->Tags.Add(FName(FString::Printf(TEXT("ID_%d"), PreviewFurniture->FurnitureID)));
+	PreviewFurniture->SetOverlapWarning(WarningReason);
 	PreviewFurniture->SetPlacementState(EPlacementState::Placed);
 	PlacedFurnitures.Add(PreviewFurniture);
 	PreviewFurniture = nullptr;
@@ -503,21 +496,40 @@ bool UInteriorPlacementSubsystem::IsPreviewLotEmpty() const
 
 const FFurnitureDataRow* UInteriorPlacementSubsystem::FindFurnitureRowByID(int32 TargetID) const
 {
-	if (!Visualizer || !Visualizer->FurnitureDataTable)
+	if (!Visualizer)
 	{
 		return nullptr;
 	}
 
 	static const FString ContextString(TEXT("FindFurnitureRowByID"));
-	TArray<FFurnitureDataRow*> AllRows;
-	Visualizer->FurnitureDataTable->GetAllRows<FFurnitureDataRow>(ContextString, AllRows);
-	for (const FFurnitureDataRow* Row : AllRows)
+
+	if (Visualizer->FurnitureDataTable)
 	{
-		if (Row && Row->ID == TargetID)
+		TArray<FFurnitureDataRow*> AllRows;
+		Visualizer->FurnitureDataTable->GetAllRows<FFurnitureDataRow>(ContextString, AllRows);
+		for (const FFurnitureDataRow* Row : AllRows)
 		{
-			return Row;
+			if (Row && Row->ID == TargetID)
+			{
+				return Row;
+			}
 		}
 	}
+
+	if (Visualizer->LightsDataTable)
+	{
+		TArray<FLightsDataRow*> AllLightRows;
+		Visualizer->LightsDataTable->GetAllRows<FLightsDataRow>(ContextString, AllLightRows);
+		for (const FLightsDataRow* LightRow : AllLightRows)
+		{
+			if (LightRow && LightRow->ID == TargetID)
+			{
+				CachedLightFurnitureRow = LightRow->ToFurnitureDataRow();
+				return &CachedLightFurnitureRow;
+			}
+		}
+	}
+
 	return nullptr;
 }
 
@@ -547,6 +559,89 @@ bool UInteriorPlacementSubsystem::IsOverlappingPlacedFurniture(const AFurniture*
 		}
 	}
 	return false;
+}
+
+void UInteriorPlacementSubsystem::RevalidatePlacedFurnitureWarnings()
+{
+	UFloorPlacementHandler* FloorHandler = nullptr;
+	for (UObject* HandlerObj : PlacementHandlers)
+	{
+		if (UFloorPlacementHandler* FH = Cast<UFloorPlacementHandler>(HandlerObj))
+		{
+			FloorHandler = FH;
+			break;
+		}
+	}
+
+	for (AFurniture* Furniture : PlacedFurnitures)
+	{
+		if (!IsValid(Furniture))
+		{
+			continue;
+		}
+
+		EPlacementInvalidReason Reason = EPlacementInvalidReason::None;
+		switch (Furniture->GetPlacedSurfaceType())
+		{
+		case EPlacementSurfaceType::Floor:
+			if (Grid)
+			{
+				for (const FIntPoint& Cell : Furniture->PlacedOccupiedCells)
+				{
+					const FVector2D GridCell(Cell.X, Cell.Y);
+					if (Grid->GetTileState(GridCell) == EGridTileState::None)
+					{
+						Reason = EPlacementInvalidReason::OutsideFloor;
+						break;
+					}
+					if (Grid->GetFurniture(GridCell) != Furniture)
+					{
+						Reason = EPlacementInvalidReason::Overlapping;
+						break;
+					}
+				}
+			}
+			if (Reason == EPlacementInvalidReason::None && FloorHandler)
+			{
+				if (!FloorHandler->IsCornersInsideFloor(Furniture))
+				{
+					Reason = EPlacementInvalidReason::OutsideFloor;
+				}
+				else if (FloorHandler->IntersectsWalls(Furniture))
+				{
+					Reason = EPlacementInvalidReason::IntersectsWall;
+				}
+			}
+			break;
+
+		case EPlacementSurfaceType::Surface:
+			Reason = IsOverlappingPlacedFurniture(Furniture, nullptr, Furniture->ParentFurniture)
+				? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None;
+			break;
+
+		case EPlacementSurfaceType::Wall:
+		case EPlacementSurfaceType::Ceiling:
+		default:
+			Reason = IsOverlappingPlacedFurniture(Furniture)
+				? EPlacementInvalidReason::Overlapping : EPlacementInvalidReason::None;
+			break;
+		}
+
+		Furniture->SetOverlapWarning(Reason);
+	}
+}
+
+EPlacementInvalidReason UInteriorPlacementSubsystem::GetTooltipReasonFor(const AFurniture* SelectedFurniture) const
+{
+	if (InvalidReason != EPlacementInvalidReason::None)
+	{
+		return InvalidReason;
+	}
+	if (SelectedFurniture && SelectedFurniture->HasOverlapWarning())
+	{
+		return SelectedFurniture->GetOverlapWarningReason();
+	}
+	return EPlacementInvalidReason::None;
 }
 
 // ===== 기즈모 =====
@@ -716,6 +811,13 @@ EPlacementSurfaceType UInteriorPlacementSubsystem::DetermineHitSurfaceType(const
 	if (HitComp && HitComp->ComponentHasTag(TEXT("EditableWall")))
 	{
 		return EPlacementSurfaceType::Wall;
+	}
+	
+	if (PreviewFurniture
+		&& !PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Floor)
+		&& PreviewFurniture->SupportsPlacementType(EPlacementSurfaceType::Ceiling))
+	{
+		return EPlacementSurfaceType::Ceiling;
 	}
 
 	return EPlacementSurfaceType::Floor;

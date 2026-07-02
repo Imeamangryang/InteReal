@@ -160,6 +160,10 @@ void UInteRealFloorPlanPlacementSyncComponent::RegisterConfirmedFurnitureToFloor
 
 	const FGuid AddedFloorPlanGuid = FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(FurnitureRow, FVector2D(ConfirmedWorldLocation.X, ConfirmedWorldLocation.Y), ConfirmedYaw);
 	RegisterFloorPlan2DFurnitureActor(AddedFloorPlanGuid, ConfirmedFurniture);
+	
+	TArray<FVector2D> FootprintLocalPoints;
+	ConfirmedFurniture->GetCollisionFootprint2D(FootprintLocalPoints);
+	FloorPlan2DWidget->UpdatePlacedFurnitureFootprintByGuid(AddedFloorPlanGuid, FootprintLocalPoints);
 }
 
 void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DFurniturePlacementRequested(FVector2D DocumentPosition)
@@ -277,6 +281,11 @@ void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DFurniturePreview
 	if (FloorPlan2DWidget)
 	{
 		FloorPlan2DWidget->SetFurniturePreviewAtDocumentPosition(FVector2D(SnappedWorldLocation.X, SnappedWorldLocation.Y), SnappedYaw);
+
+		TArray<FVector2D> FootprintLocalPoints;
+		PreviewFurniture->GetCollisionFootprint2D(FootprintLocalPoints);
+		FloorPlan2DWidget->SetFurniturePreviewFootprint(FootprintLocalPoints);
+
 		FloorPlan2DWidget->SetFurniturePreviewPlacementValid(PS->InvalidReason == EPlacementInvalidReason::None);
 	}
 }
@@ -377,27 +386,27 @@ void UInteRealFloorPlanPlacementSyncComponent::SyncFloorPlan2DFromFurniture(AFur
 		return;
 	}
 
-	FGuid InstanceGuid;
-	if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
-	{
-		return;
-	}
-
 	UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = GetFloorPlan2DWidget();
 	if (!FloorPlan2DWidget)
 	{
 		return;
 	}
 
-	const FVector WorldLocation = FurnitureActor->GetMeshBounds().GetCenter();
-	const float WorldYaw = FurnitureActor->GetActorRotation().Yaw;
-	const FVector SizeCm = FurnitureActor->GetCurrentSizeCm();
-
 	SetSyncSource(EInteRealFloorPlanSyncSource::From3D);
-	FloorPlan2DWidget->UpdatePlacedFurnitureByGuid(InstanceGuid, FVector2D(WorldLocation.X, WorldLocation.Y), WorldYaw);
-	FloorPlan2DWidget->UpdatePlacedFurnitureSizeByGuid(InstanceGuid, FVector2D(SizeCm.X, SizeCm.Y));
+
+	SyncFloorPlan2DEntryFromFurniture(FloorPlan2DWidget, FurnitureActor);
+
+	TArray<AFurniture*> Descendants;
+	CollectFloorPlan2DDescendants(FurnitureActor, Descendants);
+
+	for (AFurniture* ChildFurniture : Descendants)
+	{
+		SyncFloorPlan2DEntryFromFurniture(FloorPlan2DWidget, ChildFurniture);
+	}
+
 	ClearSyncSource(EInteRealFloorPlanSyncSource::From3D);
 }
+
 
 void UInteRealFloorPlanPlacementSyncComponent::SyncFurnitureActorFromFloorPlan2D(const FInteReal2DPlacedFurniture& Furniture2D)
 {
@@ -442,6 +451,8 @@ void UInteRealFloorPlanPlacementSyncComponent::SyncFurnitureActorFromFloorPlan2D
 	}
 
 	ClearSyncSource(EInteRealFloorPlanSyncSource::From2D);
+
+	SyncFloorPlan2DFromFurniture(FurnitureActor);
 }
 
 bool UInteRealFloorPlanPlacementSyncComponent::RemoveFloorPlan2DForFurniture(AFurniture* FurnitureActor)
@@ -451,24 +462,11 @@ bool UInteRealFloorPlanPlacementSyncComponent::RemoveFloorPlan2DForFurniture(AFu
 		return false;
 	}
 
-	FGuid InstanceGuid;
-	if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
-	{
-		return false;
-	}
+	bool bRemovedAny = false;
+	bRemovedAny |= RemoveFloorPlan2DDescendantsForFurniture(FurnitureActor);
+	bRemovedAny |= RemoveSingleFloorPlan2DForFurniture(FurnitureActor);
 
-	UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = GetFloorPlan2DWidget();
-	if (FloorPlan2DWidget)
-	{
-		const bool bRemoved = FloorPlan2DWidget->RemovePlacedFurnitureByGuid(InstanceGuid);
-		if (bRemoved)
-		{
-			return true;
-		}
-	}
-
-	FloorPlan2DFurnitureActors.Remove(InstanceGuid);
-	return false;
+	return bRemovedAny;
 }
 
 void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureDeleted(int32 FurnitureIndex, FGuid InstanceGuid)
@@ -493,6 +491,10 @@ void UInteRealFloorPlanPlacementSyncComponent::HandleFloorPlan2DPlacedFurnitureD
 	}
 
 	AFurniture* FurnitureActor = FurnitureActorPtr->Get();
+
+	SetSyncSource(EInteRealFloorPlanSyncSource::DeleteFrom3D);
+	RemoveFloorPlan2DDescendantsForFurniture(FurnitureActor);
+	ClearSyncSource(EInteRealFloorPlanSyncSource::DeleteFrom3D);
 
 	FloorPlan2DFurnitureActors.Remove(InstanceGuid);
 
@@ -573,6 +575,10 @@ void UInteRealFloorPlanPlacementSyncComponent::RebuildFloorPlan2DFromPlacedFurni
 
 		const FGuid AddedFloorPlanGuid = FloorPlan2DWidget->AddPlacedFurnitureAtDocumentPosition(*FurnitureRow, FVector2D(WorldLocation.X, WorldLocation.Y), WorldYaw);
 		RegisterFloorPlan2DFurnitureActor(AddedFloorPlanGuid, FurnitureActor);
+
+		TArray<FVector2D> FootprintLocalPoints;
+		FurnitureActor->GetCollisionFootprint2D(FootprintLocalPoints);
+		FloorPlan2DWidget->UpdatePlacedFurnitureFootprintByGuid(AddedFloorPlanGuid, FootprintLocalPoints);
 	}
 
 	ClearSyncSource(EInteRealFloorPlanSyncSource::Rebuild);
@@ -649,6 +655,11 @@ void UInteRealFloorPlanPlacementSyncComponent::SetFloorPlan2DPreviewFromFurnitur
 
 	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
 	FloorPlan2DWidget->SetFurniturePreviewAtDocumentPosition(FVector2D(PreviewLocation.X, PreviewLocation.Y), PreviewFurniture->GetActorRotation().Yaw);
+
+	TArray<FVector2D> FootprintLocalPoints;
+	PreviewFurniture->GetCollisionFootprint2D(FootprintLocalPoints);
+	FloorPlan2DWidget->SetFurniturePreviewFootprint(FootprintLocalPoints);
+
 	FloorPlan2DWidget->SetFurniturePreviewPlacementValid(!PS || PS->InvalidReason == EPlacementInvalidReason::None);
 }
 
@@ -667,4 +678,110 @@ void UInteRealFloorPlanPlacementSyncComponent::SyncPreview2DFromActivePreview()
 	}
 
 	SetFloorPlan2DPreviewFromFurniture(PreviewFurniture);
+}
+
+void UInteRealFloorPlanPlacementSyncComponent::CollectFloorPlan2DDescendantsRecursive(const AFurniture* ParentFurniture, TArray<AFurniture*>& OutDescendants, TSet<TObjectKey<AFurniture>>& Visited) const
+{
+	if (!IsValid(ParentFurniture))
+	{
+		return;
+	}
+
+	for (const TPair<FGuid, TWeakObjectPtr<AFurniture>>& Pair : FloorPlan2DFurnitureActors)
+	{
+		AFurniture* Candidate = Pair.Value.Get();
+		if (!IsValid(Candidate) || Candidate->ParentFurniture != ParentFurniture)
+		{
+			continue;
+		}
+
+		const TObjectKey<AFurniture> CandidateKey(Candidate);
+		if (Visited.Contains(CandidateKey))
+		{
+			continue;
+		}
+
+		Visited.Add(CandidateKey);
+		OutDescendants.Add(Candidate);
+		CollectFloorPlan2DDescendantsRecursive(Candidate, OutDescendants, Visited);
+	}
+}
+
+void UInteRealFloorPlanPlacementSyncComponent::CollectFloorPlan2DDescendants(const AFurniture* ParentFurniture, TArray<AFurniture*>& OutDescendants) const
+{
+	OutDescendants.Reset();
+
+	TSet<TObjectKey<AFurniture>> Visited;
+	CollectFloorPlan2DDescendantsRecursive(ParentFurniture, OutDescendants, Visited);
+}
+
+bool UInteRealFloorPlanPlacementSyncComponent::SyncFloorPlan2DEntryFromFurniture(UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget, AFurniture* FurnitureActor)
+{
+	if (!FloorPlan2DWidget || !IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	FGuid InstanceGuid;
+	if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
+	{
+		return false;
+	}
+
+	const FVector WorldLocation = FurnitureActor->GetMeshBounds().GetCenter();
+	const float WorldYaw = FurnitureActor->GetActorRotation().Yaw;
+	const FVector SizeCm = FurnitureActor->GetCurrentSizeCm();
+
+	const bool bUpdated = FloorPlan2DWidget->UpdatePlacedFurnitureByGuid(InstanceGuid, FVector2D(WorldLocation.X, WorldLocation.Y), WorldYaw);
+	FloorPlan2DWidget->UpdatePlacedFurnitureSizeByGuid(InstanceGuid, FVector2D(SizeCm.X, SizeCm.Y));
+
+	TArray<FVector2D> FootprintLocalPoints;
+	FurnitureActor->GetCollisionFootprint2D(FootprintLocalPoints);
+	FloorPlan2DWidget->UpdatePlacedFurnitureFootprintByGuid(InstanceGuid, FootprintLocalPoints);
+
+	return bUpdated;
+}
+
+bool UInteRealFloorPlanPlacementSyncComponent::RemoveSingleFloorPlan2DForFurniture(AFurniture* FurnitureActor)
+{
+	if (!IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	FGuid InstanceGuid;
+	if (!FindFloorPlan2DGuidForFurniture(FurnitureActor, InstanceGuid))
+	{
+		return false;
+	}
+
+	bool bRemoved = false;
+
+	UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget = GetFloorPlan2DWidget();
+	if (FloorPlan2DWidget)
+	{
+		bRemoved = FloorPlan2DWidget->RemovePlacedFurnitureByGuid(InstanceGuid);
+	}
+
+	FloorPlan2DFurnitureActors.Remove(InstanceGuid);
+	return bRemoved;
+}
+
+bool UInteRealFloorPlanPlacementSyncComponent::RemoveFloorPlan2DDescendantsForFurniture(AFurniture* FurnitureActor)
+{
+	if (!IsValid(FurnitureActor))
+	{
+		return false;
+	}
+
+	TArray<AFurniture*> Descendants;
+	CollectFloorPlan2DDescendants(FurnitureActor, Descendants);
+
+	bool bRemovedAny = false;
+	for (int32 Index = Descendants.Num() - 1; Index >= 0; --Index)
+	{
+		bRemovedAny |= RemoveSingleFloorPlan2DForFurniture(Descendants[Index]);
+	}
+
+	return bRemovedAny;
 }

@@ -172,27 +172,44 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFurniture::StaticClass(), FoundActors);
 	
 	UE_LOG(LogTemp, Log, TEXT("[SaveManager] Found %d AFurniture actors."), FoundActors.Num());
-	TMap<const AFurniture*, int32> FurnitureIndices;
+	TArray<AFurniture*> PlacedFurnitures;
 	for (AActor* Actor : FoundActors)
 	{
-		const AFurniture* Furniture = Cast<AFurniture>(Actor);
+		AFurniture* Furniture = Cast<AFurniture>(Actor);
 		if (Furniture && Furniture->GetPlacementState() == EPlacementState::Placed)
 		{
-			FurnitureIndices.Add(Furniture, FurnitureIndices.Num());
+			PlacedFurnitures.Add(Furniture);
+			continue;
+		}
+		if (Furniture)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[SaveManager] Skipping furniture %d (State: %d)"), Furniture->FurnitureID, (int32)Furniture->GetPlacementState());
 		}
 	}
 
-	for (AActor* Actor : FoundActors)
+	PlacedFurnitures.Sort([](const AFurniture& A, const AFurniture& B)
 	{
-		AFurniture* Furn = Cast<AFurniture>(Actor);
-		if (!Furn || Furn->GetPlacementState() != EPlacementState::Placed) 
-		{
-			if (Furn) UE_LOG(LogTemp, Warning, TEXT("[SaveManager] Skipping furniture %d (State: %d)"), Furn->FurnitureID, (int32)Furn->GetPlacementState());
-			continue;
-		}
+		const FVector ALocation = A.GetActorLocation();
+		const FVector BLocation = B.GetActorLocation();
+		const FRotator ARotation = A.GetActorRotation();
+		const FRotator BRotation = B.GetActorRotation();
+		const FString AKey = FString::Printf(TEXT("%08d|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%s"),
+			A.FurnitureID, ALocation.X, ALocation.Y, ALocation.Z, ARotation.Pitch, ARotation.Yaw, ARotation.Roll, *A.GetName());
+		const FString BKey = FString::Printf(TEXT("%08d|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%s"),
+			B.FurnitureID, BLocation.X, BLocation.Y, BLocation.Z, BRotation.Pitch, BRotation.Yaw, BRotation.Roll, *B.GetName());
+		return AKey < BKey;
+	});
 
+	TMap<const AFurniture*, int32> FurnitureIndices;
+	for (const AFurniture* Furniture : PlacedFurnitures)
+	{
+		FurnitureIndices.Add(Furniture, FurnitureIndices.Num());
+	}
+
+	for (AFurniture* Furn : PlacedFurnitures)
+	{
 		FFurnitureDelta Delta;
-		Delta.Transform = Actor->GetActorTransform();
+		Delta.Transform = Furn->GetActorTransform();
 		Delta.FurnitureID = FName(FString::FromInt(Furn->FurnitureID));
 		Delta.AssetCategory = HarnessSave_GetAssetCategory(Furn);
 		Delta.LightAttributes = HarnessSave_GetLightAttributes(Furn);
@@ -249,6 +266,11 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 			}
 		}
 	}
+
+	DeltaList.SurfaceMaterials.Sort([](const FSurfaceMaterialDelta& A, const FSurfaceMaterialDelta& B)
+	{
+		return A.SurfaceID < B.SurfaceID;
+	});
 
 	FString OutputString;
 	FJsonObjectConverter::UStructToJsonObjectString(DeltaList, OutputString, 0, 0);

@@ -88,6 +88,12 @@ private:
     bool IsEditMode() const;
     void SetSyncSource(EInteRealFloorPlanSyncSource NewSource);
     void ClearSyncSource(EInteRealFloorPlanSyncSource ExpectedSource);
+    
+    bool SyncFloorPlan2DEntryFromFurniture(UInteReal2DFloorPlanViewportWidget* FloorPlan2DWidget, AFurniture* FurnitureActor);
+    void CollectFloorPlan2DDescendantsRecursive(const AFurniture* ParentFurniture, TArray<AFurniture*>& OutDescendants, TSet<TObjectKey<AFurniture>>& Visited) const;
+    void CollectFloorPlan2DDescendants(const AFurniture* ParentFurniture, TArray<AFurniture*>& OutDescendants) const;
+    bool RemoveSingleFloorPlan2DForFurniture(AFurniture* FurnitureActor);
+    bool RemoveFloorPlan2DDescendantsForFurniture(AFurniture* FurnitureActor);
 
 private:
     UPROPERTY()

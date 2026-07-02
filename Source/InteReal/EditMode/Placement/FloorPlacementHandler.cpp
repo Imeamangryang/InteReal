@@ -172,7 +172,7 @@ void UFloorPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitResult
 	Visualizer->RefreshPlacementCellViz(PreviewBounds, !bValid, Subsystem->GetFloorZ());
 }
 
-void UFloorPlacementHandler::OnConfirm(AFurniture* Furniture)
+void UFloorPlacementHandler::OnConfirm(AFurniture* Furniture, bool bIsValid)
 {
 	if (!Furniture || !Subsystem)
 	{
@@ -187,12 +187,21 @@ void UFloorPlacementHandler::OnConfirm(AFurniture* Furniture)
 
 	const FVector2D Anchor = Subsystem->GetPreviewGridAnchor();
 	const FVector2D Dims = Subsystem->GetCurrentDimensions();
-	Furniture->GetOccupiedGridCells(Grid, Anchor, Dims, Furniture->PlacedOccupiedCells);
-	SetOccupiedCells(Grid, Furniture->PlacedOccupiedCells, Furniture);
-
 	Furniture->PlacedGridAnchor = Anchor;
 	Furniture->PlacedDimensions = Dims;
 	Furniture->SetPlacedSurfaceType(EPlacementSurfaceType::Floor);
+
+	if (bIsValid)
+	{
+		Furniture->GetOccupiedGridCells(Grid, Anchor, Dims, Furniture->PlacedOccupiedCells);
+		SetOccupiedCells(Grid, Furniture->PlacedOccupiedCells, Furniture);
+	}
+	else
+	{
+		// 겹치거나 도면을 벗어난 채로 확정된 경우 그리드 칸은 점유하지 않는다 —
+		// 다른 가구의 자리를 빼앗지 않기 위함 (사용자가 옮기거나 크기를 줄이면 그때 재등록).
+		Furniture->PlacedOccupiedCells.Reset();
+	}
 }
 
 void UFloorPlacementHandler::OnRemove(AFurniture* Furniture)
@@ -365,37 +374,43 @@ void UFloorPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 	}
 
 	const FVector2D NewAnchor = Subsystem->GetPreviewGridAnchor();
-	bool bValid = Subsystem->InvalidReason == EPlacementInvalidReason::None;
+	EPlacementInvalidReason Reason = Subsystem->InvalidReason;
 	TArray<FIntPoint> NewOccupiedCells;
 	Target->GetOccupiedGridCells(Grid, NewAnchor, Target->PlacedDimensions, NewOccupiedCells);
 	EPlacementInvalidReason CellReason = EPlacementInvalidReason::None;
-	bValid = bValid && ValidateOccupiedCells(NewOccupiedCells, Grid, Target, CellReason);
-
-	if (bValid && (!IsCornersInsideFloor(Target) || IntersectsWalls(Target)))
+	if (!ValidateOccupiedCells(NewOccupiedCells, Grid, Target, CellReason))
 	{
-		bValid = false;
+		Reason = CellReason;
 	}
 
+	if (Reason == EPlacementInvalidReason::None && !IsCornersInsideFloor(Target))
+	{
+		Reason = EPlacementInvalidReason::OutsideFloor;
+	}
+	if (Reason == EPlacementInvalidReason::None && IntersectsWalls(Target))
+	{
+		Reason = EPlacementInvalidReason::IntersectsWall;
+	}
+	const bool bValid = (Reason == EPlacementInvalidReason::None);
+
+	Target->PlacedGridAnchor = NewAnchor;
 	if (bValid)
 	{
-		Target->PlacedGridAnchor = NewAnchor;
 		Target->PlacedOccupiedCells = MoveTemp(NewOccupiedCells);
 		SetOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
 	}
 	else
 	{
-		Target->SetActorRotation(GizmoDragStartRotation);
-		Target->SetActorLocation(GizmoDragStartLocation);
-		Target->PlacedGridAnchor = GizmoDragOriginalAnchor;
-		Target->PlacedDimensions = GizmoDragOriginalDimensions;
-		Target->PlacedOccupiedCells = GizmoDragOriginalOccupiedCells;
-		SetOccupiedCells(Grid, Target->PlacedOccupiedCells, Target);
+		// 겹치거나 도면을 벗어나도 위치는 그대로 두고 경고만 표시한다 (되돌리지 않음) —
+		// 그리드 칸은 점유하지 않아 다른 가구를 막지 않는다.
+		Target->PlacedOccupiedCells.Reset();
 	}
 
 	if (Visualizer)
 	{
 		Visualizer->ClearPlacementCellViz();
 	}
+	Target->SetOverlapWarning(Reason);
 	Target->SetPlacementState(EPlacementState::Placed);
 	Subsystem->SetInvalidReason(EPlacementInvalidReason::None);
 }

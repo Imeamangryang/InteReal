@@ -48,6 +48,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBaseInput> Input_EmissiveValue;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseSlider> Slider_TextureTiling;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UBaseInput> Input_TextureTilingValue;
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UBaseButton> Btn_Cancel;
@@ -70,6 +76,9 @@ private:
 
 	UFUNCTION()
 	void HandleEmissiveChanged(float NewValue);
+	
+	UFUNCTION()
+	void HandleTextureTilingChanged(float NewValue);
 
 	UFUNCTION()
 	void HandleMetallicInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
@@ -82,6 +91,9 @@ private:
 
 	UFUNCTION()
 	void HandleEmissiveInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	
+	UFUNCTION()
+	void HandleTextureTilingInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 
 	UFUNCTION()
 	void HandleCancelClicked();

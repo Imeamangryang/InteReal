@@ -48,6 +48,9 @@ public:
 	void SaveCurrentProjectAsNewVersion();
 
 	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
+	void NotifyUserEditedProject();
+
+	UFUNCTION(BlueprintCallable, Category="Harness|Pipeline")
 	void SetCurrentDeltaVersion(int32 Version);
 
 	UFUNCTION(BlueprintPure, Category="Harness|Pipeline")
@@ -81,6 +84,11 @@ private:
 	void HandleDeltaSaved(bool bSuccess, const FUnrealOkResponse& Response);
 
 	void SaveCurrentProjectInternal(bool bCreateNewVersion);
+	bool SaveCurrentProjectInternalWithDelta(bool bCreateNewVersion, const FString& DeltaJson);
+	void HandleAutoSaveTimer();
+	void ScheduleAutoSave();
+	void ResetAutoSaveTracking();
+	void CaptureCurrentStateAsSavedBaseline();
 
 	UPROPERTY()
 	TObjectPtr<UHarnessSaveManagerComponent> SaveManagerComp;
@@ -92,4 +100,11 @@ private:
 	int32 CurrentDeltaVersion = 1;
 
 	FTimerHandle AutoSaveTimerHandle;
+	static constexpr float AutoSaveDelaySeconds = 600.0f;
+
+	FString LastSavedDeltaJson;
+	FString PendingSavedDeltaJson;
+	uint64 ProjectChangeSerial = 0;
+	uint64 PendingSaveChangeSerial = 0;
+	bool bHasPendingUserChanges = false;
 };

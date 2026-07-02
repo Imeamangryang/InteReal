@@ -170,7 +170,7 @@ void UDoorWindowPlacementHandler::UpdatePreview(AFurniture* Preview, const FHitR
 	}
 }
 
-void UDoorWindowPlacementHandler::OnConfirm(AFurniture* Furniture)
+void UDoorWindowPlacementHandler::OnConfirm(AFurniture* Furniture, bool bIsValid)
 {
 	if (!Furniture)
 	{
@@ -267,12 +267,13 @@ void UDoorWindowPlacementHandler::UpdateGizmoMoveFree(AFurniture* Target, FVecto
 
 void UDoorWindowPlacementHandler::FinalizeGizmoMove(AFurniture* Target)
 {
-	if (Target && Subsystem && Subsystem->InvalidReason != EPlacementInvalidReason::None)
-	{
-		Target->SetActorLocation(GizmoDragStartLocation);
-	}
 	if (Target)
 	{
+		// 벽 슬롯을 벗어나도 위치는 그대로 두고 경고만 표시한다 (되돌리지 않음).
+		// 이 핸들러는 Subsystem->InvalidReason을 갱신하지 않으므로 가구 자신의
+		// PlacementState(Invalid 여부)를 직접 확인한다.
+		Target->SetOverlapWarning(Target->GetPlacementState() == EPlacementState::Invalid
+			? EPlacementInvalidReason::OutOfBounds : EPlacementInvalidReason::None);
 		Target->WallNormalAtPlacement = CurrentWallNormal;
 		Target->SetPlacementState(EPlacementState::Placed);
 	}

@@ -20,6 +20,17 @@ enum class EPlacementSurfaceType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPlacementInvalidReason : uint8
+{
+	None UMETA(DisplayName = "없음"),
+	Overlapping UMETA(DisplayName = "다른 가구와 겹칩니다"),
+	OutOfBounds UMETA(DisplayName = "배치 가능 영역을 벗어났습니다"),
+	OutsideFloor UMETA(DisplayName = "도면 범위를 벗어났습니다"),
+	IntersectsWall UMETA(DisplayName = "벽과 겹칩니다"),
+	UnsupportedSurface UMETA(DisplayName = "이 위치에는 배치할 수 없습니다"),
+};
+
+UENUM(BlueprintType)
 enum class EPlacementAssetKind : uint8
 {
 	Generic UMETA(DisplayName = "일반"),

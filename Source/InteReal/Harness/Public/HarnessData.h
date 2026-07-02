@@ -53,7 +53,7 @@ struct FTopologyHalfEdge
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString vertex_start;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString vertex_end;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString twin_id;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float wall_thickness = 20.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float wall_thickness = 15.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float wall_height = 240.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FString type; // "WallOuter", "WallInner"
 };

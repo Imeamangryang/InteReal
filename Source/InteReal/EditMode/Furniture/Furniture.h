@@ -48,6 +48,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	EPlacementState PlacementState;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	EPlacementInvalidReason OverlapWarningReason = EPlacementInvalidReason::None;
 
 	// Full local-space bounds used by placement. Prefer authored simple collision
 	// over render bounds so build scale and stray render vertices do not move surfaces.
@@ -139,6 +142,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	virtual void SetPlacementState(EPlacementState NewState);
+	
+	// 콜리전 겹칠 경우에도 배치하고 시각적으로만 경고
+	// PlacementState(Preview/Invalid/Placed)와는 별개로 유지
+	UFUNCTION(BlueprintCallable, Category = "Furniture")
+	void SetOverlapWarning(EPlacementInvalidReason Reason);
+
+	bool HasOverlapWarning() const { return OverlapWarningReason != EPlacementInvalidReason::None; }
+	EPlacementInvalidReason GetOverlapWarningReason() const { return OverlapWarningReason; }
 
 	UFUNCTION(BlueprintCallable, Category = "Furniture")
 	virtual void ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow);

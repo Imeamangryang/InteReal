@@ -128,6 +128,12 @@ public:
     UFUNCTION(BlueprintPure, Category="InteReal2D|Tool")
     bool HasSelectedFurniture2D() const { return SelectedFurnitureIndex != INDEX_NONE; }
     
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    bool UpdatePlacedFurnitureFootprintByGuid(const FGuid& InstanceGuid, const TArray<FVector2D>& FootprintLocalPoints);
+    
+    UFUNCTION(BlueprintCallable, Category="InteReal2D|Furniture")
+    void SetFurniturePreviewFootprint(const TArray<FVector2D>& FootprintLocalPoints);
+    
     UPROPERTY(BlueprintAssignable, Category="InteReal2D|Input")
     FInteReal2DDrawAreaClickedSignature OnDrawAreaClicked;
     
@@ -406,7 +412,6 @@ private:
     
     void DrawFurnitureShape(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId, const FInteReal2DPlacedFurniture& Furniture, const FLinearColor& FillColor, const FLinearColor& OutlineColor) const;
     
-    
     bool TryGetPlacedFurnitureIndexAtLocalPosition(
         const FVector2D& LocalPosition,
         const FVector2D& LocalSize,
@@ -445,4 +450,6 @@ private:
     bool bIsDraggingSelectedFurniture2D = false;
     int32 DraggingFurnitureIndex2D = INDEX_NONE;
     FVector2D FurnitureDragDocumentOffset = FVector2D::ZeroVector;
+    
+    TArray<FVector2D> PreviewFurnitureFootprintLocalPoints;
 };
