@@ -1,9 +1,8 @@
 ﻿#include "LightFixture.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/RectLightComponent.h"
-#include "Components/MaterialBillboardComponent.h"
+#include "Components/BillboardComponent.h"
 #include "Components/SphereComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 
 ALightFixture::ALightFixture()
@@ -18,10 +17,13 @@ ALightFixture::ALightFixture()
 	RectLightComponent->SetVisibility(false);
 	RectLightComponent->IntensityUnits = ELightUnits::Candelas;
 
-	IconBillboardComponent = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("IconBillboardComponent"));
+	IconBillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("IconBillboardComponent"));
 	IconBillboardComponent->SetupAttachment(MeshComponent);
+	IconBillboardComponent->SetAbsolute(false, true, true);
 	IconBillboardComponent->SetHiddenInGame(true);
 	IconBillboardComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	IconBillboardComponent->bIsScreenSizeScaled = true;
+	IconBillboardComponent->ScreenSize = 0.0025f;
 
 	RadiusIndicatorComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RadiusIndicatorComponent"));
 	RadiusIndicatorComponent->SetupAttachment(MeshComponent);
@@ -87,8 +89,12 @@ void ALightFixture::SetLightAttributes(const FLightAttributes& InAttributes)
 void ALightFixture::SetPlacementState(EPlacementState NewState)
 {
 	Super::SetPlacementState(NewState);
-
-	// 프리뷰로 드래그하는 중에도, 확정 배치 후에도 항상 현재 전역 토글/모드 상태를 따르게 한다.
+	
+	if (CollisionBoxComponent)
+	{
+		CollisionBoxComponent->SetHiddenInGame(true);
+	}
+	
 	if (const UInteriorPlacementSubsystem* PS = GetWorld()
 		                                            ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>()
 		                                            : nullptr)
@@ -113,36 +119,16 @@ void ALightFixture::SetIconForcedHidden(bool bInForcedHidden)
 	UpdateIndicatorVisibility();
 }
 
-void ALightFixture::EnsureIconMaterialInstance()
-{
-	if (!IconBillboardComponent || !IconBaseMaterial)
-	{
-		return;
-	}
-
-	if (!IconMID || IconMID->Parent != IconBaseMaterial)
-	{
-		IconMID = UMaterialInstanceDynamic::Create(IconBaseMaterial, this);
-
-		FMaterialSpriteElement Element;
-		Element.Material = IconMID;
-		Element.bSizeIsInScreenSpace = true;
-		Element.BaseSizeX = IconPixelSize;
-		Element.BaseSizeY = IconPixelSize;
-		IconBillboardComponent->SetElements({Element});
-	}
-}
-
 void ALightFixture::UpdateIconMaterialParameters()
 {
-	EnsureIconMaterialInstance();
-	if (!IconMID)
+	if (!IconBillboardComponent)
 	{
 		return;
 	}
 
-	IconMID->SetTextureParameterValue(TEXT("IconTexture"), ResolveIconTexture());
-	IconMID->SetVectorParameterValue(TEXT("TintColor"), bIsSelected ? IconTintColor_Selected : IconTintColor_Normal);
+	IconBillboardComponent->SetSprite(ResolveIconTexture());
+	IconBillboardComponent->ScreenSize = FMath::Clamp(IconPixelSize / 12800.0f, 0.00005f, 0.02f);
+	IconBillboardComponent->MarkRenderStateDirty();
 }
 
 UTexture2D* ALightFixture::ResolveIconTexture() const
@@ -164,6 +150,10 @@ void ALightFixture::UpdateIndicatorVisibility()
 {
 	const bool bShowIcon = !bIconForcedHidden;
 	const bool bShowRadius = bShowIcon && bIsSelected && CurrentLightAttributes.bEmitsLight;
+
+	UE_LOG(LogTemp, Warning, TEXT("[IconDebug] UpdateIndicatorVisibility: bIconForcedHidden=%s bShowIcon=%s"),
+		bIconForcedHidden ? TEXT("true") : TEXT("false"),
+		bShowIcon ? TEXT("true") : TEXT("false"));
 
 	if (IconBillboardComponent)
 	{

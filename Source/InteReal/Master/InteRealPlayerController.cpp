@@ -1190,6 +1190,8 @@ void AInteRealPlayerController::UpdateCursorHit()
 			FVector WorldDir;
 			DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
 
+			if (FMath::Abs(WorldDir.Z) < 0.001f) { WorldDir.Z = (WorldDir.Z >= 0.0f) ? 0.001f : -0.001f; WorldDir.Normalize(); }
+
 			const FVector FloorPoint = FMath::LinePlaneIntersection(
 				WorldOrigin,
 				WorldOrigin + WorldDir * 100000.0f,

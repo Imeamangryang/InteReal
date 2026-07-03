@@ -111,6 +111,7 @@ void AEditModePlayerController::Tick(float DeltaTime)
 		{
 			FVector WorldOrigin, WorldDir;
 			DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+			if (FMath::Abs(WorldDir.Z) < 0.001f) { WorldDir.Z = (WorldDir.Z >= 0.0f) ? 0.001f : -0.001f; WorldDir.Normalize(); }
 			FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
 			FVector Hit    = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
 			FVector Center = SelectedFurniture->GetActorLocation();
@@ -167,6 +168,7 @@ void AEditModePlayerController::Tick(float DeltaTime)
 
 			FVector WorldOrigin, WorldDir;
 			DeprojectScreenPositionToWorld(MouseX, MouseY, WorldOrigin, WorldDir);
+			if (FMath::Abs(WorldDir.Z) < 0.001f) { WorldDir.Z = (WorldDir.Z >= 0.0f) ? 0.001f : -0.001f; WorldDir.Normalize(); }
 			FPlane GroundPlane(DragStartFurnitureLocation, FVector::UpVector);
 			FVector CursorOnGround = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, GroundPlane);
 
@@ -244,6 +246,7 @@ void AEditModePlayerController::OnPlace()
 
 				FVector WorldOrigin, WorldDir;
 				DeprojectMousePositionToWorld(WorldOrigin, WorldDir);
+				if (FMath::Abs(WorldDir.Z) < 0.001f) { WorldDir.Z = (WorldDir.Z >= 0.0f) ? 0.001f : -0.001f; WorldDir.Normalize(); }
 				FPlane Plane(SelectedFurniture->GetActorLocation(), FVector::UpVector);
 				FVector Hit    = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, Plane);
 				FVector Center = SelectedFurniture->GetActorLocation();

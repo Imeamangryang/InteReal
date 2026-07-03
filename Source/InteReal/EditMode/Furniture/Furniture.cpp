@@ -7,6 +7,8 @@
 #include "LightFixture.h"
 #include "PhysicsEngine/AggregateGeom.h"
 #include "Components/ShapeComponent.h"
+#include "Components/MaterialBillboardComponent.h"
+#include "Components/BillboardComponent.h"
 #include "Components/LightComponentBase.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
@@ -82,7 +84,8 @@ FBox AFurniture::GetVisualBounds() const
 		{
 			continue;
 		}
-		if (Component->IsA<UShapeComponent>() || Component->IsA<ULightComponentBase>())
+		if (Component->IsA<UShapeComponent>() || Component->IsA<ULightComponentBase>() ||
+			Component->IsA<UMaterialBillboardComponent>() || Component->IsA<UBillboardComponent>())
 		{
 			continue;
 		}

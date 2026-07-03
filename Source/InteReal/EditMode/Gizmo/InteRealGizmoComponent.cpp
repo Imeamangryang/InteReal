@@ -657,7 +657,13 @@ bool UInteRealGizmoComponent::BeginDrag(const FString& Axis, const FVector& Worl
 		}
 
 		const FPlane DragPlane(PlaneAnchor, PlaneNormal);
-		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, DragPlane);
+		FVector SafeWorldDir = WorldDir;
+		if (FMath::IsNearlyZero(FVector::DotProduct(SafeWorldDir, PlaneNormal), 0.001f))
+		{
+			SafeWorldDir += PlaneNormal * 0.001f;
+			SafeWorldDir.Normalize();
+		}
+		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + SafeWorldDir * 100000.f, DragPlane);
 		DragStartLocation = PlaneAnchor;
 		DragCursorOffset = CursorOnPlane - DragStartLocation;
 	}
@@ -731,7 +737,13 @@ bool UInteRealGizmoComponent::UpdateDrag(const FVector& WorldOrigin, const FVect
 		}
 
 		const FPlane DragPlane(DragStartLocation, PlaneNormal);
-		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, DragPlane);
+		FVector SafeWorldDir = WorldDir;
+		if (FMath::IsNearlyZero(FVector::DotProduct(SafeWorldDir, PlaneNormal), 0.001f))
+		{
+			SafeWorldDir += PlaneNormal * 0.001f;
+			SafeWorldDir.Normalize();
+		}
+		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + SafeWorldDir * 100000.f, DragPlane);
 		FVector TargetPoint = CursorOnPlane - DragCursorOffset;
 		if (CurrentDraggingAxis == EGizmoTransformAxis::MoveX)
 		{

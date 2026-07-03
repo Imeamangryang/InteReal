@@ -6,7 +6,7 @@
 
 class USpotLightComponent;
 class URectLightComponent;
-class UMaterialBillboardComponent;
+class UBillboardComponent;
 class USphereComponent;
 class UTexture2D;
 class UMaterialInterface;
@@ -63,7 +63,6 @@ public:
 
 private:
 	void UpdateIndicatorVisibility();
-	void EnsureIconMaterialInstance();
 	void UpdateIconMaterialParameters();
 	UTexture2D* ResolveIconTexture() const;
 
@@ -75,10 +74,7 @@ private:
 
 	// 배치된 라이트 위치를 알려주는 빌보드 아이콘 — 메시가 작거나 천장에 묻혀도 위치를 알 수 있게 함
 	UPROPERTY(VisibleAnywhere, Category = "LightFixture")
-	TObjectPtr<UMaterialBillboardComponent> IconBillboardComponent;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UMaterialInstanceDynamic> IconMID;
+	TObjectPtr<UBillboardComponent> IconBillboardComponent;
 
 	// 선택했을 때만 빛이 닿는 범위를 보여주는 와이어프레임 구
 	UPROPERTY(VisibleAnywhere, Category = "LightFixture")
