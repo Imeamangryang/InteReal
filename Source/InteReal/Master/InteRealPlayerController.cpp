@@ -4,6 +4,7 @@
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 #include "InteReal/EditMode/Gizmo/InteRealGizmoComponent.h"
 #include "InteReal/EditMode/Furniture/LightFixture.h"
+#include "InteReal/EditMode/Openings/FOpeningAssetDataRow.h"
 #include "InteReal/EditMode/2D/InteReal2DFloorPlanViewportWidget.h"
 #include "InteReal/ViewMode/ViewModeManager.h"
 #include "InteReal/Harness/Public/HarnessPipelineManager.h"
@@ -75,6 +76,20 @@ static bool OpeningComponentAcceptsRow(const UPrimitiveComponent* Component, con
 	return bRowLooksWindow ? bComponentIsWindow : bComponentIsDoor;
 }
 
+static bool OpeningComponentAcceptsRow(const UPrimitiveComponent* Component, const FOpeningAssetDataRow& Row)
+{
+	if (!Component || !Component->ComponentHasTag(TEXT("EditableOpening")) || !Row.OpeningMesh)
+	{
+		return false;
+	}
+
+	const bool bRowIsWindow = Row.OpeningKind == EOpeningAssetKind::Window;
+	const bool bComponentIsWindow = Component->ComponentHasTag(TEXT("WindowAsset"));
+	const bool bComponentIsDoor = Component->ComponentHasTag(TEXT("DoorAsset"));
+
+	return bRowIsWindow ? bComponentIsWindow : bComponentIsDoor;
+}
+
 static bool TryGetComponentTagFloat(const UActorComponent* Component, const TCHAR* Prefix, float& OutValue)
 {
 	if (!Component || !Prefix)
@@ -95,7 +110,7 @@ static bool TryGetComponentTagFloat(const UActorComponent* Component, const TCHA
 	return false;
 }
 
-static void ApplyOpeningMeshPreservingSlot(UStaticMeshComponent* OpeningComp, UStaticMesh* NewMesh)
+static void ApplyOpeningMeshPreservingSlot(UStaticMeshComponent* OpeningComp, UStaticMesh* NewMesh, float RowYawOffset = 0.0f)
 {
 	if (!OpeningComp || !NewMesh)
 	{
@@ -113,18 +128,46 @@ static void ApplyOpeningMeshPreservingSlot(UStaticMeshComponent* OpeningComp, US
 
 	const FVector MeshSize = NewMesh->GetBounds().GetBox().GetSize();
 	FVector NewScale = FVector::OneVector;
-	if (SlotWidth > KINDA_SMALL_NUMBER && MeshSize.X > KINDA_SMALL_NUMBER)
+	float MeshYawOffset = 0.0f;
+	if (MeshSize.Y > MeshSize.X)
 	{
-		NewScale.X = SlotWidth / MeshSize.X;
+		MeshYawOffset += 90.0f;
+		if (SlotWidth > KINDA_SMALL_NUMBER && MeshSize.Y > KINDA_SMALL_NUMBER)
+		{
+			NewScale.Y = SlotWidth / MeshSize.Y;
+		}
+		if (SlotDepth > KINDA_SMALL_NUMBER && MeshSize.X > KINDA_SMALL_NUMBER)
+		{
+			NewScale.X = FMath::Min(1.0f, SlotDepth * 0.85f / MeshSize.X);
+		}
 	}
-	if (SlotDepth > KINDA_SMALL_NUMBER && MeshSize.Y > KINDA_SMALL_NUMBER)
+	else
 	{
-		NewScale.Y = FMath::Min(1.0f, SlotDepth * 0.85f / MeshSize.Y);
+		if (SlotWidth > KINDA_SMALL_NUMBER && MeshSize.X > KINDA_SMALL_NUMBER)
+		{
+			NewScale.X = SlotWidth / MeshSize.X;
+		}
+		if (SlotDepth > KINDA_SMALL_NUMBER && MeshSize.Y > KINDA_SMALL_NUMBER)
+		{
+			NewScale.Y = FMath::Min(1.0f, SlotDepth * 0.85f / MeshSize.Y);
+		}
 	}
 	if (SlotHeight > KINDA_SMALL_NUMBER && MeshSize.Z > KINDA_SMALL_NUMBER)
 	{
 		NewScale.Z = SlotHeight / MeshSize.Z;
 	}
+
+	float BaseYaw = 0.0f;
+	float FacingYawOffset = 0.0f;
+	const bool bHasBaseYaw = TryGetComponentTagFloat(OpeningComp, TEXT("HarnessOpeningBaseYawDeg="), BaseYaw);
+	const bool bHasFacingYawOffset = TryGetComponentTagFloat(OpeningComp, TEXT("HarnessOpeningFacingYawOffsetDeg="), FacingYawOffset);
+	if (bHasBaseYaw || bHasFacingYawOffset)
+	{
+		FRotator Rotation = OpeningComp->GetRelativeRotation();
+		Rotation.Yaw = BaseYaw + FacingYawOffset + MeshYawOffset + RowYawOffset;
+		OpeningComp->SetRelativeRotation(Rotation);
+	}
+
 	OpeningComp->SetRelativeScale3D(NewScale);
 	OpeningComp->MarkRenderStateDirty();
 }
@@ -254,6 +297,7 @@ void AInteRealPlayerController::BeginPlay()
 			UISubsystem->OnIconClicked.AddDynamic(this, &AInteRealPlayerController::HandleIconClicked);
 			UISubsystem->OnWallMaterialDataChanged.RemoveDynamic(this, &AInteRealPlayerController::HandleWallMaterialDataChanged);
 			UISubsystem->OnWallMaterialDataChanged.AddDynamic(this, &AInteRealPlayerController::HandleWallMaterialDataChanged);
+			UISubsystem->OnOpeningAssetSelected.AddDynamic(this, &AInteRealPlayerController::HandleOpeningAssetSelected);
 		}
 	}
 
@@ -700,6 +744,38 @@ void AInteRealPlayerController::HandleFurnitureSpawn(FFurnitureDataRow Furniture
 void AInteRealPlayerController::HandleWallMaterialDataChanged(FMaterialDataRow MaterialData)
 {
 	ApplyMaterialDataToSelectedSurface(MaterialData);
+}
+
+void AInteRealPlayerController::HandleOpeningAssetSelected(FOpeningAssetDataRow OpeningData)
+{
+	UInteriorPlacementSubsystem* PS = GetPlacementSubsystem();
+	if (!PS || !OpeningData.OpeningMesh)
+	{
+		return;
+	}
+
+	SetControlMode(EInteRealControlMode::Edit);
+
+	UPrimitiveComponent* TargetComp = Cast<UPrimitiveComponent>(SelectedSurfaceComponent.Get());
+	if (!OpeningComponentAcceptsRow(TargetComp, OpeningData))
+	{
+		UPrimitiveComponent* HitComp = LastCursorHit.GetComponent();
+		if (OpeningComponentAcceptsRow(HitComp, OpeningData))
+		{
+			TargetComp = HitComp;
+		}
+	}
+
+	UStaticMeshComponent* OpeningComp = Cast<UStaticMeshComponent>(TargetComp);
+	if (!OpeningComponentAcceptsRow(OpeningComp, OpeningData))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[OpeningCatalog] Select a matching door/window opening before applying an opening asset."));
+		return;
+	}
+
+	PS->RecordUndoSnapshot();
+	ApplyOpeningMeshPreservingSlot(OpeningComp, OpeningData.OpeningMesh, OpeningData.OpeningMeshYawOffset);
+	SelectSurface(OpeningComp);
 }
 
 void AInteRealPlayerController::HandlePipelineLoadFinished()
@@ -2051,6 +2127,19 @@ void AInteRealPlayerController::SetViewMode(EHarnessViewMode NewMode)
 	if (!CachedViewModeManager) return;
 
 	CachedViewModeManager->SetViewMode(NewMode);
+
+	// FirstPerson은 조명 아이콘을 기본 표시하고, ISO/Top은 기본 숨김으로 시작한다.
+	// ISO/Top에서는 사용자가 표시 토글을 누르면 각 뷰에 맞는 크기로 표시한다.
+	if (UInteriorPlacementSubsystem* PS = GetPlacementSubsystem())
+	{
+		const bool bFirstPerson = NewMode == EHarnessViewMode::FirstPerson;
+		const float IconPixelSize = NewMode == EHarnessViewMode::TopDown
+			? 24.0f
+			: NewMode == EHarnessViewMode::Isometric
+				? 16.0f
+				: 48.0f;
+		PS->SetLightFixtureIconsViewMode(bFirstPerson, IconPixelSize);
+	}
 
 	if (NewMode != EHarnessViewMode::FirstPerson)
 	{

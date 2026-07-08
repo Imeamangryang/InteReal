@@ -105,6 +105,24 @@ void UHarnessMinimapCaptureComponent::UpdateMinimap()
 {
 	// 명시적으로 씬을 캡처하여 렌더 타겟 업데이트
 	ApplyStableCaptureSettings();
+
+	HiddenComponents.Empty();
+	if (UWorld* World = GetWorld())
+	{
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			AActor* Actor = *It;
+			TArray<UActorComponent*> Comps = Actor->GetComponentsByTag(UPrimitiveComponent::StaticClass(), TEXT("Ceiling"));
+			for (UActorComponent* Comp : Comps)
+			{
+				if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Comp))
+				{
+					HiddenComponents.Add(PrimComp);
+				}
+			}
+		}
+	}
+
 	CaptureScene();
 }
 

@@ -10,6 +10,7 @@
 #include "Components/MaterialBillboardComponent.h"
 #include "Components/BillboardComponent.h"
 #include "Components/LightComponentBase.h"
+#include "Materials/Material.h"
 
 static void UpdatePostProcessOutlineColor(UWorld* World, FLinearColor Color, float Thickness)
 {
@@ -151,6 +152,38 @@ AFurniture::AFurniture()
 	LightComponent->IntensityUnits = ELightUnits::Candelas;
 }
 
+/*
+void AFurniture::SyncCustomDepthProxy()
+{
+	if (!MeshComponent || !MeshComponent->GetStaticMesh())
+	{
+		return;
+	}
+
+	if (!CustomDepthProxyComponent)
+	{
+		CustomDepthProxyComponent = NewObject<UStaticMeshComponent>(this, TEXT("CustomDepthProxy"));
+		CustomDepthProxyComponent->SetupAttachment(MeshComponent);
+		CustomDepthProxyComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CustomDepthProxyComponent->SetCastShadow(false);
+		CustomDepthProxyComponent->SetRenderInMainPass(false);
+		CustomDepthProxyComponent->SetRenderInDepthPass(false);
+		CustomDepthProxyComponent->SetReceivesDecals(false);
+		// Nanite는 메인 패스 제외 옵션과 조합이 불안정하므로 프록시는 일반 경로로 렌더
+		CustomDepthProxyComponent->bDisallowNanite = true;
+		CustomDepthProxyComponent->RegisterComponent();
+	}
+
+	CustomDepthProxyComponent->SetStaticMesh(MeshComponent->GetStaticMesh());
+
+	UMaterialInterface* OpaqueMaterial = UMaterial::GetDefaultMaterial(MD_Surface);
+	for (int32 Index = 0; Index < CustomDepthProxyComponent->GetNumMaterials(); Index++)
+	{
+		CustomDepthProxyComponent->SetMaterial(Index, OpaqueMaterial);
+	}
+}
+*/
+
 void AFurniture::SetPlacementState(EPlacementState NewState)
 {
 	PlacementState = NewState;
@@ -209,6 +242,12 @@ void AFurniture::SetSelected(bool bSelected)
 	{
 		// 경고 중인 가구는 선택해도 흰색으로 바뀌지 않고 빨간 경고 박스를 계속 우선
 		// 표시한다 — 선택했다고 흰색이 되면 경고를 놓치기 쉽다.
+		// TODO: 경고 가구도 빨간 아웃라인으로 선택 표시하는 방안 검토했다가 보류함
+		// SetMeshesCustomDepth(bSelected, 1);
+		// if (bSelected)
+		// {
+		// 	UpdatePostProcessOutlineColor(GetWorld(), FLinearColor(0.800000f, 0.312500f, 0.348214f, 0.5f), PlacedOutlineThickness);
+		// }
 		SetMeshesCustomDepth(false, 0);
 		CollisionBoxComponent->SetHiddenInGame(false);
 		CollisionBoxComponent->ShapeColor = FLinearColor(0.850000f, 0.188151f, 0.222533f, 0.5f).ToFColor(true);
@@ -251,6 +290,7 @@ void AFurniture::ApplyFurnitureRow(const FFurnitureDataRow& InFurnitureRow)
 	if (InFurnitureRow.FurnitureMesh)
 	{
 		MeshComponent->SetStaticMesh(InFurnitureRow.FurnitureMesh);
+		// SyncCustomDepthProxy();
 
 		const FBoxSphereBounds MeshBounds = InFurnitureRow.FurnitureMesh->GetBounds();
 		

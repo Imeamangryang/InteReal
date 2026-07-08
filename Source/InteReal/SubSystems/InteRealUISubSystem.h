@@ -4,6 +4,7 @@
 #include "Furniture/FFurnitureDataRow.h"
 #include "InteReal/ViewMode/ViewModeData.h"
 #include "Materials/FMaterialDataRow.h"
+#include "InteReal/EditMode/Openings/FOpeningAssetDataRow.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "InteRealUISubSystem.generated.h"
 
@@ -11,6 +12,7 @@ class UMaterialInterface;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeChanged, bool, bIsEditMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFurnitureSpawn, FFurnitureDataRow, FurnitureData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOpeningAssetSelected, FOpeningAssetDataRow, OpeningData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWallMaterialDataChanged, FMaterialDataRow, MaterialData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnViewModeChanged, EHarnessViewMode, NewMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIconClicked, FName, Command);
@@ -39,6 +41,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="InteReal|UI")
 	FOnIconClicked OnIconClicked;
 
+	UPROPERTY(BlueprintAssignable, Category = "InteReal|UI")
+	FOnOpeningAssetSelected OnOpeningAssetSelected;
+
 	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")						// 에디트 / 뷰 모드 체인지용 함수
 	void NotifyModeChanged(bool bIsEditMode);
 	
@@ -53,4 +58,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
 	void NotifyWallMaterialDataChanged(const FMaterialDataRow& MaterialData);
+
+	UFUNCTION(BlueprintCallable, Category = "InteReal|UI")
+	void NotifyOpeningAssetSelected(const FOpeningAssetDataRow& OpeningData);
 };

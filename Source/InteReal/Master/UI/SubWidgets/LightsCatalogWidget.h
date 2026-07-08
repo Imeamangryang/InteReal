@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LightsCatalogWidget.generated.h"
 
+class UBaseToggleSwitch;
 class UDataTable;
 class UEditableText;
 class UWrapBox;
@@ -28,6 +29,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
 	UFUNCTION()
@@ -35,6 +37,9 @@ private:
 
 	bool DoesItemMatchFilter(const ULightsItemWidget* ItemWidget) const;
 
+	UFUNCTION()
+	void HandleEnabledToggled(bool bIsOn);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "InteReal|LightsCatalog", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDataTable> LightsDataTable = nullptr;
 
@@ -44,6 +49,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEditableText> EditText_Search = nullptr;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseToggleSwitch> Toggle_Enabled;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWrapBox> WrapBox_Lights = nullptr;
 

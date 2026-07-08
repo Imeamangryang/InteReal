@@ -5,7 +5,9 @@
 #include "Components/WrapBox.h"
 #include "Components/WrapBoxSlot.h"
 #include "Engine/DataTable.h"
+#include "InteReal/Master/UI/Components/BaseToggleSwitch.h"
 #include "InteReal/Master/UI/Components/LightsItemWidget.h"
+#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 
 void ULightsCatalogWidget::NativeConstruct()
 {
@@ -17,7 +19,39 @@ void ULightsCatalogWidget::NativeConstruct()
 		EditText_Search->OnTextChanged.AddDynamic(this, &ULightsCatalogWidget::HandleSearchTextChanged);
 	}
 
+	if (Toggle_Enabled)
+	{
+		Toggle_Enabled->OnToggleChanged.RemoveDynamic(this, &ULightsCatalogWidget::HandleEnabledToggled);
+		Toggle_Enabled->OnToggleChanged.AddDynamic(this, &ULightsCatalogWidget::HandleEnabledToggled);
+
+		if (const UInteriorPlacementSubsystem* Subsystem = GetWorld() ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>() : nullptr)
+		{
+			Toggle_Enabled->SetIsOn(Subsystem->IsLightFixtureIconsVisible(), false);
+		}
+	}
+
 	RebuildLightsList();
+}
+
+void ULightsCatalogWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (!Toggle_Enabled)
+	{
+		return;
+	}
+
+	if (const UInteriorPlacementSubsystem* Subsystem = GetWorld()
+		? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>()
+		: nullptr)
+	{
+		const bool bActualState = Subsystem->IsLightFixtureIconsVisible();
+		if (Toggle_Enabled->bIsOn != bActualState)
+		{
+			Toggle_Enabled->SetIsOn(bActualState, false);
+		}
+	}
 }
 
 void ULightsCatalogWidget::SetLightsDataTable(UDataTable* InLightsDataTable)
@@ -87,4 +121,12 @@ bool ULightsCatalogWidget::DoesItemMatchFilter(const ULightsItemWidget* ItemWidg
 
 	const FString DisplayNameString = ItemWidget->GetLightData().DisplayName.ToString();
 	return DisplayNameString.Contains(NormalizedSearchText, ESearchCase::IgnoreCase);
+}
+
+void ULightsCatalogWidget::HandleEnabledToggled(bool bIsOn)
+{
+	if (UInteriorPlacementSubsystem* Subsystem = GetWorld() ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>() : nullptr)
+	{
+		Subsystem->SetLightFixtureIconsVisible(bIsOn);
+	}
 }

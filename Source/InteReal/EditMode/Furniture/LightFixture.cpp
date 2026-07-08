@@ -1,8 +1,9 @@
 ﻿#include "LightFixture.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/RectLightComponent.h"
-#include "Components/BillboardComponent.h"
+#include "Components/MaterialBillboardComponent.h"
 #include "Components/SphereComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
 
 ALightFixture::ALightFixture()
@@ -17,13 +18,11 @@ ALightFixture::ALightFixture()
 	RectLightComponent->SetVisibility(false);
 	RectLightComponent->IntensityUnits = ELightUnits::Candelas;
 
-	IconBillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("IconBillboardComponent"));
+	IconBillboardComponent = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("IconBillboardComponent"));
 	IconBillboardComponent->SetupAttachment(MeshComponent);
 	IconBillboardComponent->SetAbsolute(false, true, true);
 	IconBillboardComponent->SetHiddenInGame(true);
 	IconBillboardComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	IconBillboardComponent->bIsScreenSizeScaled = true;
-	IconBillboardComponent->ScreenSize = 0.0025f;
 
 	RadiusIndicatorComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RadiusIndicatorComponent"));
 	RadiusIndicatorComponent->SetupAttachment(MeshComponent);
@@ -99,6 +98,7 @@ void ALightFixture::SetPlacementState(EPlacementState NewState)
 		                                            ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>()
 		                                            : nullptr)
 	{
+		SetIconPixelSize(PS->GetLightFixtureIconPixelSize());
 		bIconForcedHidden = !PS->AreLightFixtureIconsCurrentlyVisible();
 	}
 
@@ -119,6 +119,27 @@ void ALightFixture::SetIconForcedHidden(bool bInForcedHidden)
 	UpdateIndicatorVisibility();
 }
 
+void ALightFixture::SetIconPixelSize(float InPixelSize)
+{
+	IconPixelSize = FMath::Max(1.0f, InPixelSize);
+	RebuildIconSpriteElement();
+}
+
+void ALightFixture::RebuildIconSpriteElement()
+{
+	if (!IconBillboardComponent || !IconMaterialInstance)
+	{
+		return;
+	}
+
+	FMaterialSpriteElement Element;
+	Element.Material = IconMaterialInstance;
+	Element.bSizeIsInScreenSpace = true;
+	Element.BaseSizeX = IconPixelSize / 1000.0f;
+	Element.BaseSizeY = (IconPixelSize * IconAspectRatio) / 1000.0f;
+	IconBillboardComponent->SetElements({ Element });
+}
+
 void ALightFixture::UpdateIconMaterialParameters()
 {
 	if (!IconBillboardComponent)
@@ -126,8 +147,25 @@ void ALightFixture::UpdateIconMaterialParameters()
 		return;
 	}
 
-	IconBillboardComponent->SetSprite(ResolveIconTexture());
-	IconBillboardComponent->ScreenSize = FMath::Clamp(IconPixelSize / 12800.0f, 0.00005f, 0.02f);
+	if (!IconMaterialInstance && IconBaseMaterial)
+	{
+		IconMaterialInstance = UMaterialInstanceDynamic::Create(IconBaseMaterial, this);
+		RebuildIconSpriteElement();
+	}
+
+	if (!IconMaterialInstance)
+	{
+		return;
+	}
+
+	IconMaterialInstance->SetTextureParameterValue(IconTextureParamName, ResolveIconTexture());
+
+	// 아이콘 default color 설정
+	const FLinearColor DefaultIconGold = FLinearColor::FromSRGBColor(FColor(242, 198, 109));
+	const FLinearColor IconTint = CurrentLightAttributes.LightColor.Equals(FLinearColor::White)
+		? DefaultIconGold
+		: CurrentLightAttributes.LightColor;
+	IconMaterialInstance->SetVectorParameterValue(IconTintParamName, IconTint);
 	IconBillboardComponent->MarkRenderStateDirty();
 }
 
@@ -143,17 +181,13 @@ UTexture2D* ALightFixture::ResolveIconTexture() const
 	default: TypeIcon = IconTexture_Point;
 		break;
 	}
+
 	return TypeIcon ? TypeIcon : GetFurnitureDataRow().DisplayImage.Get();
 }
 
 void ALightFixture::UpdateIndicatorVisibility()
 {
 	const bool bShowIcon = !bIconForcedHidden;
-	const bool bShowRadius = bShowIcon && bIsSelected && CurrentLightAttributes.bEmitsLight;
-
-	UE_LOG(LogTemp, Warning, TEXT("[IconDebug] UpdateIndicatorVisibility: bIconForcedHidden=%s bShowIcon=%s"),
-		bIconForcedHidden ? TEXT("true") : TEXT("false"),
-		bShowIcon ? TEXT("true") : TEXT("false"));
 
 	if (IconBillboardComponent)
 	{
@@ -161,6 +195,6 @@ void ALightFixture::UpdateIndicatorVisibility()
 	}
 	if (RadiusIndicatorComponent)
 	{
-		RadiusIndicatorComponent->SetHiddenInGame(!bShowRadius);
+		RadiusIndicatorComponent->SetHiddenInGame(true);
 	}
 }

@@ -182,6 +182,24 @@ void UInteriorPlacementSubsystem::SetLightFixtureIconsEditModeActive(bool bActiv
 	ApplyLightFixtureIconsEffectiveState();
 }
 
+void UInteriorPlacementSubsystem::SetLightFixtureIconsViewMode(bool bDefaultVisible, float IconPixelSize)
+{
+	// 뷰에 진입할 때 컨트롤러가 정한 기본 표시 상태와 화면 크기를 적용한다.
+	// 이후 사용자가 누르는 표시 토글은 현재 뷰 안에서 그대로 동작한다.
+	bLightFixtureIconsPreferred = bDefaultVisible;
+	CurrentLightFixtureIconPixelSize = FMath::Max(1.0f, IconPixelSize);
+
+	for (AFurniture* Furniture : PlacedFurnitures)
+	{
+		if (ALightFixture* Light = Cast<ALightFixture>(Furniture))
+		{
+			Light->SetIconPixelSize(CurrentLightFixtureIconPixelSize);
+		}
+	}
+
+	ApplyLightFixtureIconsEffectiveState();
+}
+
 void UInteriorPlacementSubsystem::ApplyLightFixtureIconsEffectiveState()
 {
 	const bool bShow = AreLightFixtureIconsCurrentlyVisible();

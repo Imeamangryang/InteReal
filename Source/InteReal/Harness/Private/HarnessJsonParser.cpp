@@ -150,6 +150,29 @@ FString ReadStringField(const TSharedPtr<FJsonObject>& Object, const TCHAR* Fiel
 	return Object->TryGetStringField(Field, Value) ? Value : DefaultValue;
 }
 
+FString ReadFirstStringField(const TSharedPtr<FJsonObject>& Object, const TArray<const TCHAR*>& Fields, const FString& DefaultValue = FString())
+{
+	if (!Object.IsValid())
+	{
+		return DefaultValue;
+	}
+
+	for (const TCHAR* Field : Fields)
+	{
+		if (!Field)
+		{
+			continue;
+		}
+
+		FString Value;
+		if (Object->TryGetStringField(Field, Value) && !Value.IsEmpty())
+		{
+			return Value;
+		}
+	}
+	return DefaultValue;
+}
+
 
 void ReadStringArrayField(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, TArray<FString>& OutValues)
 {
@@ -1257,13 +1280,18 @@ bool ConvertTopologyToFloorData(const TSharedPtr<FJsonObject>& RootObject, FHarn
 			const TSharedPtr<FJsonObject>* SwingObject = nullptr;
 			if (OpeningObject->TryGetObjectField(TEXT("swing"), SwingObject) && SwingObject && SwingObject->IsValid())
 			{
-				Opening.swing.direction = ReadStringField(*SwingObject, TEXT("direction"), TEXT("none"));
-				Opening.swing.hinge = ReadStringField(*SwingObject, TEXT("hinge"), TEXT("none"));
+				Opening.swing.direction = ReadFirstStringField(*SwingObject, { TEXT("direction"), TEXT("facing"), TEXT("front_back"), TEXT("frontBack"), TEXT("side") }, TEXT("none"));
+				Opening.swing.hinge = ReadFirstStringField(*SwingObject, { TEXT("hinge"), TEXT("hinge_side"), TEXT("hingeSide") }, TEXT("none"));
 				double SwingAngle = 90.0;
 				if ((*SwingObject)->TryGetNumberField(TEXT("angle"), SwingAngle))
 				{
 					Opening.swing.angle = static_cast<float>(SwingAngle);
 				}
+			}
+			else
+			{
+				Opening.swing.direction = ReadFirstStringField(OpeningObject, { TEXT("swing_direction"), TEXT("swingDirection"), TEXT("facing"), TEXT("front_back"), TEXT("frontBack"), TEXT("side") }, TEXT("none"));
+				Opening.swing.hinge = ReadFirstStringField(OpeningObject, { TEXT("hinge"), TEXT("hinge_side"), TEXT("hingeSide") }, TEXT("none"));
 			}
 
 			OutData.openings.Add(Opening);

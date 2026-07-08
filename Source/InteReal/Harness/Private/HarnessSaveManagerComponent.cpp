@@ -5,6 +5,7 @@
 #include "Components/MeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/Texture.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "JsonObjectConverter.h"
@@ -17,6 +18,8 @@
 #include "InteReal/EditMode/Managers/GridSpaceManager.h"
 #include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
 #include "InteReal/Master/InteRealPlayerController.h"
+#include "Materials/MaterialInstance.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 namespace
 {
@@ -157,6 +160,89 @@ namespace
 
 		return FString();
 	}
+
+	void HarnessSave_CaptureSurfaceMaterial(UMeshComponent* MeshComp, FSurfaceMaterialDelta& MatDelta)
+	{
+		if (!MeshComp)
+		{
+			return;
+		}
+
+		UMaterialInterface* Material = MeshComp->GetMaterial(0);
+		if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(Material))
+		{
+			if (MID->Parent)
+			{
+				MatDelta.MaterialPath = MID->Parent->GetPathName();
+			}
+
+			if (UTexture* BaseColorTexture = MID->K2_GetTextureParameterValue(TEXT("BaseColorTexture")))
+			{
+				MatDelta.BaseColorTexturePath = BaseColorTexture->GetPathName();
+			}
+
+			MatDelta.bHasMaterialAttributes = true;
+			MatDelta.Metallic = MID->K2_GetScalarParameterValue(TEXT("Metallic"));
+			MatDelta.Specular = MID->K2_GetScalarParameterValue(TEXT("Specular"));
+			MatDelta.Roughness = MID->K2_GetScalarParameterValue(TEXT("Roughness"));
+			MatDelta.Emissive = MID->K2_GetScalarParameterValue(TEXT("Emissive"));
+			MatDelta.TextureTiling = FMath::Max(MID->K2_GetScalarParameterValue(TEXT("TextureTiling")), 0.01f);
+			return;
+		}
+
+		if (Material)
+		{
+			MatDelta.MaterialPath = Material->GetPathName();
+		}
+	}
+
+	void HarnessSave_ApplySurfaceMaterial(UMeshComponent* MeshComp, const FSurfaceMaterialDelta& MatDelta)
+	{
+		if (!MeshComp || MatDelta.MaterialPath.IsEmpty())
+		{
+			return;
+		}
+
+		UMaterialInterface* LoadedMat = Cast<UMaterialInterface>(
+			StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MatDelta.MaterialPath));
+		if (!LoadedMat)
+		{
+			return;
+		}
+
+		if (!MatDelta.bHasMaterialAttributes && MatDelta.BaseColorTexturePath.IsEmpty())
+		{
+			MeshComp->SetMaterial(0, LoadedMat);
+			return;
+		}
+
+		UMaterialInstanceDynamic* SurfaceMID = UMaterialInstanceDynamic::Create(LoadedMat, MeshComp);
+		if (!SurfaceMID)
+		{
+			MeshComp->SetMaterial(0, LoadedMat);
+			return;
+		}
+
+		if (!MatDelta.BaseColorTexturePath.IsEmpty())
+		{
+			if (UTexture* BaseColorTexture = Cast<UTexture>(
+				StaticLoadObject(UTexture::StaticClass(), nullptr, *MatDelta.BaseColorTexturePath)))
+			{
+				SurfaceMID->SetTextureParameterValue(TEXT("BaseColorTexture"), BaseColorTexture);
+			}
+		}
+
+		if (MatDelta.bHasMaterialAttributes)
+		{
+			SurfaceMID->SetScalarParameterValue(TEXT("Metallic"), MatDelta.Metallic);
+			SurfaceMID->SetScalarParameterValue(TEXT("Specular"), MatDelta.Specular);
+			SurfaceMID->SetScalarParameterValue(TEXT("Roughness"), MatDelta.Roughness);
+			SurfaceMID->SetScalarParameterValue(TEXT("Emissive"), MatDelta.Emissive);
+			SurfaceMID->SetScalarParameterValue(TEXT("TextureTiling"), FMath::Max(MatDelta.TextureTiling, 0.01f));
+		}
+
+		MeshComp->SetMaterial(0, SurfaceMID);
+	}
 }
 
 UHarnessSaveManagerComponent::UHarnessSaveManagerComponent()
@@ -238,13 +324,9 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 					const FString SurfaceID = FindHarnessSurfaceId(MeshComp);
 					if (!SurfaceID.IsEmpty())
 					{
-						UMaterialInterface* Mat = MeshComp->GetMaterial(0);
 						FSurfaceMaterialDelta MatDelta;
 						MatDelta.SurfaceID = SurfaceID;
-						if (Mat)
-						{
-							MatDelta.MaterialPath = Mat->GetPathName();
-						}
+						HarnessSave_CaptureSurfaceMaterial(MeshComp, MatDelta);
 						if (const UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(MeshComp))
 						{
 							if (StaticMeshComp->ComponentHasTag(TEXT("EditableOpening")))
@@ -256,7 +338,10 @@ FString UHarnessSaveManagerComponent::SaveInteriorState()
 								}
 							}
 						}
-						if (!MatDelta.MaterialPath.IsEmpty() || !MatDelta.MeshPath.IsEmpty())
+						if (!MatDelta.MaterialPath.IsEmpty() ||
+							!MatDelta.BaseColorTexturePath.IsEmpty() ||
+							MatDelta.bHasMaterialAttributes ||
+							!MatDelta.MeshPath.IsEmpty())
 						{
 							DeltaList.SurfaceMaterials.Add(MatDelta);
 							SurfaceCount++;
@@ -319,7 +404,8 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 
 					FActorSpawnParameters SpawnParams;
 					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-					const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(*Row, Visualizer->FurnitureClass);
+					const TSubclassOf<AFurniture> SpawnClass = AFurniture::ResolveSpawnClass(
+						*Row, Visualizer->FurnitureClass, Visualizer->LightFixtureClass);
 					AFurniture* SpawnedActor = GetWorld()->SpawnActor<AFurniture>(
 						SpawnClass, Delta.Transform, SpawnParams);
 					if (!SpawnedActor)
@@ -442,14 +528,7 @@ void UHarnessSaveManagerComponent::LoadInteriorState(const FString& JsonString)
 						{
 							if (MeshComp->ComponentHasTag(FName(*MatDelta.SurfaceID)))
 							{
-								if (!MatDelta.MaterialPath.IsEmpty())
-								{
-									UMaterialInterface* LoadedMat = Cast<UMaterialInterface>(StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MatDelta.MaterialPath));
-									if (LoadedMat)
-									{
-										MeshComp->SetMaterial(0, LoadedMat);
-									}
-								}
+								HarnessSave_ApplySurfaceMaterial(MeshComp, MatDelta);
 								if (!MatDelta.MeshPath.IsEmpty())
 								{
 									if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(MeshComp))

@@ -5,9 +5,7 @@
 #include "Components/DynamicMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
-#include "InteReal/EditMode/Furniture/FFurnitureDataRow.h"
-#include "InteReal/EditMode/Subsystem/InteriorPlacementSubsystem.h"
-#include "InteReal/EditMode/Visualization/PlacementVisualizerActor.h"
+#include "InteReal/EditMode/Openings/FOpeningAssetDataRow.h"
 #include "DynamicMesh/MeshNormals.h"
 #include "GeomTools.h"
 #include "UDynamicMesh.h"
@@ -554,7 +552,31 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
         return Opening.kind.Contains(TEXT("entrance"), ESearchCase::IgnoreCase) || Opening.type.Contains(TEXT("Entrance"), ESearchCase::IgnoreCase);
     };
 
-    auto ResolveOpeningMesh = [&](const FTopologyOpening& Opening) -> UStaticMesh*
+    auto ShouldFlipOpeningFacing = [](const FTopologyOpening& Opening) -> bool
+    {
+        const FString Direction = Opening.swing.direction.ToLower();
+        return Direction.Equals(TEXT("back")) ||
+            Direction.Equals(TEXT("rear")) ||
+            Direction.Equals(TEXT("backward")) ||
+            Direction.Equals(TEXT("outward")) ||
+            Direction.Equals(TEXT("outside")) ||
+            Direction.Equals(TEXT("exterior")) ||
+            Direction.Equals(TEXT("reverse")) ||
+            Direction.Equals(TEXT("flipped")) ||
+            Direction.Equals(TEXT("뒤")) ||
+            Direction.Equals(TEXT("뒤쪽")) ||
+            Direction.Equals(TEXT("후면")) ||
+            Direction.Equals(TEXT("바깥")) ||
+            Direction.Equals(TEXT("외부"));
+    };
+
+    struct FResolvedOpeningMesh
+    {
+        UStaticMesh* Mesh = nullptr;
+        float RowYawOffset = 0.0f;
+    };
+
+    auto ResolveOpeningMesh = [&](const FTopologyOpening& Opening) -> FResolvedOpeningMesh
     {
         UStaticMesh* ExplicitMesh = nullptr;
         if (IsWindowOpening(Opening))
@@ -576,64 +598,52 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
 
         if (ExplicitMesh)
         {
-            return ExplicitMesh;
+            return { ExplicitMesh, 0.0f };
         }
 
-        UInteriorPlacementSubsystem* PlacementSubsystem = GetWorld() ? GetWorld()->GetSubsystem<UInteriorPlacementSubsystem>() : nullptr;
-        APlacementVisualizerActor* Visualizer = PlacementSubsystem ? PlacementSubsystem->GetVisualizer() : nullptr;
-        if (!Visualizer || !Visualizer->FurnitureDataTable)
+        if (!OpeningAssetDataTable)
         {
-            return nullptr;
+            return {};
         }
 
         static const FString ContextString(TEXT("ResolveOpeningMesh"));
-        TArray<FFurnitureDataRow*> Rows;
-        Visualizer->FurnitureDataTable->GetAllRows<FFurnitureDataRow>(ContextString, Rows);
+        TArray<FOpeningAssetDataRow*> Rows;
+        OpeningAssetDataTable->GetAllRows<FOpeningAssetDataRow>(ContextString, Rows);
 
         const bool bNeedWindow = IsWindowOpening(Opening);
         const bool bNeedSliding = IsSlidingDoorOpening(Opening);
         const bool bNeedEntrance = IsEntranceDoorOpening(Opening);
-        UStaticMesh* GenericDoorCandidate = nullptr;
-        UStaticMesh* GenericWindowCandidate = nullptr;
-        for (const FFurnitureDataRow* Row : Rows)
+        for (const FOpeningAssetDataRow* Row : Rows)
         {
-            if (!Row || !Row->FurnitureMesh)
+            if (!Row || !Row->OpeningMesh)
             {
                 continue;
             }
 
             if (bNeedWindow)
             {
-                if (Row->AssetKind == EPlacementAssetKind::Window)
+                if (Row->OpeningKind == EOpeningAssetKind::Window)
                 {
-                    return Row->FurnitureMesh;
-                }
-                if (!GenericWindowCandidate && Row->DisplayName.ToString().ToLower().Contains(TEXT("window")))
-                {
-                    GenericWindowCandidate = Row->FurnitureMesh;
+                    return { Row->OpeningMesh, Row->OpeningMeshYawOffset };
                 }
                 continue;
             }
 
-            if (bNeedSliding && Row->AssetKind == EPlacementAssetKind::SlidingDoor)
+            if (bNeedSliding && Row->OpeningKind == EOpeningAssetKind::SlidingDoor)
             {
-                return Row->FurnitureMesh;
+                return { Row->OpeningMesh, Row->OpeningMeshYawOffset };
             }
-            if (bNeedEntrance && Row->AssetKind == EPlacementAssetKind::EntranceDoor)
+            if (bNeedEntrance && Row->OpeningKind == EOpeningAssetKind::EntranceDoor)
             {
-                return Row->FurnitureMesh;
+                return { Row->OpeningMesh, Row->OpeningMeshYawOffset };
             }
-            if (Row->AssetKind == EPlacementAssetKind::Door)
+            if (Row->OpeningKind == EOpeningAssetKind::Door)
             {
-                return Row->FurnitureMesh;
-            }
-            if (!GenericDoorCandidate && Row->DisplayName.ToString().ToLower().Contains(TEXT("door")))
-            {
-                GenericDoorCandidate = Row->FurnitureMesh;
+                return { Row->OpeningMesh, Row->OpeningMeshYawOffset };
             }
         }
 
-        return bNeedWindow ? GenericWindowCandidate : GenericDoorCandidate;
+        return {};
     };
 
     auto FindOpeningCenterAndDirection = [&](const FTopologyOpening& Opening, FVector2D& OutCenter, FVector2D& OutDirection) -> bool
@@ -698,7 +708,8 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
 
     for (const FTopologyOpening& Opening : FloorData.openings)
     {
-        UStaticMesh* OpeningMesh = ResolveOpeningMesh(Opening);
+        const FResolvedOpeningMesh ResolvedMesh = ResolveOpeningMesh(Opening);
+        UStaticMesh* OpeningMesh = ResolvedMesh.Mesh;
         if (!OpeningMesh)
         {
             continue;
@@ -761,7 +772,9 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
             Scale.Z = DesiredHeight / MeshSize.Z;
         }
 
-        const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(OpeningDirection.Y, OpeningDirection.X)) + MeshYawOffset;
+        const float BaseYaw = FMath::RadiansToDegrees(FMath::Atan2(OpeningDirection.Y, OpeningDirection.X));
+        const float FacingYawOffset = ShouldFlipOpeningFacing(Opening) ? 180.0f : 0.0f;
+        const float Yaw = BaseYaw + FacingYawOffset + MeshYawOffset + ResolvedMesh.RowYawOffset;
         const float BottomZ = Opening.z_offset_cm;
         const float CenterZ = BottomZ + DesiredHeight * 0.5f;
         OpeningComp->SetRelativeScale3D(Scale);
@@ -775,7 +788,10 @@ void UHarnessGeneratorComponent::InstallOpeningComponents(const FHarnessFloorDat
             FString::Printf(TEXT("HarnessOpeningTargetEdgeId=%s"), *Opening.target_edge_id),
             FString::Printf(TEXT("HarnessOpeningWidthCm=%.3f"), DesiredWidth),
             FString::Printf(TEXT("HarnessOpeningHeightCm=%.3f"), DesiredHeight),
-            FString::Printf(TEXT("HarnessOpeningDepthCm=%.3f"), WallThickness)
+            FString::Printf(TEXT("HarnessOpeningDepthCm=%.3f"), WallThickness),
+            FString::Printf(TEXT("HarnessOpeningBaseYawDeg=%.3f"), BaseYaw),
+            FString::Printf(TEXT("HarnessOpeningFacingYawOffsetDeg=%.3f"), FacingYawOffset),
+            FString::Printf(TEXT("HarnessOpeningSwingDirection=%s"), *Opening.swing.direction)
         };
         AddGeneratedComponentTags(OpeningComp, TEXT("Opening"), Opening.id, MetadataTags);
         OpeningComp->ComponentTags.AddUnique(FName(*FString::Printf(TEXT("Opening_%s"), *Opening.id)));

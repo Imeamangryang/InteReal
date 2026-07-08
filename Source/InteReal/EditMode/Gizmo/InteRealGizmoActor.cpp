@@ -10,6 +10,7 @@
 #include "Engine/PostProcessVolume.h"
 #include "EngineUtils.h"
 
+/* 기즈모 포스트프로세스 아웃라인 로직 비활성화 - 선택 시 화면 깜빡임 원인 중 하나
 static void SetGizmoOutlineColor(UWorld* World, FLinearColor Color)
 {
 	if (!World) return;
@@ -33,6 +34,7 @@ static void SetGizmoOutlineColor(UWorld* World, FLinearColor Color)
 		}
 	}
 }
+*/
 
 static void ConfigureGizmoCollision(UPrimitiveComponent* Component, bool bEnabled)
 {
@@ -182,10 +184,11 @@ void AInteRealGizmoActor::SetAxisOutline(const FString& Axis, bool bEnable)
 	const TArray<TObjectPtr<UMeshComponent>>* Meshes = AxisMeshes.Find(Axis);
 	if (!Meshes) return;
 
-	if (bEnable)
-	{
-		SetGizmoOutlineColor(GetWorld(), FLinearColor::White);
-	}
+	// 기즈모 포스트프로세스 아웃라인 로직 비활성화 - 선택 시 화면 깜빡임 원인 중 하나
+	// if (bEnable)
+	// {
+	// 	SetGizmoOutlineColor(GetWorld(), FLinearColor::White);
+	// }
 	SetAxisColorHighlight(Axis, bEnable);
 
 	const bool bIsMove = Axis.StartsWith(TEXT("Move"));

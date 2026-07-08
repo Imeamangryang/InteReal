@@ -49,6 +49,27 @@ struct FSurfaceMaterialDelta
     FString MaterialPath;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    FString BaseColorTexturePath;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    bool bHasMaterialAttributes = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    float Metallic = 0.0f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    float Specular = 0.0f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    float Roughness = 0.0f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    float Emissive = 0.0f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
+    float TextureTiling = 1.0f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")
     FString MeshPath;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Harness|Data")

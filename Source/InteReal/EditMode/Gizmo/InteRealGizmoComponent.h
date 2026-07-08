@@ -93,6 +93,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gizmo")
 	float TargetScreenDiameterPixels = 180.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Gizmo")
+	float ScreenSizeScale = 0.5f;
+
 	UPROPERTY(EditAnywhere, Category = "Gizmo|Rotation")
 	float CardinalSnapIntervalDegrees = 90.0f;
 

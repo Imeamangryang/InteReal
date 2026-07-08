@@ -48,6 +48,9 @@ public:
     TObjectPtr<UStaticMesh> DefaultSlidingDoorMesh = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Openings")
+    TObjectPtr<UDataTable> OpeningAssetDataTable = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Openings")
     bool bGenerateOpeningAssets = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Harness|Spaces")

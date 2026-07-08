@@ -10,6 +10,7 @@
 #include "InputActionValue.h"
 #include "InteRealPlayerController.generated.h"
 
+struct FOpeningAssetDataRow;
 class UInteRealMinimap;
 class UInteriorPlacementSubsystem;
 class AViewModeManager;
@@ -61,6 +62,9 @@ public:
 	
 	UFUNCTION()
 	void HandleWallMaterialDataChanged(FMaterialDataRow MaterialData);
+
+	UFUNCTION()
+	void HandleOpeningAssetSelected(FOpeningAssetDataRow OpeningData);
 	
 	UFUNCTION()
 	void HandlePipelineLoadFinished();

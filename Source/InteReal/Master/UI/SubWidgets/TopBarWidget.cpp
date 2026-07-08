@@ -125,6 +125,14 @@ void UTopBarWidget::ChangeViewMode(EHarnessViewMode NewMode)
 	{
 		PC->SetViewMode(NewMode);
 	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UHarnessPipelineManager* Pipeline = World->GetSubsystem<UHarnessPipelineManager>())
+		{
+			Pipeline->OnWorldStateChanged.Broadcast();
+		}
+	}
 }
 
 void UTopBarWidget::OnProjectSelected(const FUnrealProjectItem& ProjectItem)

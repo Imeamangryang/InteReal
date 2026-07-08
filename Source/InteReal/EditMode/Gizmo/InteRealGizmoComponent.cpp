@@ -15,6 +15,7 @@
 
 namespace
 {
+	/* 기즈모 포스트프로세스 아웃라인 로직 비활성화 - 선택 시 화면 깜빡임 원인 중 하나
 	static void SetComponentGizmoOutlineColor(UWorld* World, FLinearColor Color)
 	{
 		if (!World)
@@ -42,6 +43,7 @@ namespace
 			}
 		}
 	}
+	*/
 
 	static FInteRealGizmoVisualPart MakeGizmoPart(const TCHAR* AxisTag,
 		const TCHAR* MeshPath,
@@ -143,6 +145,9 @@ void UInteRealGizmoComponent::BuildGeneratedVisuals()
 		}
 
 		MeshComponent->SetStaticMesh(Mesh);
+		// 기즈모는 반투명 머티리얼을 사용하므로 Nanite 렌더링 대상에서 제외한다.
+		// Nanite + Translucent 조합에서 발생하는 경고와 클릭/호버 깜빡임을 방지한다.
+		MeshComponent->bDisallowNanite = true;
 		if (UMaterialInterface* Material = Part.Material.LoadSynchronous())
 		{
 			MeshComponent->SetMaterial(0, Material);
@@ -429,29 +434,10 @@ bool UInteRealGizmoComponent::IsRotationAxisVisible(const FString& Axis) const
 
 void UInteRealGizmoComponent::SetAxisOutline(const FString& Axis, bool bEnable)
 {
-	const TArray<TObjectPtr<UMeshComponent>>* Meshes = AxisMeshes.Find(Axis);
-	if (!Meshes)
-	{
-		return;
-	}
-
-	if (bEnable)
-	{
-		SetComponentGizmoOutlineColor(GetWorld(), FLinearColor::White);
-	}
+	// 기즈모 Hover 피드백은 머티리얼 색상 변경만 사용한다.
+	// Custom Depth/Stencil을 매 Hover 전환마다 갱신하면 Pixel Streaming에서
+	// 렌더 상태가 반복 생성되며 깜빡임을 유발할 수 있어 비활성화했다.
 	SetAxisColorHighlight(Axis, bEnable);
-
-	const int32 Stencil = Axis.StartsWith(TEXT("Move")) ? MoveOutlineStencil : RotateOutlineStencil;
-	for (UMeshComponent* Mesh : *Meshes)
-	{
-		if (!Mesh)
-		{
-			continue;
-		}
-		Mesh->SetCustomDepthStencilValue(bEnable ? Stencil : 0);
-		Mesh->SetRenderCustomDepth(bEnable);
-		Mesh->MarkRenderStateDirty();
-	}
 }
 
 void UInteRealGizmoComponent::SetAxisColorHighlight(const FString& Axis, bool bEnable)
@@ -657,15 +643,18 @@ bool UInteRealGizmoComponent::BeginDrag(const FString& Axis, const FVector& Worl
 		}
 
 		const FPlane DragPlane(PlaneAnchor, PlaneNormal);
-		FVector SafeWorldDir = WorldDir;
-		if (FMath::IsNearlyZero(FVector::DotProduct(SafeWorldDir, PlaneNormal), 0.001f))
-		{
-			SafeWorldDir += PlaneNormal * 0.001f;
-			SafeWorldDir.Normalize();
-		}
-		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + SafeWorldDir * 100000.f, DragPlane);
 		DragStartLocation = PlaneAnchor;
-		DragCursorOffset = CursorOnPlane - DragStartLocation;
+		// 카메라 시선이 드래그 평면과 거의 평행하면(분모가 아주 작으면) 교차점이 극단적으로
+		// 튈 수 있어(클릭 순간 깜빡임의 원인) 이번 프레임은 계산하지 않고 오프셋 0으로 시작한다.
+		if (FMath::Abs(FVector::DotProduct(WorldDir, PlaneNormal)) >= 0.1f)
+		{
+			const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, DragPlane);
+			DragCursorOffset = CursorOnPlane - DragStartLocation;
+		}
+		else
+		{
+			DragCursorOffset = FVector::ZeroVector;
+		}
 	}
 	return true;
 }
@@ -737,13 +726,13 @@ bool UInteRealGizmoComponent::UpdateDrag(const FVector& WorldOrigin, const FVect
 		}
 
 		const FPlane DragPlane(DragStartLocation, PlaneNormal);
-		FVector SafeWorldDir = WorldDir;
-		if (FMath::IsNearlyZero(FVector::DotProduct(SafeWorldDir, PlaneNormal), 0.001f))
+		// 이번 프레임 카메라 시선이 드래그 평면과 거의 평행하면 교차점이 불안정해지므로
+		// (클릭/드래그 중 깜빡임의 원인) 위치를 갱신하지 않고 이전 프레임 상태를 유지한다.
+		if (FMath::Abs(FVector::DotProduct(WorldDir, PlaneNormal)) < 0.1f)
 		{
-			SafeWorldDir += PlaneNormal * 0.001f;
-			SafeWorldDir.Normalize();
+			return false;
 		}
-		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + SafeWorldDir * 100000.f, DragPlane);
+		const FVector CursorOnPlane = FMath::LinePlaneIntersection(WorldOrigin, WorldOrigin + WorldDir * 100000.f, DragPlane);
 		FVector TargetPoint = CursorOnPlane - DragCursorOffset;
 		if (CurrentDraggingAxis == EGizmoTransformAxis::MoveX)
 		{
@@ -810,49 +799,16 @@ void UInteRealGizmoComponent::UpdateConstantScreenSize(APlayerController* Player
 	const float CameraFOVDegrees = PlayerController->PlayerCameraManager->GetFOVAngle();
 	const float Distance = FVector::Dist(CameraLocation, GetComponentLocation());
 	const float FOVScale = FMath::Tan(FMath::DegreesToRadians(CameraFOVDegrees * 0.5f));
-	float Scale = FMath::Clamp(Distance * FOVScale * ScaleMultiplier / ReferenceDistance, MinScreenScale, MaxScreenScale);
-	SetWorldScale3D(FVector(Scale));
+	const float Scale = FMath::Clamp(
+		Distance * FOVScale * ScaleMultiplier * ScreenSizeScale / ReferenceDistance,
+		MinScreenScale,
+		MaxScreenScale);
 
-	const FBox GizmoBounds = GetVisibleGizmoBounds();
-	if (!GizmoBounds.IsValid)
+	// Never feed generated primitive world bounds back into this calculation: they
+	// can still contain the previous frame's scale and cause two-frame oscillation.
+	if (!GetComponentScale().Equals(FVector(Scale), KINDA_SMALL_NUMBER))
 	{
-		return;
-	}
-
-	const FVector Min = GizmoBounds.Min;
-	const FVector Max = GizmoBounds.Max;
-	const FVector Corners[8] = {
-		{Min.X, Min.Y, Min.Z}, {Max.X, Min.Y, Min.Z},
-		{Min.X, Max.Y, Min.Z}, {Max.X, Max.Y, Min.Z},
-		{Min.X, Min.Y, Max.Z}, {Max.X, Min.Y, Max.Z},
-		{Min.X, Max.Y, Max.Z}, {Max.X, Max.Y, Max.Z}
-	};
-
-	FVector2D ScreenMin(FLT_MAX, FLT_MAX);
-	FVector2D ScreenMax(-FLT_MAX, -FLT_MAX);
-	bool bProjected = false;
-	for (const FVector& Corner : Corners)
-	{
-		FVector2D ScreenCorner;
-		if (PlayerController->ProjectWorldLocationToScreen(Corner, ScreenCorner, true))
-		{
-			ScreenMin.X = FMath::Min(ScreenMin.X, ScreenCorner.X);
-			ScreenMin.Y = FMath::Min(ScreenMin.Y, ScreenCorner.Y);
-			ScreenMax.X = FMath::Max(ScreenMax.X, ScreenCorner.X);
-			ScreenMax.Y = FMath::Max(ScreenMax.Y, ScreenCorner.Y);
-			bProjected = true;
-		}
-	}
-
-	if (bProjected)
-	{
-		const FVector2D PixelSize = ScreenMax - ScreenMin;
-		const float CurrentDiameter = FMath::Max(PixelSize.X, PixelSize.Y);
-		if (CurrentDiameter > 1.0f)
-		{
-			Scale = FMath::Clamp(Scale * TargetScreenDiameterPixels / CurrentDiameter, MinScreenScale, MaxScreenScale);
-			SetWorldScale3D(FVector(Scale));
-		}
+		SetWorldScale3D(FVector(Scale));
 	}
 }
 

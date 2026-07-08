@@ -49,8 +49,17 @@ public:
 	// Edit/View 모드 전환 시 컨트롤러가 호출 — 선호값은 그대로 두고 실제 표시 여부만 갱신
 	void SetLightFixtureIconsEditModeActive(bool bActive);
 
-	// 새로 배치되는 라이트가 따라야 할, 선호값과 모드를 모두 반영한 실제 표시 여부
-	bool AreLightFixtureIconsCurrentlyVisible() const { return bLightFixtureIconsPreferred && bLightFixtureIconsEditModeActive; }
+	// 카메라 뷰 전환 시 컨트롤러가 호출. ISO/Top은 기본 OFF로 초기화하고
+	// 토글로 다시 표시할 수 있으며, 뷰별 화면 크기를 적용한다.
+	void SetLightFixtureIconsViewMode(bool bDefaultVisible, float IconPixelSize);
+
+	// 새로 배치되는 라이트가 따라야 할, 사용자 선호값과 현재 모드를 모두 반영한 실제 표시 여부
+	bool AreLightFixtureIconsCurrentlyVisible() const
+	{
+		return bLightFixtureIconsPreferred && bLightFixtureIconsEditModeActive;
+	}
+
+	float GetLightFixtureIconPixelSize() const { return CurrentLightFixtureIconPixelSize; }
 
 	// ===== 프리뷰 =====
 	UFUNCTION(BlueprintPure, Category = "Placement|Preview")
@@ -247,8 +256,9 @@ private:
 	TArray<AFurniture*> PlacedFurnitures;
 
 	// ===== 라이트 아이콘 상태 =====
-	bool bLightFixtureIconsPreferred = true;
+	bool bLightFixtureIconsPreferred = false;
 	bool bLightFixtureIconsEditModeActive = true;
+	float CurrentLightFixtureIconPixelSize = 16.0f;
 
 	void ApplyLightFixtureIconsEffectiveState();
 

@@ -36,7 +36,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
 	UStaticMeshComponent* MeshComponent;
-	
+
+	// 반투명 머티리얼 메시는 CustomDepth를 쓰지 않아 아웃라인이 안 나온다.
+	// 메인 패스에는 렌더되지 않는 불투명 복제 메시로 CustomDepth 기록만 담당시킨다.
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Furniture")
+	// TObjectPtr<UStaticMeshComponent> CustomDepthProxyComponent;
+
+	// void SyncCustomDepthProxy();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LightFixture")
 	UPointLightComponent* LightComponent;
 

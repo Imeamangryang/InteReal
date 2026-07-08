@@ -1,4 +1,4 @@
-#include "InteRealUISubSystem.h"
+﻿#include "InteRealUISubSystem.h"
 #include "Materials/MaterialInterface.h"
 
 void UInteRealUISubSystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -38,4 +38,9 @@ void UInteRealUISubSystem::NotifyWallMaterialDataChanged(const FMaterialDataRow&
 		MaterialData.DisplayImage ? *MaterialData.DisplayImage->GetPathName() : TEXT("<null>"));
 
 	OnWallMaterialDataChanged.Broadcast(MaterialData);
+}
+
+void UInteRealUISubSystem::NotifyOpeningAssetSelected(const FOpeningAssetDataRow& OpeningData)
+{
+	OnOpeningAssetSelected.Broadcast(OpeningData);
 }
